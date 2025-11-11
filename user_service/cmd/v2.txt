@@ -1,0 +1,99 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/fedotovmax/microservices-shop-protos/gen/go/usersvc"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc"
+)
+
+type service struct {
+	usersvc.UnimplementedUserServiceServer
+}
+
+func (s *service) CreateUser(ctx context.Context, req *usersvc.CreateUserRequest) (*usersvc.CreateUserResponse, error) {
+	return nil, fmt.Errorf("some error")
+}
+
+func main() {
+	// --- Подключение к Postgres ---
+	poolCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		slog.Error("postgres db url not provided!")
+		os.Exit(1)
+	}
+
+	pool, err := pgxpool.New(poolCtx, dbURL)
+	if err != nil {
+		slog.Error("Cannot connect to postgres", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	if err := pool.Ping(context.Background()); err != nil {
+		slog.Error("Error pinging postgres", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	slog.Info("Connected to postgres")
+
+	// --- Настройка gRPC ---
+	port := os.Getenv("PORT")
+	if port == "" {
+		slog.Error("port not provided!")
+		os.Exit(1)
+	}
+
+	lis, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		slog.Error("Error creating listener", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	server := grpc.NewServer()
+	usersvc.RegisterUserServiceServer(server, &service{})
+
+	// --- Обработка сигналов ---
+	sigCtx, sigCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer sigCancel()
+
+	serveErr := make(chan error, 1)
+	go func() {
+		slog.Info("Starting gRPC server", slog.String("port", port))
+		serveErr <- server.Serve(lis)
+	}()
+
+	select {
+	case <-sigCtx.Done():
+		slog.Info("Signal received, shutting down...")
+	case err := <-serveErr:
+		if err != nil {
+			slog.Error("gRPC server stopped with error", slog.String("error", err.Error()))
+		}
+	}
+
+	// --- Graceful stop с таймаутом ---
+	shutdownDone := make(chan struct{})
+	go func() {
+		server.GracefulStop()
+		close(shutdownDone)
+	}()
+
+	select {
+	case <-shutdownDone:
+		slog.Info("gRPC server stopped gracefully")
+	case <-time.After(5 * time.Second):
+		slog.Warn("Graceful stop timeout exceeded, forcing stop")
+		server.Stop()
+	}
+}
