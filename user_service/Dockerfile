@@ -14,7 +14,8 @@ RUN go mod download
 COPY . .
 
 # Сборка бинарника
-RUN CGO_ENABLED=0 GOOS=linux go build -o app cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o grpc cmd/grpc/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o migrator cmd/migrator/main.go
 
 # =========================
 # Этап 2: Минимальный образ
@@ -26,11 +27,15 @@ FROM alpine:3.20
 WORKDIR /app
 
 # Копируем бинарник из builder
-COPY --from=builder /app/app .
+COPY --from=builder /app/migrator .
+COPY --from=builder /app/grpc .
+COPY docker-entrypoint.sh .
+
+RUN chmod +x docker-entrypoint.sh
 
 # Опционально: копируем статические файлы (если есть)
 # COPY --from=builder /app/static ./static
 
 
 # Запуск
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["./app/docker-entrypoint.sh"]
