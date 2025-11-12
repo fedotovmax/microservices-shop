@@ -1,0 +1,16 @@
+services:
+  user_service_db:
+    container_name: user_service_db
+    restart: always
+    image: postgres:17.6-alpine
+    volumes:
+      - user-service-pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${USER_SERVICE_POSTGRES_LOGIN}
+      - POSTGRES_DB=${USER_SERVICE_POSTGRES_DB_NAME}
+    ports:
+      - "${USER_SERVICE_POSTGRES_DB_PORT}:5432"
+
+volumes:
+  user-service-pgdata:

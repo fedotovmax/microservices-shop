@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=${USER_SERVICE_POSTGRES_LOGIN}
       - POSTGRES_DB=${USER_SERVICE_POSTGRES_DB_NAME}
     expose:
-      - "${POSTGRES_DB_PORT}"
+      - "${USER_SERVICE_POSTGRES_DB_PORT}"
     healthcheck:
       test:
         [
@@ -33,7 +33,7 @@ services:
       - ${USER_SERVICE_PORT}
     environment:
       - PORT=${USER_SERVICE_PORT}
-      - DB_URL=postgres://${USER_SERVICE_POSTGRES_LOGIN}:${USER_SERVICE_POSTGRES_PASSWORD}@user_service_db:${POSTGRES_DB_PORT}/${USER_SERVICE_POSTGRES_DB_NAME}
+      - DB_URL=${USER_SERVICE_POSTGRES_URL}
     networks:
       - app-net
     depends_on:

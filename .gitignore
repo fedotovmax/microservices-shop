@@ -1,3 +1,4 @@
+.env
 .dev.env
 protos
 .DS_Store
