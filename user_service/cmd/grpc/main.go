@@ -10,11 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/IBM/sarama"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/usersvc"
 	adapterPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/postgres"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/config"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
 	infraPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/infra/db/postgres"
+	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
 	"github.com/fedotovmax/pgxtx"
 	"google.golang.org/grpc"
 )
@@ -57,24 +58,30 @@ func main() {
 
 	ex := txManager.GetExtractor()
 
-	userPostgres := adapterPostgres.NewUserPostgres(ex)
+	_ = adapterPostgres.NewUserPostgres(ex)
 
-	newUser := domain.CreateUser{
-		Email:     "makc@mail.ru",
-		FirstName: "Maxim",
-		LastName:  "Ivanov",
-	}
-
-	createUserCtx, createUserCtxCancel := context.WithTimeout(context.Background(), time.Second)
-	defer createUserCtxCancel()
-	userId, err := userPostgres.CreateUser(createUserCtx, newUser)
+	producer, err := kafka.NewAsyncProducer(cfg.KafkaBrokers)
 
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	slog.Info("New User:", slog.String("id", userId))
+	go func() {
+		msg, ok := <-producer.Successes()
+		if !ok {
+			slog.Error("Producer send message error")
+		} else {
+			slog.Info("Message sended:", slog.Any("msg", msg.Value))
+		}
+	}()
+
+	go func() {
+		producer.Input() <- &sarama.ProducerMessage{
+			Topic: "my_topic",
+			Value: sarama.StringEncoder("hello!"),
+		}
+	}()
 
 	tcplistener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 
