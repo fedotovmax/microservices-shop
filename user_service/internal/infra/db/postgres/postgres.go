@@ -37,7 +37,7 @@ type PostgresPool interface {
 }
 
 func (p *postgresPool) GracefulStop(ctx context.Context) error {
-	op := "postgresPool.Close"
+	op := "db.postgres.GracefulStop"
 
 	go func() {
 		defer close(p.closeChannel)
@@ -53,7 +53,7 @@ func (p *postgresPool) GracefulStop(ctx context.Context) error {
 }
 
 func New(ctx context.Context, connection string) (PostgresPool, error) {
-	const op = "postgresPool.New"
+	const op = "db.postgres.New"
 	syncOnce.Do(func() {
 		dbPool, err := pgxpool.New(ctx, connection)
 

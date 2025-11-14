@@ -6,9 +6,9 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// TODO: sync once??
 func NewConsumerGroup(brokers []string, groupID string, topics []string) (sarama.ConsumerGroup, error) {
-
-	const op = "kafka.NewConsumerGroup"
+	const op = "queues.kafka.NewConsumerGroup"
 
 	cfg := sarama.NewConfig()
 	cfg.Version = sarama.V4_1_0_0
@@ -22,19 +22,4 @@ func NewConsumerGroup(brokers []string, groupID string, topics []string) (sarama
 	}
 
 	return cg, nil
-}
-
-func NewAsyncProducer(brokers []string) (sarama.AsyncProducer, error) {
-	const op = "kafka.NewAsyncProducer"
-	cfg := sarama.NewConfig()
-	cfg.Producer.Return.Successes = true
-	cfg.Producer.Retry.Max = 5
-	cfg.Producer.RequiredAcks = sarama.WaitForAll
-
-	producer, err := sarama.NewAsyncProducer(brokers, cfg)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return producer, nil
 }

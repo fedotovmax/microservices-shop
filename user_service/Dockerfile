@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Сборка бинарника
-RUN CGO_ENABLED=0 GOOS=linux go build -o grpc cmd/grpc/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o user_service cmd/user_service/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -o migrator cmd/migrator/main.go
 
 # =========================
@@ -28,7 +28,7 @@ WORKDIR /app
 
 # Копируем бинарник из builder
 COPY --from=builder /app/migrator .
-COPY --from=builder /app/grpc .
+COPY --from=builder /app/user_service .
 COPY docker-entrypoint.sh .
 
 RUN chmod +x docker-entrypoint.sh

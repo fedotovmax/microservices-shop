@@ -5,3 +5,7 @@ type CreateUser struct {
 	FirstName string
 	LastName  string
 }
+
+type UserCreatedEvent struct {
+	ID string
+}

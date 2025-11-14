@@ -1,3 +1,3 @@
-drop table if exists public.user;
+drop table if exists users;
 
 drop domain if exists email_d;

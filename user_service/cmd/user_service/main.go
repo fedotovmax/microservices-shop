@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net"
 	"os"
@@ -10,12 +11,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/IBM/sarama"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/usersvc"
+	adapterKafka "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/kafka"
 	adapterPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/postgres"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/config"
+	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
 	infraPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/infra/db/postgres"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
+	infraKafka "github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
+	"github.com/fedotovmax/microservices-shop/user_service/internal/usecase"
 	"github.com/fedotovmax/pgxtx"
 	"google.golang.org/grpc"
 )
@@ -58,30 +61,36 @@ func main() {
 
 	ex := txManager.GetExtractor()
 
-	_ = adapterPostgres.NewUserPostgres(ex)
-
-	producer, err := kafka.NewAsyncProducer(cfg.KafkaBrokers)
+	produceInsatnce, err := infraKafka.NewAsyncProducer(cfg.KafkaBrokers)
 
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	go func() {
-		msg, ok := <-producer.Successes()
-		if !ok {
-			slog.Error("Producer send message error")
-		} else {
-			slog.Info("Message sended:", slog.Any("msg", msg.Value))
-		}
-	}()
+	producerKafka := adapterKafka.NewProduceAdapter(produceInsatnce)
 
-	go func() {
-		producer.Input() <- &sarama.ProducerMessage{
-			Topic: "my_topic",
-			Value: sarama.StringEncoder("hello!"),
-		}
-	}()
+	// postgres adapters
+	userPostgres := adapterPostgres.NewUserPostgres(ex)
+	eventPostgres := adapterPostgres.NewEventPostgres(ex)
+
+	// usecases
+	userUsecase := usecase.NewUserUsecase(userPostgres, eventPostgres, txManager)
+	eventProcessorUsecase := usecase.NewEventProcessorUsecase(producerKafka, eventPostgres)
+
+	log.Println(eventProcessorUsecase)
+
+	createUserCtx, cancelCreateUserCtx := context.WithTimeout(context.Background(), time.Second)
+	defer cancelCreateUserCtx()
+
+	userId, err := userUsecase.CreateUser(createUserCtx, domain.CreateUser{Email: "makc-ivanov@mail.ru", FirstName: "Maxim", LastName: "Ivanov"})
+
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+
+	slog.Info("User Created:", slog.String("user_id", userId))
 
 	tcplistener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 
@@ -118,6 +127,8 @@ func main() {
 	server.GracefulStop()
 
 	postgresPool.GracefulStop(shutdownCtx)
+
+	//	producer.Close()
 
 	slog.Info("All resources are closed, exit app")
 

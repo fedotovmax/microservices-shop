@@ -3,7 +3,7 @@ module github.com/fedotovmax/microservices-shop/user_service
 go 1.25.0
 
 require (
-	github.com/fedotovmax/microservices-shop-protos v1.0.1
+	github.com/fedotovmax/microservices-shop-protos v1.0.3
 	github.com/fedotovmax/pgxtx v1.0.1
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/jackc/pgx/v5 v5.7.6

@@ -23,9 +23,9 @@ func (p *userPostgres) GetByID(ctx context.Context, id string) error {
 }
 
 func (p *userPostgres) CreateUser(ctx context.Context, d domain.CreateUser) (string, error) {
-	const op = "postgres.user.CreateUser"
+	const op = "adapter.postgres.user.CreateUser"
 
-	const sql = "insert into public.user (email, first_name, last_name) values ($1, $2, $3) returning id;"
+	const sql = "insert into users (email, first_name, last_name) values ($1, $2, $3) returning id;"
 
 	tx := p.ex.ExtractTx(ctx)
 
