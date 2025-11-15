@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"os"
@@ -32,6 +31,7 @@ func (s *service) CreateUser(ctx context.Context, req *usersvc.CreateUserRequest
 }
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	cfg, err := config.New()
 
@@ -76,9 +76,17 @@ func main() {
 
 	// usecases
 	userUsecase := usecase.NewUserUsecase(userPostgres, eventPostgres, txManager)
-	eventProcessorUsecase := usecase.NewEventProcessorUsecase(producerKafka, eventPostgres)
-
-	log.Println(eventProcessorUsecase)
+	// TODO: get all params from config!
+	eventProcessorUsecase := usecase.NewEventProcessorUsecase(usecase.EventProcessorProps{
+		ProduceAdapter:     producerKafka,
+		EventAdapter:       eventPostgres,
+		TransactionManager: txManager,
+		Config: usecase.EventProcessorConfig{
+			//TODO: get this values from env
+			Limit:   50,
+			Workers: 5,
+		},
+	})
 
 	createUserCtx, cancelCreateUserCtx := context.WithTimeout(context.Background(), time.Second)
 	defer cancelCreateUserCtx()
@@ -108,6 +116,10 @@ func main() {
 	sigCtx, sigCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer sigCancel()
 
+	eventProcessorUsecase.DispatchMonitoring(sigCtx)
+	eventProcessorUsecase.ProcessingNewEvents(sigCtx)
+	slog.Debug("eventProcessor starting")
+
 	go func() {
 		slog.Info("Starting grpc server on port:", slog.Int("port", cfg.Port))
 		if err := server.Serve(tcplistener); err != nil {
@@ -128,7 +140,7 @@ func main() {
 
 	postgresPool.GracefulStop(shutdownCtx)
 
-	//	producer.Close()
+	produceInsatnce.Close(shutdownCtx)
 
 	slog.Info("All resources are closed, exit app")
 

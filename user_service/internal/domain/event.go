@@ -25,6 +25,10 @@ type CreateEvent struct {
 
 type EventStatus string
 
+func (es EventStatus) String() string {
+	return string(es)
+}
+
 const EventStatusNew EventStatus = "new"
 const EventStatusDone EventStatus = "done"
 
@@ -37,4 +41,8 @@ type Event struct {
 	Status      EventStatus
 	CreatedAt   time.Time
 	ReservedTo  *time.Time
+}
+
+type UserCreatedEvent struct {
+	ID string
 }

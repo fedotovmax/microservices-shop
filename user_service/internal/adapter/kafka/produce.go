@@ -33,7 +33,7 @@ func NewProduceAdapter(p infraKafka.Producer) *produceAdapter {
 	}
 }
 
-func (p *produceAdapter) Publish(ctx context.Context, ev domain.Event) error {
+func (p *produceAdapter) Publish(ctx context.Context, ev *domain.Event) error {
 	op := "adapter.kafka.produce.Publish"
 
 	metadata := &messageMetadata{
@@ -50,7 +50,7 @@ func (p *produceAdapter) Publish(ctx context.Context, ev domain.Event) error {
 
 	select {
 	case <-ctx.Done():
-		return fmt.Errorf("%s: %w", op, ctx.Err())
+		return fmt.Errorf("%s: event_id: %s: %w", op, ev.ID, ctx.Err())
 	case p.producer.GetInput() <- msg:
 		return nil
 	}
@@ -66,11 +66,11 @@ func (p *produceAdapter) GetSuccesses(ctx context.Context) <-chan *domain.Succes
 			for {
 				select {
 				case <-ctx.Done():
-					slog.Info("stopped by context:", slog.String("op", op))
+					slog.Debug("stopped by context:", slog.String("op", op))
 					return
 				case msg, ok := <-p.producer.GetSuccesses():
 					if !ok {
-						slog.Info(producerClosed, slog.String("op", op))
+						slog.Debug(producerClosed, slog.String("op", op))
 						return
 					}
 					m, ok := msg.Metadata.(*messageMetadata)
@@ -80,7 +80,7 @@ func (p *produceAdapter) GetSuccesses(ctx context.Context) <-chan *domain.Succes
 					}
 					select {
 					case <-ctx.Done():
-						slog.Info("stopped by context:", slog.String("op", op))
+						slog.Debug("stopped by context:", slog.String("op", op))
 						return
 					case p.successes <- &domain.SuccessEvent{ID: m.ID, Type: m.Type}:
 					}

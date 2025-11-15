@@ -6,6 +6,9 @@ type CreateUser struct {
 	LastName  string
 }
 
-type UserCreatedEvent struct {
-	ID string
+type User struct {
+	ID        string
+	Email     string
+	FirstName string
+	LastName  string
 }

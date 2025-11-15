@@ -30,7 +30,7 @@ func (p *producer) GetErrors() <-chan *sarama.ProducerError {
 	return p.instance.Errors()
 }
 
-// TODO: hangle close with context
+// TODO: handle close with context
 func (p *producer) Close(ctx context.Context) error {
 	return p.instance.Close()
 }

@@ -11,17 +11,13 @@ import (
 	"github.com/fedotovmax/pgxtx"
 )
 
-type userAdapter interface {
-	CreateUser(ctx context.Context, d domain.CreateUser) (string, error)
-}
-
 type userUsecase struct {
-	ua  userAdapter
+	ua  ports.UserAdapter
 	ea  ports.EventAdapter
 	txm pgxtx.Manager
 }
 
-func NewUserUsecase(ua userAdapter, ea ports.EventAdapter, txm pgxtx.Manager) *userUsecase {
+func NewUserUsecase(ua ports.UserAdapter, ea ports.EventAdapter, txm pgxtx.Manager) *userUsecase {
 	return &userUsecase{
 		ua:  ua,
 		ea:  ea,
@@ -36,7 +32,7 @@ func (u *userUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (stri
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 		var err error
-		userId, err = u.ua.CreateUser(txCtx, d)
+		userId, err = u.ua.Create(txCtx, d)
 
 		if err != nil {
 			return err
@@ -46,11 +42,12 @@ func (u *userUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (stri
 
 		b, err := json.Marshal(payload)
 
+		//TODO: maybe domain.error?
 		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
+			return err
 		}
 
-		_, err = u.ea.CreateEvent(txCtx, domain.CreateEvent{
+		_, err = u.ea.Create(txCtx, domain.CreateEvent{
 			Topic:   events.USER_EVENTS,
 			Type:    "user.created",
 			Payload: b,
