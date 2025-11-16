@@ -1,18 +1,14 @@
-include .env
-export
-
-
 VERSION=
 
 STEPS ?= 0
 
 grpcapp:
-	@KAFKA_BROKERS=$(KAFKA_BROKERS) DB_URL=$(USER_SERVICE_POSTGRES_URL) PORT=$(USER_SERVICE_PORT) go run ./cmd/user_service/main.go
+	@APP_ENV=development go run ./cmd/user_service/main.go -c .env
 migrator-up:
-	@DB_URL=$(USER_SERVICE_POSTGRES_URL) go run ./cmd/migrator/main.go -m up -steps $(STEPS)
+	@go run ./cmd/migrator/main.go -m up -steps $(STEPS) -c .env
 migrator-down:
-	@DB_URL=$(USER_SERVICE_POSTGRES_URL) go run ./cmd/migrator/main.go -m down -steps $(STEPS)
+	@go run ./cmd/migrator/main.go -m down -steps $(STEPS) -c .env
 migrator-force:
-	@DB_URL=$(USER_SERVICE_POSTGRES_URL) go run ./cmd/migrator/main.go -m force -version $(VERSION)
+	@go run ./cmd/migrator/main.go -m force -version $(VERSION) -c .env
 migrator-version:
-	@DB_URL=$(USER_SERVICE_POSTGRES_URL) go run ./cmd/migrator/main.go -m version
+	@go run ./cmd/migrator/main.go -m version -c .env

@@ -11,21 +11,21 @@ import (
 	"github.com/fedotovmax/pgxtx"
 )
 
-type userUsecase struct {
+type UserUsecase struct {
 	ua  ports.UserAdapter
 	ea  ports.EventAdapter
 	txm pgxtx.Manager
 }
 
-func NewUserUsecase(ua ports.UserAdapter, ea ports.EventAdapter, txm pgxtx.Manager) *userUsecase {
-	return &userUsecase{
+func NewUserUsecase(ua ports.UserAdapter, ea ports.EventAdapter, txm pgxtx.Manager) *UserUsecase {
+	return &UserUsecase{
 		ua:  ua,
 		ea:  ea,
 		txm: txm,
 	}
 }
 
-func (u *userUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (string, error) {
+func (u *UserUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (string, error) {
 	const op = "usecase.user.CreateUser"
 
 	var userId string
@@ -42,7 +42,6 @@ func (u *userUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (stri
 
 		b, err := json.Marshal(payload)
 
-		//TODO: maybe domain.error?
 		if err != nil {
 			return err
 		}

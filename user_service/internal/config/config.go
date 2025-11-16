@@ -1,69 +1,48 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 )
 
-type Config struct {
-	Port         int
-	DBUrl        string
-	KafkaBrokers []string
+func checkConfigPathExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
-var errVariableParse = errors.New("error when parse variable from env")
+func parseEnv(env string) bool {
+	switch env {
+	case Development, Production, Local:
+		return true
+	default:
+		return false
+	}
+}
 
-var errVariableNotProvided = errors.New("env variable not provided")
+func getCurrentAppEnv() string {
+	const op = "config.getCurrentAppEnv"
 
-var errVariableIsEmpty = errors.New("enb variable is empty")
+	env, err := getEnv("APP_ENV")
 
-var config *Config
-
-var initErr error
-
-var once sync.Once
-
-func New() (*Config, error) {
-	const op = "config.New"
-	once.Do(func() {
-		port, err := getEnvAsInt("PORT")
-
-		if err != nil {
-			initErr = fmt.Errorf("%s: %w", op, err)
-			return
-		}
-
-		dbUrl, err := getEnv("DB_URL")
-
-		if err != nil {
-			initErr = fmt.Errorf("%s: %w", op, err)
-			return
-		}
-
-		kafkaBrokers, err := getEnvAsArr("KAFKA_BROKERS")
-
-		if err != nil {
-			initErr = fmt.Errorf("%s: %w", op, err)
-			return
-		}
-
-		config = &Config{
-			Port:         port,
-			DBUrl:        dbUrl,
-			KafkaBrokers: kafkaBrokers,
-		}
-	})
-
-	if initErr != nil {
-		return nil, initErr
+	if err != nil {
+		panicError(op, err)
 	}
 
-	return config, nil
+	ok := parseEnv(env)
 
+	if !ok {
+		panicError(op, errInvalidAppEnv)
+	}
+
+	return env
+}
+
+func panicError(op string, err error) string {
+	return fmt.Sprintf("%s: %s", op, err.Error())
 }
 
 func getEnv(name string) (string, error) {
