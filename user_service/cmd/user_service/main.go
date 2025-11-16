@@ -108,8 +108,7 @@ func main() {
 	sigCtx, sigCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer sigCancel()
 
-	eventProcessor.DispatchMonitoring(sigCtx)
-	eventProcessor.ProcessingNewEvents(sigCtx)
+	eventProcessor.Start()
 	log.Debug("eventProcessor starting")
 
 	go func() {
@@ -129,6 +128,7 @@ func main() {
 	defer shutdownCtxCancel()
 
 	server.GracefulStop()
+	eventProcessor.Stop(shutdownCtx)
 
 	postgresPool.GracefulStop(shutdownCtx)
 

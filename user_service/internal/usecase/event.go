@@ -2,10 +2,12 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/user_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/ports"
 	"github.com/fedotovmax/pgxtx"
 )
@@ -102,6 +104,9 @@ func (e *EventUsesace) ReserveNewEvents(ctx context.Context, limit int, reserveD
 	})
 
 	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) {
+			return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrNoNewEvents, err)
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 

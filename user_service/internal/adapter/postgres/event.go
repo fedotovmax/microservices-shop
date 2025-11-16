@@ -132,32 +132,6 @@ func (p *eventPostgres) ChangeStatus(ctx context.Context, id string) error {
 	return nil
 }
 
-// func (p *eventPostgres) RemoveReserveAndCnangeStatusByID(ctx context.Context, id string) error {
-// 	const op = "adapter.postgres.event.RemoveReserveAndCnangeStatusByID"
-
-// 	const sql = "update events set reserved_to = null, status = $1 where id = $2;"
-
-// 	tx := p.ex.ExtractTx(ctx)
-
-// 	result, err := tx.Exec(ctx, sql, domain.EventStatusDone, id)
-
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w: %v", op, ports.ErrInternal, err)
-// 	}
-
-// 	var expected int64 = 1
-
-// 	if affected := result.RowsAffected(); affected != expected {
-// 		return fmt.Errorf("%s: %w", op, &ports.ErrPartialUpdate{
-// 			Expected: expected,
-// 			Actual:   affected,
-// 		})
-// 	}
-
-// 	return nil
-
-// }
-
 func (p *eventPostgres) SetReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error {
 
 	const op = "adapter.postgres.event.SetReservedToByIds"

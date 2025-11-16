@@ -2,15 +2,12 @@ package eventprocessor
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/logger"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/ports"
 	"github.com/fedotovmax/microservices-shop/user_service/pkg/utils"
@@ -29,9 +26,6 @@ type App struct {
 	cfg Config
 	// flag for
 	inProcess int32
-	ctx       context.Context
-	stop      context.CancelFunc
-	isStopped chan struct{}
 }
 
 type Config struct {
@@ -69,11 +63,11 @@ func New(l *slog.Logger, pa ports.ProduceAdapter, es EventService, cfg Config) *
 	}
 
 	if cfg.Limit < minLimit {
-		cfg.Limit = minLimit
+		cfg.Workers = minLimit
 	}
 
 	if cfg.Limit > maxLimit {
-		cfg.Limit = maxLimit
+		cfg.Workers = maxLimit
 	}
 
 	if cfg.Interval < minInterval {
@@ -88,125 +82,67 @@ func New(l *slog.Logger, pa ports.ProduceAdapter, es EventService, cfg Config) *
 		cfg.ProcessTimeout = minProcessTimeout
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
 	return &App{
-		pa:        pa,
-		log:       l,
-		es:        es,
-		cfg:       cfg,
-		ctx:       ctx,
-		stop:      cancel,
-		isStopped: make(chan struct{}),
+		pa:  pa,
+		log: l,
+		es:  es,
+		cfg: cfg,
 	}
 }
 
-func (a *App) Start() {
+// func (a *App) Start() {
+// 	ctx, cancel := context.WithCancel(context.Background())
 
-	wg := &sync.WaitGroup{}
+// 	wg := &sync.WaitGroup{}
 
-	a.successesMonitoring(wg)
-	a.errorsMonitoring(wg)
-	a.processingNewEvents(wg)
+// }
 
-	go func() {
-		wg.Wait()
-		close(a.isStopped)
-	}()
-}
+func (a *App) DispatchMonitoring(ctx context.Context) {
 
-func (a *App) Stop(ctx context.Context) error {
-	const op = "app.event-processor.Stop"
-	log := a.log.With(slog.String("op", op))
-	a.stop()
-	select {
-	case <-a.isStopped:
-		log.Info("Event Processor stopped successfully")
-		return nil
-	case <-ctx.Done():
-		log.Warn("Event Processor stopped by context")
-		return fmt.Errorf("%s: %w", op, ctx.Err())
-	}
-}
-
-func (a *App) successesMonitoring(wg *sync.WaitGroup) {
-	const op = "usecase.event-processor.successesMonitoring"
+	const op = "usecase.event-processor.DispatchMonitoring"
 
 	log := a.log.With(slog.String("op", op))
 
-	eventsSuccesses := a.pa.GetSuccesses(a.ctx)
+	eventsSuccesses := a.pa.GetSuccesses(ctx)
+	eventsErrors := a.pa.GetErrors(ctx)
 
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		for {
 			select {
-			case <-a.ctx.Done():
-				log.Info("monitoring [successes] stopped: ctx closed")
+			case <-ctx.Done():
+				log.Info("dispatch monitoring [successes] stopped")
 				return
-			case event, ok := <-eventsSuccesses:
-				if !ok {
-					log.Info("monitoring [successes] stopped: channel closed")
-					return
-				}
-				err := a.confirm(a.ctx, event)
+			case success := <-eventsSuccesses:
+				err := a.confirm(ctx, success)
 				if err != nil {
 					log.Error("error when confirm event, but event is sended",
 						logger.Err(err))
 					continue
 				}
-				log.Info("event sended", slog.String("event_id", event.ID))
+				log.Info("event sended", slog.String("event_id", success.ID))
 			}
 		}
 	}()
-}
 
-func (a *App) errorsMonitoring(wg *sync.WaitGroup) {
-	const op = "usecase.event-processor.errorsMonitoring"
-
-	log := a.log.With(slog.String("op", op))
-
-	eventsErrors := a.pa.GetErrors(a.ctx)
-
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		for {
 			select {
-			case <-a.ctx.Done():
-				log.Info("monitoring [errors] stopped: ctx closed")
+			case <-ctx.Done():
+				log.Info("dispatch monitoring [errors] stopped")
 				return
-			case event, ok := <-eventsErrors:
-				if !ok {
-					log.Info("monitoring [errors] stopped: channel closed")
-					return
-				}
+			case err := <-eventsErrors:
 				log.Error("event send failed",
-					slog.String("event_id", event.ID), logger.Err(event.Error))
+					slog.String("event_id", err.ID), logger.Err(err.Error))
 
-				err := a.fail(a.ctx, event)
+				confirmErr := a.es.ConfirmFailed(ctx, err)
 
-				if err != nil {
-					log.Error("error when confirm send fail", logger.Err(err))
+				if confirmErr != nil {
+					log.Error("error when confirm send fail", logger.Err(confirmErr))
 				}
 			}
 		}
 	}()
-}
 
-func (a *App) fail(ctx context.Context, ev *domain.FailedEvent) error {
-	const op = "app.event-processor.fail"
-
-	queriesCtx, cancelQueriesCtx := context.WithTimeout(ctx, a.cfg.ProcessTimeout)
-	defer cancelQueriesCtx()
-
-	err := a.es.ConfirmFailed(queriesCtx, ev)
-
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
 }
 
 func (a *App) confirm(ctx context.Context, ev *domain.SuccessEvent) error {
@@ -226,26 +162,24 @@ func (a *App) confirm(ctx context.Context, ev *domain.SuccessEvent) error {
 
 }
 
-func (a *App) processingNewEvents(wg *sync.WaitGroup) {
+func (a *App) ProcessingNewEvents(ctx context.Context) {
 	const op = "usecase.event-processor.ProcessingNewEvents"
 
 	log := slog.With(slog.String("op", op))
 
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		ticker := time.NewTicker(a.cfg.Interval)
 		defer ticker.Stop()
 		for {
 			select {
-			case <-a.ctx.Done():
+			case <-ctx.Done():
 				log.Info("event processing stopped")
 				return
 			case <-ticker.C:
 				if !atomic.CompareAndSwapInt32(&a.inProcess, 0, 1) {
 					continue
 				}
-				a.process(a.ctx)
+				a.process(ctx)
 				atomic.StoreInt32(&a.inProcess, 0)
 			}
 		}
@@ -264,11 +198,7 @@ func (a *App) process(ctx context.Context) {
 	events, err := a.es.ReserveNewEvents(queriesCtx, a.cfg.Limit, a.cfg.ReserveDuration)
 
 	if err != nil {
-		if errors.Is(err, errs.ErrNoNewEvents) {
-			log.Info("skip processing, no new events")
-			return
-		}
-		log.Error("error when processing", logger.Err(err))
+		log.Error("error in processing transaction", logger.Err(err))
 		return
 	}
 
@@ -290,7 +220,7 @@ func (a *App) process(ctx context.Context) {
 
 	for err := range publishResults {
 		if err != nil {
-			log.Warn("publish error", logger.Err(err))
+			log.Info("publish error", logger.Err(err))
 		}
 	}
 }
