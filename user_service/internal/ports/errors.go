@@ -23,3 +23,13 @@ type ErrPartialUpdate struct {
 func (e *ErrPartialUpdate) Error() string {
 	return fmt.Sprintf("partial update: expected %d entities, but updated %d", e.Expected, e.Actual)
 }
+
+func ParsePartial(affected, expected int64) error {
+	if affected != expected {
+		return &ErrPartialUpdate{
+			Expected: expected,
+			Actual:   affected,
+		}
+	}
+	return nil
+}

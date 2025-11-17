@@ -1,12 +1,9 @@
 package logger
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"time"
-
-	"github.com/fedotovmax/microservices-shop/user_service/internal/config"
 )
 
 func Err(err error) slog.Attr {
@@ -16,21 +13,7 @@ func Err(err error) slog.Attr {
 	}
 }
 
-func MustNewLogger(env string) *slog.Logger {
-
-	const op = "logger.MustNewLogger"
-
-	switch env {
-	case config.Development:
-		return newDevelopmentHandler()
-	case config.Production:
-		return newProductionHandler()
-	default:
-		panic(fmt.Sprintf("%s: unsopported app env for logger", op))
-	}
-}
-
-func newDevelopmentHandler() *slog.Logger {
+func NewDevelopmentHandler() *slog.Logger {
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level:     slog.LevelDebug, // В dev показываем больше логов
 		AddSource: true,
@@ -38,7 +21,7 @@ func newDevelopmentHandler() *slog.Logger {
 	return slog.New(handler)
 }
 
-func newProductionHandler() *slog.Logger {
+func NewProductionHandler() *slog.Logger {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
 		AddSource: true,

@@ -11,15 +11,14 @@ import (
 	"time"
 
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/usersvc"
-	adapterKafka "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/kafka"
 	adapterPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/postgres"
-	eventprocessor "github.com/fedotovmax/microservices-shop/user_service/internal/app/event-processor"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/config"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
 	infraPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/infra/db/postgres"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/logger"
-	infraKafka "github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
+	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
 	"github.com/fedotovmax/microservices-shop/user_service/internal/usecase"
+	"github.com/fedotovmax/outbox"
 	"github.com/fedotovmax/pgxtx"
 	"google.golang.org/grpc"
 )
@@ -28,14 +27,21 @@ type service struct {
 	usersvc.UnimplementedUserServiceServer
 }
 
-func (s *service) CreateUser(ctx context.Context, req *usersvc.CreateUserRequest) (*usersvc.CreateUserResponse, error) {
-	return nil, fmt.Errorf("some error")
+func mustSetupLooger(env string) *slog.Logger {
+	switch env {
+	case config.Development:
+		return logger.NewDevelopmentHandler()
+	case config.Production:
+		return logger.NewProductionHandler()
+	default:
+		panic("unsopported app env for logger")
+	}
 }
 
 func main() {
 	cfg := config.MustLoadAppConfig()
 
-	log := logger.MustNewLogger(cfg.Env)
+	log := mustSetupLooger(cfg.Env)
 
 	poolConnectCtx, poolConnectCtxCancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer poolConnectCtxCancel()
@@ -49,7 +55,7 @@ func main() {
 
 	log.Info("Successfully created db pool and connected!")
 
-	txManager, err := pgxtx.Init(postgresPool)
+	txManager, err := pgxtx.Init(postgresPool, log.With(slog.String("op", "transaction.manager")))
 
 	if err != nil {
 		log.Error(err.Error())
@@ -58,32 +64,29 @@ func main() {
 
 	ex := txManager.GetExtractor()
 
-	produceInsatnce, err := infraKafka.NewAsyncProducer(cfg.KafkaBrokers)
+	producer, err := kafka.NewAsyncProducer(cfg.KafkaBrokers)
+
+	eventProcessor := outbox.New(log, producer, txManager, ex, outbox.Config{
+		Limit:   50,
+		Workers: 5,
+	})
 
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
 	}
 
-	producerKafka := adapterKafka.NewProduceAdapter(produceInsatnce)
-
 	// postgres adapters
 	userPostgres := adapterPostgres.NewUserPostgres(ex)
-	eventPostgres := adapterPostgres.NewEventPostgres(ex)
 
 	// usecases
-	userUsecase := usecase.NewUserUsecase(userPostgres, eventPostgres, txManager)
-	eventUsecase := usecase.NewEventUsecase(eventPostgres, txManager)
+	userUsecase := usecase.NewUserUsecase(userPostgres, txManager, eventProcessor)
 	// TODO: get all params from config!
-	eventProcessor := eventprocessor.New(log, producerKafka, eventUsecase, eventprocessor.Config{
-		Limit:   50,
-		Workers: 5,
-	})
 
 	createUserCtx, cancelCreateUserCtx := context.WithTimeout(context.Background(), time.Second)
 	defer cancelCreateUserCtx()
 
-	userId, err := userUsecase.CreateUser(createUserCtx, domain.CreateUser{Email: "makc-ivanov@mail.ru", FirstName: "Maxim", LastName: "Ivanov"})
+	userId, err := userUsecase.CreateUser(createUserCtx, domain.CreateUser{Email: "makc-ivanov@mail.ru"})
 
 	if err != nil {
 		log.Error(err.Error())
@@ -132,7 +135,7 @@ func main() {
 
 	postgresPool.GracefulStop(shutdownCtx)
 
-	produceInsatnce.Close(shutdownCtx)
+	producer.Close(shutdownCtx)
 
 	log.Info("All resources are closed, exit app")
 

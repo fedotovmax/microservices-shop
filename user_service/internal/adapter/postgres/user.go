@@ -27,13 +27,13 @@ func (p *userPostgres) FindByID(ctx context.Context, id string) (*domain.User, e
 
 	tx := p.ex.ExtractTx(ctx)
 
-	const sql = "select id, email, first_name, last_name from users where id = $1;"
+	const sql = "select id, email from users where id = $1;"
 
 	row := tx.QueryRow(ctx, sql, id)
 
 	u := &domain.User{}
 
-	err := row.Scan(&u.ID, &u.Email, &u.FirstName, &u.LastName)
+	err := row.Scan(&u.ID, &u.Email)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -48,11 +48,11 @@ func (p *userPostgres) FindByID(ctx context.Context, id string) (*domain.User, e
 func (p *userPostgres) Create(ctx context.Context, d domain.CreateUser) (string, error) {
 	const op = "adapter.postgres.user.Create"
 
-	const sql = "insert into users (email, first_name, last_name) values ($1, $2, $3) returning id;"
+	const sql = "insert into users (email) values ($1) returning id;"
 
 	tx := p.ex.ExtractTx(ctx)
 
-	row := tx.QueryRow(ctx, sql, d.Email, d.FirstName, d.LastName)
+	row := tx.QueryRow(ctx, sql, d.Email)
 
 	var id string
 
