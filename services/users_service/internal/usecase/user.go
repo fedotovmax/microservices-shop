@@ -4,26 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
 	"github.com/fedotovmax/outbox"
 	"github.com/fedotovmax/pgxtx"
 )
 
 type UserUsecase struct {
-	ua     ports.UserAdapter
-	outbox *outbox.Outbox
-	txm    pgxtx.Manager
+	ua  ports.UserAdapter
+	es  outbox.EventSender
+	txm pgxtx.Manager
 }
 
-func NewUserUsecase(ua ports.UserAdapter, txm pgxtx.Manager, o *outbox.Outbox) *UserUsecase {
+func NewUserUsecase(ua ports.UserAdapter, txm pgxtx.Manager, es outbox.EventSender) *UserUsecase {
 	return &UserUsecase{
-		ua:     ua,
-		outbox: o,
-		txm:    txm,
+		ua:  ua,
+		es:  es,
+		txm: txm,
 	}
 }
 
@@ -48,15 +47,12 @@ func (u *UserUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (stri
 			return err
 		}
 
-		u.outbox.AddNewEvent(txCtx, outbox.CreateEvent{
+		u.es.AddNewEvent(txCtx, outbox.CreateEvent{
 			AggregateID: userId,
 			Topic:       events.USER_EVENTS,
 			Type:        "user.created",
 			Payload:     b,
 		})
-
-		slog.Info("TODO: add new event", slog.Any("b", b))
-		//TODO: add new event
 
 		return nil
 	})

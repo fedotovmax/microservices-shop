@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
 	"github.com/fedotovmax/pgxtx"
 	"github.com/jackc/pgx/v5"
 )

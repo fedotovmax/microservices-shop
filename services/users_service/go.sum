@@ -33,6 +33,12 @@ github.com/fedotovmax/outbox v1.0.1 h1:eZ305j7j4tXeaQYJliTaYezjMO1P1Ed5KL9SbJVQ4
 github.com/fedotovmax/outbox v1.0.1/go.mod h1:vxhsq3ChHumDO7NtsK03rNZ0f1MdkL7zmttsEPTYLUM=
 github.com/fedotovmax/outbox v1.0.2 h1:jvTpIC4usv56tIL+cV3cfQi4odxVSH3zozyh3nf8n4s=
 github.com/fedotovmax/outbox v1.0.2/go.mod h1:vxhsq3ChHumDO7NtsK03rNZ0f1MdkL7zmttsEPTYLUM=
+github.com/fedotovmax/outbox v1.0.3 h1:zXzK5FpssYOEZX1rmSPXBj4qed47FubXX9t/cXCsuuA=
+github.com/fedotovmax/outbox v1.0.3/go.mod h1:vxhsq3ChHumDO7NtsK03rNZ0f1MdkL7zmttsEPTYLUM=
+github.com/fedotovmax/outbox v1.0.4 h1:4QUE0N99ZW0shviUA+GcG4/e3bnWRJ3Fntk8O+a0svY=
+github.com/fedotovmax/outbox v1.0.4/go.mod h1:vxhsq3ChHumDO7NtsK03rNZ0f1MdkL7zmttsEPTYLUM=
+github.com/fedotovmax/outbox v1.0.5 h1:GqS89OQBhpN4OnmYtf/7Z42JG5I0gmxjlFoom8vWdQQ=
+github.com/fedotovmax/outbox v1.0.5/go.mod h1:vxhsq3ChHumDO7NtsK03rNZ0f1MdkL7zmttsEPTYLUM=
 github.com/fedotovmax/pgxtx v1.0.1 h1:mOA9SiVNO0vP/cWYJ6g7CM4B5Ar344AboH16CCwucfM=
 github.com/fedotovmax/pgxtx v1.0.1/go.mod h1:dmpWyvxt9rqplUIG3F1LB6iiid5dNtYE7ZEPYL12aFM=
 github.com/fedotovmax/pgxtx v1.0.2 h1:a5gC09SgU5I4S1bgIKDBbk+bnlB05woKNAtiqiCWOkM=

@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 )
 
 type UserAdapter interface {

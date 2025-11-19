@@ -2,10 +2,12 @@
 create domain email_d as text
 check (value ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 
-CREATE DOMAIN phone_e164_d AS TEXT
-CHECK (VALUE ~ '^\+[1-9][0-9]{7,14}$');
+create domain phone_e164_d as text
+check (VALUE ~ '^\+[1-9][0-9]{7,14}$');
 
-CREATE TYPE gender_enum AS ENUM ('male', 'female');
+create type gender_enum as enum ('male', 'female');
+
+create type history_status_type as enum ('deleted', 'blocked', 'restored', 'unblocked', 'muted');
 
 create table if not exists users (
 
@@ -15,19 +17,27 @@ create table if not exists users (
 
   phone phone_e164_d unique,
 
+  password_hash text not null,
+
   is_email_verified boolean default false,
 
   is_phone_verified boolean default false,
 
   created_at timestamp default now(),
 
-  updated_at timestamp default now(),
-
-  deleted_at timestamp default null,
-
-  blocked_at timestamp default null
-
+  updated_at timestamp default now()
 );
+
+create table if not exists status_history (
+    id bigserial primary key,
+    user_id uuid not null references users (id),
+    status_type history_status_type not null,
+    reason text,
+    period_start timestamp not null default now(),  -- начало действия статуса
+    period_end timestamp null,                      -- конец периода (null = бессрочно)
+    performed_by uuid null                          -- кто сделал действие
+);
+
 
 
 create table if not exists profiles (

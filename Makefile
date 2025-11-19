@@ -1,5 +1,5 @@
 SERVICE =
-DC = docker compose -f prod.docker-compose.yml --env-file .env
+DC = docker compose -f dev.docker-compose.yml --env-file .env
 
 up: 
 	$(DC) up -d

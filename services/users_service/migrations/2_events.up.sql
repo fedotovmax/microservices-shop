@@ -8,3 +8,5 @@ create table if not exists events (
   created_at timestamp default now(),
   reserved_to timestamp default null
 );
+
+-- TODO: add index on reserved_to, status

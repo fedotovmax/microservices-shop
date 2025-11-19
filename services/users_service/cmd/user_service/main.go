@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/usersvc"
-	adapterPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/adapter/postgres"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/config"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/domain"
-	infraPostgres "github.com/fedotovmax/microservices-shop/user_service/internal/infra/db/postgres"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/logger"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/infra/queues/kafka"
-	"github.com/fedotovmax/microservices-shop/user_service/internal/usecase"
+	adapterPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
+	infraPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/infra/db/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/logger"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/queues/kafka"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
 	"github.com/fedotovmax/outbox"
 	"github.com/fedotovmax/pgxtx"
 	"google.golang.org/grpc"
@@ -66,9 +66,17 @@ func main() {
 
 	producer, err := kafka.NewAsyncProducer(cfg.KafkaBrokers)
 
-	eventProcessor := outbox.New(log, producer, txManager, ex, outbox.Config{
-		Limit:   50,
-		Workers: 5,
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	eventProcessor, err := outbox.New(log, producer, txManager, ex, outbox.Config{
+		Limit:           50,
+		Workers:         5,
+		Interval:        time.Second * 10,
+		ReserveDuration: time.Minute * 2,
+		ProcessTimeout:  time.Millisecond * 1200,
 	})
 
 	if err != nil {
@@ -76,11 +84,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	eventSender := eventProcessor.GetEventSender()
+
 	// postgres adapters
 	userPostgres := adapterPostgres.NewUserPostgres(ex)
 
 	// usecases
-	userUsecase := usecase.NewUserUsecase(userPostgres, txManager, eventProcessor)
+	userUsecase := usecase.NewUserUsecase(userPostgres, txManager, eventSender)
 	// TODO: get all params from config!
 
 	createUserCtx, cancelCreateUserCtx := context.WithTimeout(context.Background(), time.Second)

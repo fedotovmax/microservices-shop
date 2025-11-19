@@ -5,3 +5,4 @@ drop table if exists users;
 drop domain if exists email_d;
 drop domain if exists phone_e164;
 drop type gender_enum;
+drop type history_status_type;
