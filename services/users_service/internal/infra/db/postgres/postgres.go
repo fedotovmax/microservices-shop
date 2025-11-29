@@ -25,7 +25,6 @@ var ErrCloseTimeout = errors.New("the time to safely terminate the connection to
 
 type postgresPool struct {
 	*pgxpool.Pool
-	closeChannel chan struct{}
 }
 
 type PostgresPool interface {
@@ -33,19 +32,21 @@ type PostgresPool interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Begin(ctx context.Context) (pgx.Tx, error)
-	GracefulStop(ctx context.Context) error
+	Stop(ctx context.Context) error
 }
 
-func (p *postgresPool) GracefulStop(ctx context.Context) error {
-	op := "db.postgres.GracefulStop"
+func (p *postgresPool) Stop(ctx context.Context) error {
+	op := "db.postgres.Close"
+
+	done := make(chan struct{})
 
 	go func() {
-		defer close(p.closeChannel)
+		defer close(done)
 		p.Pool.Close()
 	}()
 
 	select {
-	case <-p.closeChannel:
+	case <-done:
 		return nil
 	case <-ctx.Done():
 		return fmt.Errorf("%s: %w: %v", op, ErrCloseTimeout, ctx.Err())
@@ -81,7 +82,6 @@ func New(ctx context.Context, connection string) (PostgresPool, error) {
 	}
 
 	return &postgresPool{
-		Pool:         pool,
-		closeChannel: make(chan struct{}),
+		Pool: pool,
 	}, nil
 }

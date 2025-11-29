@@ -1,5 +1,5 @@
 package controllergrpc
 
-type userController struct{}
+type grpcController struct{}
 
-func NewUserController() {}
+func NewGRPCController() {}

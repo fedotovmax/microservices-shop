@@ -7,8 +7,6 @@ check (VALUE ~ '^\+[1-9][0-9]{7,14}$');
 
 create type gender_enum as enum ('male', 'female');
 
-create type history_status_type as enum ('deleted', 'blocked', 'restored', 'unblocked', 'muted');
-
 create table if not exists users (
 
   id uuid primary key default gen_random_uuid(),
@@ -25,20 +23,10 @@ create table if not exists users (
 
   created_at timestamp default now(),
 
-  updated_at timestamp default now()
+  updated_at timestamp default now(),
+
+  deleted_at timestamp null
 );
-
-create table if not exists status_history (
-    id bigserial primary key,
-    user_id uuid not null references users (id),
-    status_type history_status_type not null,
-    reason text,
-    period_start timestamp not null default now(),  -- начало действия статуса
-    period_end timestamp null,                      -- конец периода (null = бессрочно)
-    performed_by uuid null                          -- кто сделал действие
-);
-
-
 
 create table if not exists profiles (
 
@@ -60,16 +48,36 @@ create table if not exists profiles (
 
 );
 
-
 create table if not exists change_password_codes (
 
-  id serial primary key,
-
-  user_id uuid not null references users (id) unique,
+  user_id uuid primary key references users(id),
 
   code varchar(6) not null,
 
   validity_period timestamp not null default now() + interval '2 minutes',
+
+  attempts smallint not null default 0,
+
+  blocked_until timestamp default null
+
+);
+
+create table if not exists email_verification (
+  
+  link uuid primary key default gen_random_uuid(),
+
+  user_id uuid not null references users (id) unique,
+
+  validity_period timestamp not null default now() + interval '15 minutes'
+);
+
+create table if not exists phone_verification (
+
+  user_id uuid primary key references users(id),
+
+  code varchar(6) not null,
+
+  validity_period timestamp not null default now() + interval '5 minutes',
 
   attempts smallint not null default 0,
 

@@ -4,12 +4,15 @@ go 1.25.4
 
 require (
 	github.com/IBM/sarama v1.46.3
-	github.com/fedotovmax/microservices-shop-protos v1.0.4
-	github.com/fedotovmax/outbox v1.0.5
+	github.com/fedotovmax/grpcutils v1.0.4
+	github.com/fedotovmax/microservices-shop-protos v1.0.5
+	github.com/fedotovmax/outbox v1.0.8
 	github.com/fedotovmax/pgxtx v1.0.2
+	github.com/fedotovmax/validation v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
+	golang.org/x/crypto v0.45.0
 	google.golang.org/grpc v1.76.0
 )
 
@@ -19,8 +22,8 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fedotovmax/protoc-gen-validate v1.0.1 // indirect
-	github.com/fedotovmax/workerpool v0.0.0-20251117094043-eebe532df0b8 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -36,11 +39,10 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
-	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251103181224-f26f9409b101 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )

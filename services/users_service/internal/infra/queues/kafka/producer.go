@@ -11,7 +11,7 @@ type Producer interface {
 	GetInput() chan<- *sarama.ProducerMessage
 	GetSuccesses() <-chan *sarama.ProducerMessage
 	GetErrors() <-chan *sarama.ProducerError
-	Close(context.Context) error
+	Stop(context.Context) error
 }
 
 type producer struct {
@@ -30,20 +30,39 @@ func (p *producer) GetErrors() <-chan *sarama.ProducerError {
 	return p.instance.Errors()
 }
 
-// TODO: handle close with context
-func (p *producer) Close(ctx context.Context) error {
-	return p.instance.Close()
+func (p *producer) Stop(ctx context.Context) error {
+
+	const op = "queues.kafka.producer.Close"
+
+	done := make(chan error, 1)
+
+	go func() {
+		err := p.instance.Close()
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-// TODO: sync once???
-func NewAsyncProducer(brokers []string) (Producer, error) {
-	const op = "queues.kafka.NewAsyncProducer"
+func NewAsyncProducer(pcfg ProducerConfig) (Producer, error) {
+	const op = "queues.kafka.producer.NewAsyncProducer"
+
 	cfg := sarama.NewConfig()
 	cfg.Producer.Return.Successes = true
 	cfg.Producer.Retry.Max = 5
 	cfg.Producer.RequiredAcks = sarama.WaitForAll
+	cfg.Producer.Flush.MaxMessages = pcfg.MaxMessages
+	cfg.Producer.Flush.Frequency = pcfg.Frequency
 
-	p, err := sarama.NewAsyncProducer(brokers, cfg)
+	p, err := sarama.NewAsyncProducer(pcfg.Brokers, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

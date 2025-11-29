@@ -7,33 +7,26 @@ import (
 
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/utils/hashing"
 	"github.com/fedotovmax/outbox"
-	"github.com/fedotovmax/pgxtx"
 )
 
-type UserUsecase struct {
-	ua  ports.UserAdapter
-	es  outbox.EventSender
-	txm pgxtx.Manager
-}
-
-func NewUserUsecase(ua ports.UserAdapter, txm pgxtx.Manager, es outbox.EventSender) *UserUsecase {
-	return &UserUsecase{
-		ua:  ua,
-		es:  es,
-		txm: txm,
-	}
-}
-
-func (u *UserUsecase) CreateUser(ctx context.Context, d domain.CreateUser) (string, error) {
+func (u *usecases) CreateUser(ctx context.Context, d domain.CreateUserInput) (string, error) {
 	const op = "usecase.user.CreateUser"
 
 	var userId string
 
-	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
+	hashedPassword, err := hashing.Password(d.GetPassword())
+
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	d.SetPasswordHash(hashedPassword)
+
+	err = u.txm.Wrap(ctx, func(txCtx context.Context) error {
 		var err error
-		userId, err = u.ua.Create(txCtx, d)
+		userId, err = u.s.Create(txCtx, d)
 
 		if err != nil {
 			return err
