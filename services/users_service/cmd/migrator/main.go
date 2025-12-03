@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"path"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	"github.com/golang-migrate/migrate/v4"
@@ -14,8 +15,10 @@ func main() {
 
 	cfg := config.MustLoadMigratorConfig()
 
+	migrationsPath := "file://" + path.Join(cfg.MigrationsPath)
+
 	m, err := migrate.New(
-		"file://migrations",
+		migrationsPath,
 		cfg.DBUrl+"?sslmode=disable&x-migrations-table=migrations")
 	if err != nil {
 		panic(err.Error())

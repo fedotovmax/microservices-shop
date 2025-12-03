@@ -2,25 +2,37 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/app"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/config"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/infra/logger"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 )
+
+func mustSetupLooger(env string) *slog.Logger {
+	switch env {
+	case keys.Development:
+		return logger.NewDevelopmentHandler()
+	case keys.Production:
+		return logger.NewProductionHandler()
+	default:
+		panic("unsopported app env for logger")
+	}
+}
 
 func main() {
 
-	log := logger.NewDevelopmentHandler()
+	cfg := config.MustLoadAppConfig()
 
-	var port uint16 = 8081
-
-	userClientAddr := "localhost:5555"
+	log := mustSetupLooger(cfg.Env)
 
 	application, err := app.New(log, app.Config{
-		HttpPort:      port,
-		UsersGRPCAddr: userClientAddr,
+		HttpPort:      cfg.Port,
+		UsersGRPCAddr: cfg.UsersClientAddr,
 	})
 
 	if err != nil {
@@ -40,5 +52,4 @@ func main() {
 	defer shutdownCancel()
 
 	application.Stop(shutdownContext)
-
 }

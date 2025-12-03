@@ -2,21 +2,19 @@ package config
 
 import (
 	"flag"
+	"fmt"
 
+	"github.com/fedotovmax/envconfig"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/joho/godotenv"
 )
 
-const (
-	Local       = "local"
-	Development = "development"
-	Production  = "production"
-)
-
 type AppConfig struct {
-	Env          string
-	Port         int
-	DBUrl        string
-	KafkaBrokers []string
+	KafkaBrokers    []string
+	Env             string
+	DBUrl           string
+	TranslationPath string
+	Port            uint16
 }
 
 type appFlags struct {
@@ -29,49 +27,60 @@ type appFlags struct {
 func MustLoadAppConfig() *AppConfig {
 	const op = "config.MustLoadAppConfig"
 
-	appEnv := getCurrentAppEnv()
+	appEnv, err := envconfig.GetCurrentAppEnv(keys.AppEnv, keys.SupportedEnv)
 
-	if appEnv == Local || appEnv == Development {
+	if err != nil {
+		panic(fmt.Errorf("%s: %w", op, err))
+	}
+
+	if appEnv == keys.Local || appEnv == keys.Development {
 
 		appflags := loadAppConfigFlags()
 
-		ok := checkConfigPathExists(appflags.ConfigPath)
+		ok := envconfig.CheckConfigPathExists(appflags.ConfigPath)
 
 		if !ok {
-			panicError(op, errConfigPathNotExists)
+			panic(fmt.Errorf("%s: %w", op, errConfigPathNotExists))
 		}
 
 		err := godotenv.Load(appflags.ConfigPath)
 
 		if err != nil {
-			panicError(op, err)
+			panic(fmt.Errorf("%s: %w", op, err))
 		}
 
 	}
 
-	port, err := getEnvAsInt("PORT")
+	port, err := envconfig.GetEnvAs[uint16]("PORT")
 
 	if err != nil {
-		panic(panicError(op, err))
+		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
-	dbUrl, err := getEnv("DB_URL")
+	dbUrl, err := envconfig.GetEnv("DB_URL")
 
 	if err != nil {
-		panic(panicError(op, err))
+		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
-	kafkaBrokers, err := getEnvAsArr("KAFKA_BROKERS")
+	kafkaBrokers, err := envconfig.GetEnvAsArr[string]("KAFKA_BROKERS")
 
 	if err != nil {
-		panic(panicError(op, err))
+		panic(fmt.Errorf("%s: %w", op, err))
+	}
+
+	translationPath, err := envconfig.GetEnv("TRANSLATIONS_PATH")
+
+	if err != nil {
+		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
 	config := &AppConfig{
-		Env:          appEnv,
-		Port:         port,
-		DBUrl:        dbUrl,
-		KafkaBrokers: kafkaBrokers,
+		Env:             appEnv,
+		Port:            port,
+		DBUrl:           dbUrl,
+		KafkaBrokers:    kafkaBrokers,
+		TranslationPath: translationPath,
 	}
 
 	return config
@@ -89,7 +98,7 @@ func loadAppConfigFlags() *appFlags {
 	flag.Parse()
 
 	if configPath == "" {
-		panicError(op, errRequiredConfigPath)
+		panic(fmt.Errorf("%s: %w", op, errRequiredConfigPath))
 	}
 
 	return &appFlags{

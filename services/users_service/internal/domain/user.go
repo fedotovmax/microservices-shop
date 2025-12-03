@@ -1,10 +1,11 @@
 package domain
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/fedotovmax/grpcutils/violations"
+	"github.com/fedotovmax/i18n"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/fedotovmax/validation"
 )
 
@@ -13,83 +14,46 @@ type CreateUserInput struct {
 	password string
 }
 
-var UpperLettersRegexp = regexp.MustCompile(`[A-Z]`)
-var LowerLettersRegexp = regexp.MustCompile(`[a-z]`)
-var DigitRegexp = regexp.MustCompile(`\d`)
-var SpecialRegexp = regexp.MustCompile(`[!@#$%^&*()_\-+=\[\]{}|\\;:'",.<>/?]`)
+func NewCreateUserInput(email, password string) *CreateUserInput {
 
-var PhoneRegexp = regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
-
-func validatePassword(password string) error {
-	err := validation.Regex(password, UpperLettersRegexp)
-	if err != nil {
-		return err
-	}
-
-	err = validation.Regex(password, LowerLettersRegexp)
-
-	if err != nil {
-		return err
-	}
-
-	err = validation.Regex(password, DigitRegexp)
-
-	if err != nil {
-		return err
-	}
-
-	err = validation.Regex(password, SpecialRegexp)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &CreateUserInput{email: email, password: password}
 }
 
-func NewCreateUserInput(email, password string) (CreateUserInput, error) {
-
+func (i CreateUserInput) Validate(locale string) error {
 	var validationErrors violations.ValidationErrors
 
-	_, err := validation.IsEmail(email)
+	_, err := validation.IsEmail(i.email)
 
 	if err != nil {
-		validationErrors = append(validationErrors, violations.ValidationError{
-			Field:       "Email",
-			Reason:      err.Error(),
-			Description: "ValidationError",
-			LocalizedMessage: &violations.LocalizedMessage{
-				Locale:  "ru",
-				Message: "Введённый адрес электронной почты не соответствует требуемому формату",
-			},
-		})
+
+		msg := i18n.Manager.GetMessage(locale, keys.ValidationEmail)
+
+		validationErrors = append(validationErrors, AddValidationError("Email", locale, msg, err))
 	}
 
-	err = validatePassword(password)
+	err = validatePassword(i.password)
+
 	if err != nil {
-		validationErrors = append(validationErrors, violations.ValidationError{
-			Field:       "Password",
-			Reason:      err.Error(),
-			Description: "ValidationError",
-			LocalizedMessage: &violations.LocalizedMessage{
-				Locale:  "ru",
-				Message: `Пароль должен содержать хотя бы одну заглавную букву (A–Z), хотя бы одну строчную букву (a–z), хотя бы одну цифру (0–9), хотя бы один специальный символ, а также иметь общую длину от 8 до 64 символов.`,
-			},
-		})
+
+		msg := i18n.Manager.GetMessage(locale, keys.ValidationPassword)
+
+		validationErrors = append(validationErrors,
+			AddValidationError("Password", locale, msg, err))
 	}
 
 	if len(validationErrors) > 0 {
-		return CreateUserInput{}, validationErrors
+		return validationErrors
 	}
 
-	return CreateUserInput{email: email, password: password}, nil
+	return nil
+
 }
 
-func (i CreateUserInput) GetEmail() string {
+func (i *CreateUserInput) GetEmail() string {
 	return i.email
 }
 
-func (i CreateUserInput) GetPassword() string {
+func (i *CreateUserInput) GetPassword() string {
 	return i.password
 }
 
@@ -100,11 +64,11 @@ func (i *CreateUserInput) SetPasswordHash(hash string) {
 type User struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Profile      Profile
 	ID           string
 	Email        string
 	Phone        *string
 	PasswordHash string
-	Profile      Profile
 }
 
 type Gender string

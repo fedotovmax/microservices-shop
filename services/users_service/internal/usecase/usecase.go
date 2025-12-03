@@ -9,7 +9,7 @@ import (
 )
 
 type Storage interface {
-	Create(ctx context.Context, d domain.CreateUserInput) (string, error)
+	Create(ctx context.Context, d *domain.CreateUserInput) (string, error)
 }
 
 type usecases struct {

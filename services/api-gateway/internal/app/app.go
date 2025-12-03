@@ -85,9 +85,10 @@ func (a *App) Stop(ctx context.Context) {
 	if err := a.http.Stop(ctx); err != nil {
 		log.Error("Error when shutdown http server", logger.Err(err))
 	} else {
-		log.Info("Http server stopped successfully!")
+		log.Info("HTTP server stopped successfully!")
 	}
 
+	//TODO: parallel close any grpc clients
 	if err := a.usersClient.Stop(ctx); err != nil {
 		log.Error("Error when stop GRPC users client", logger.Err(err))
 	} else {

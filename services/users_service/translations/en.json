@@ -1,0 +1,10 @@
+{
+	"validation_password": "password must contain at least one uppercase letter (A–Z), at least one lowercase letter (a–z), at least one digit (0–9), at least one special character, and must be between 8 and 64 characters long",
+	"validation_email": "the entered email address does not match the required format",
+	"validation_num_range": "value must be between %v and %v inclusive",
+	"validation_num_min": "value must be at least %v",
+	"validation_num_max": "value must not exceed %v",
+	"validation_num_between": "value must be between %v and %v",
+	"validation_str_length": "length must be between %d and %d characters",
+	"validation_invalid_body": "the request body has an invalid format"
+}

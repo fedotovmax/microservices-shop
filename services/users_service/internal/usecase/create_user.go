@@ -11,7 +11,7 @@ import (
 	"github.com/fedotovmax/outbox"
 )
 
-func (u *usecases) CreateUser(ctx context.Context, d domain.CreateUserInput) (string, error) {
+func (u *usecases) CreateUser(ctx context.Context, d *domain.CreateUserInput) (string, error) {
 	const op = "usecase.user.CreateUser"
 
 	var userId string

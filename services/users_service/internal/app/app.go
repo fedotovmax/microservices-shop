@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	adapterPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/controller"
 	infraPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/infra/db/postgres"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/logger"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/queues/kafka"
@@ -84,15 +84,13 @@ func New(c Config, log *slog.Logger) (*App, error) {
 	eventSender := eventProcessor.GetEventSender()
 
 	useceses := usecase.NewUsecases(postgresAdapter, txManager, eventSender)
-	//TODO: add controller
-	_ = useceses
+	grpcController := controller.NewGRPCController(log, useceses)
 
 	grpcServer := grpcserver.NewGRPCServer(
 		grpcserver.Config{
 			Addr: fmt.Sprintf(":%d", c.GRPCPort),
 		},
-		//TODO: add controller
-		userspb.UnimplementedUserServiceServer{},
+		grpcController,
 	)
 
 	return &App{
@@ -111,7 +109,7 @@ func (a *App) MustRun(cancel ...context.CancelFunc) {
 
 	log := a.log.With(slog.String("op", op))
 
-	a.event.Start()
+	//a.event.Start()
 
 	log.Info("event processor starting")
 
@@ -150,7 +148,7 @@ func (a *App) Stop(ctx context.Context) {
 	}()
 
 	lifesycleServices := []*service{
-		newService("event processor", a.event),
+		//newService("event processor", a.event),
 		newService("kafka producer", a.producer),
 		newService("postgres", a.postgres),
 	}

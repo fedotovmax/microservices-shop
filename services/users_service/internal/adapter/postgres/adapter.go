@@ -51,7 +51,7 @@ func (p *postgresAdapter) findBy(ctx context.Context, column string, value strin
 	return u, nil
 }
 
-func (p *postgresAdapter) Create(ctx context.Context, d domain.CreateUserInput) (string, error) {
+func (p *postgresAdapter) Create(ctx context.Context, d *domain.CreateUserInput) (string, error) {
 	const op = "adapter.postgres.user.Create"
 
 	tx := p.ex.ExtractTx(ctx)

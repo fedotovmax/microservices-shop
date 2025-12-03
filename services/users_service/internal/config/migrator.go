@@ -2,15 +2,19 @@ package config
 
 import (
 	"flag"
+	"fmt"
 
+	"github.com/fedotovmax/envconfig"
 	"github.com/joho/godotenv"
 )
 
 type MigratorConfig struct {
-	DBUrl   string
-	Cmd     *string
-	Version *int
-	Steps   *int
+	DBUrl           string
+	MigrationsPath  string
+	MigrationsTable string
+	Cmd             *string
+	Version         *int
+	Steps           *int
 }
 
 func MustLoadMigratorConfig() *MigratorConfig {
@@ -19,29 +23,43 @@ func MustLoadMigratorConfig() *MigratorConfig {
 
 	mflags := loadMigratorFlags()
 
-	ok := checkConfigPathExists(mflags.ConfigPath)
+	ok := envconfig.CheckConfigPathExists(mflags.ConfigPath)
 
 	if !ok {
-		panicError(op, errConfigPathNotExists)
+		panic(fmt.Errorf("%s: %w", op, errConfigPathNotExists))
 	}
 
 	err := godotenv.Load(mflags.ConfigPath)
 
 	if err != nil {
-		panicError(op, err)
+		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
-	dbUrl, err := getEnv("DB_URL")
+	dbUrl, err := envconfig.GetEnv("DB_URL")
 
 	if err != nil {
-		panic(panicError(op, err))
+		panic(fmt.Errorf("%s: %w", op, err))
+	}
+
+	migrationsPath, err := envconfig.GetEnv("MIGRATIONS_PATH")
+
+	if err != nil {
+		panic(fmt.Errorf("%s: %w", op, err))
+	}
+
+	migrationsTable, err := envconfig.GetEnv("MIGRATIONS_TABLE")
+
+	if err != nil {
+		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
 	return &MigratorConfig{
-		DBUrl:   dbUrl,
-		Cmd:     mflags.Cmd,
-		Version: mflags.Version,
-		Steps:   mflags.Steps,
+		DBUrl:           dbUrl,
+		Cmd:             mflags.Cmd,
+		Version:         mflags.Version,
+		Steps:           mflags.Steps,
+		MigrationsPath:  migrationsPath,
+		MigrationsTable: migrationsTable,
 	}
 }
 
@@ -67,7 +85,7 @@ func loadMigratorFlags() *migratorFlags {
 	flag.Parse()
 
 	if configPath == "" {
-		panicError(op, errRequiredConfigPath)
+		panic(fmt.Errorf("%s: %w", op, errRequiredConfigPath))
 	}
 
 	return &migratorFlags{
