@@ -45,7 +45,6 @@ func (c *grpcController) CreateUser(ctx context.Context, req *userspb.CreateUser
 				FieldViolations: fieldviolations,
 			}
 
-			//TODO: localize
 			st := status.New(codes.InvalidArgument, "validation failed")
 
 			withDetails, err := st.WithDetails(badRequest)

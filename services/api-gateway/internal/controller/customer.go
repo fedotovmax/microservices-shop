@@ -5,23 +5,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
-
-//TODO: send metadata
-// md := metadata.Pairs(
-//     "token", "abc123",
-//     "client-version", "1.0.5",
-// )
-
-//  Вкладываем их в контекст
-// ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 type customerController struct {
 	router chi.Router
@@ -46,7 +39,10 @@ func (c *customerController) createUser(w http.ResponseWriter, r *http.Request) 
 	err := utils.DecodeJSON(r.Body, &createUserReq)
 
 	if err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, domain.NewError(domain.INVALID_BODY))
+
+		msg := i18n.Manager.GetMessage(locale, keys.ValidationInvalidBody)
+
+		utils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 

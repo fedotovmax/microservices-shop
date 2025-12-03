@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 
+	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/app"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/config"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/infra/logger"
@@ -26,6 +29,12 @@ func mustSetupLooger(env string) *slog.Logger {
 
 func main() {
 
+	workdir, err := os.Getwd()
+
+	if err != nil {
+		panic(err)
+	}
+
 	cfg := config.MustLoadAppConfig()
 
 	log := mustSetupLooger(cfg.Env)
@@ -41,6 +50,14 @@ func main() {
 
 	sig, triggerSignal := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer triggerSignal()
+
+	translationsDir := path.Join(workdir, cfg.TranslationPath)
+
+	err = i18n.Manager.Load(log, translationsDir)
+
+	if err != nil {
+		panic(err)
+	}
 
 	application.MustRun(triggerSignal)
 

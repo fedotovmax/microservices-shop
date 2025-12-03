@@ -1,5 +1,7 @@
 github.com/fedotovmax/envconfig v1.0.0 h1:PAXc7O8WUu3mFCNQWRBbR1MZtLYgRQEdxWTIpwofbxw=
 github.com/fedotovmax/envconfig v1.0.0/go.mod h1:1501oSJgcyOaNqMaAFLb0jPDup8q+2BWwu35X9xNfZI=
+github.com/fedotovmax/i18n v1.0.0 h1:yxhIp0wZMxJanknfrS5KAyj5VYv4QN0ZpGA42P3dEbg=
+github.com/fedotovmax/i18n v1.0.0/go.mod h1:Dx84qgsZfbVTxxyAaR/X4qDqgb8zHDVhY2w+UK6T+l8=
 github.com/fedotovmax/microservices-shop-protos v1.0.5 h1:wnSLSjaNoMsjbDh4rAUKcmHNhBm+3qa0U7WvDA64GAM=
 github.com/fedotovmax/microservices-shop-protos v1.0.5/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=

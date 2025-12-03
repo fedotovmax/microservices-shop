@@ -13,6 +13,7 @@ type AppConfig struct {
 	Env             string
 	Port            uint16
 	UsersClientAddr string
+	TranslationPath string
 }
 
 type appFlags struct {
@@ -61,10 +62,17 @@ func MustLoadAppConfig() *AppConfig {
 		panic(fmt.Errorf("%s: %w", op, err))
 	}
 
+	translationPath, err := envconfig.GetEnv("TRANSLATIONS_PATH")
+
+	if err != nil {
+		panic(fmt.Errorf("%s: %w", op, err))
+	}
+
 	config := &AppConfig{
 		Env:             appEnv,
 		Port:            port,
 		UsersClientAddr: usersClientAddr,
+		TranslationPath: translationPath,
 	}
 
 	return config
