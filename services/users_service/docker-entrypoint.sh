@@ -5,4 +5,4 @@ echo "Running database migrations..."
 /app/migrator -m up
 
 echo "Start user service"
-exec /app/grpc "$@"
+exec /app/user_service "$@"

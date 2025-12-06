@@ -7,7 +7,7 @@ import (
 
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/utils/hashing"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils/hashing"
 	"github.com/fedotovmax/outbox"
 )
 

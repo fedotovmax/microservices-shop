@@ -14,8 +14,7 @@ RUN go mod download
 COPY . .
 
 # Сборка бинарника
-RUN CGO_ENABLED=0 GOOS=linux go build -o user_service cmd/user_service/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -o migrator cmd/migrator/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o notify_service cmd/notify_service/main.go
 
 # =========================
 # Этап 2: Минимальный образ
@@ -27,14 +26,8 @@ FROM alpine:3.20
 WORKDIR /app
 
 # Копируем бинарник из builder
-COPY --from=builder /app/migrator .
-COPY --from=builder /app/user_service .
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/notify_service .
 COPY --from=builder /app/translations ./translations
-COPY docker-entrypoint.sh .
 
+CMD [ "/app/notify_service" ]
 
-RUN chmod +x docker-entrypoint.sh
-
-# Запуск
-ENTRYPOINT ["/app/docker-entrypoint.sh"]

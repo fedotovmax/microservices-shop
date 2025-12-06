@@ -17,40 +17,46 @@ type MigratorConfig struct {
 	Steps           *int
 }
 
-func MustLoadMigratorConfig() *MigratorConfig {
+func LoadMigratorConfig() (*MigratorConfig, error) {
 
 	const op = "config.MustLoadMigratorConfig"
 
-	mflags := loadMigratorFlags()
+	mflags, err := loadMigratorFlags()
+
+	if err != nil {
+		return nil, err
+	}
 
 	ok := envconfig.CheckConfigPathExists(mflags.ConfigPath)
 
 	if !ok {
-		panic(fmt.Errorf("%s: %w", op, errConfigPathNotExists))
+		return nil, fmt.Errorf("%s: %w", op, ErrConfigPathNotExists)
+
 	}
 
-	err := godotenv.Load(mflags.ConfigPath)
+	err = godotenv.Load(mflags.ConfigPath)
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	dbUrl, err := envconfig.GetEnv("DB_URL")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+
 	}
 
 	migrationsPath, err := envconfig.GetEnv("MIGRATIONS_PATH")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	migrationsTable, err := envconfig.GetEnv("MIGRATIONS_TABLE")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &MigratorConfig{
@@ -60,7 +66,7 @@ func MustLoadMigratorConfig() *MigratorConfig {
 		Steps:           mflags.Steps,
 		MigrationsPath:  migrationsPath,
 		MigrationsTable: migrationsTable,
-	}
+	}, nil
 }
 
 type migratorFlags struct {
@@ -70,7 +76,7 @@ type migratorFlags struct {
 	ConfigPath string
 }
 
-func loadMigratorFlags() *migratorFlags {
+func loadMigratorFlags() (*migratorFlags, error) {
 	const op = "config.loadMigratorFlags"
 
 	migrationCommand := flag.String("m", "up", "migration command: up, down, force, version")
@@ -85,7 +91,7 @@ func loadMigratorFlags() *migratorFlags {
 	flag.Parse()
 
 	if configPath == "" {
-		panic(fmt.Errorf("%s: %w", op, errRequiredConfigPath))
+		return nil, fmt.Errorf("%s: %w", op, ErrRequiredConfigPath)
 	}
 
 	return &migratorFlags{
@@ -93,5 +99,5 @@ func loadMigratorFlags() *migratorFlags {
 		Version:    version,
 		Steps:      steps,
 		ConfigPath: configPath,
-	}
+	}, nil
 }

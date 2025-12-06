@@ -26,7 +26,11 @@ func (i CreateUserInput) Validate(locale string) error {
 
 	if err != nil {
 
-		msg := i18n.Manager.GetMessage(locale, keys.ValidationEmail)
+		msg, lerr := i18n.Local.Get(locale, keys.ValidationEmail)
+
+		if lerr != nil {
+			return lerr
+		}
 
 		validationErrors = append(validationErrors, AddValidationError("Email", locale, msg, err))
 	}
@@ -35,7 +39,11 @@ func (i CreateUserInput) Validate(locale string) error {
 
 	if err != nil {
 
-		msg := i18n.Manager.GetMessage(locale, keys.ValidationPassword)
+		msg, lerr := i18n.Local.Get(locale, keys.ValidationPassword)
+
+		if lerr != nil {
+			return lerr
+		}
 
 		validationErrors = append(validationErrors,
 			AddValidationError("Password", locale, msg, err))

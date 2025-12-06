@@ -25,7 +25,7 @@ services:
       - app-net
   user_service:
     build:
-      context: ./user_service
+      context: ./services/users_service
       dockerfile: Dockerfile
     container_name: user_service
     restart: unless-stopped

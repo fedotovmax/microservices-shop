@@ -9,44 +9,57 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/app"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/logger"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 )
 
-func mustSetupLooger(env string) *slog.Logger {
+func setupLooger(env string) (*slog.Logger, error) {
 	switch env {
 	case keys.Development:
-		return logger.NewDevelopmentHandler()
+		return logger.NewDevelopmentHandler(), nil
 	case keys.Production:
-		return logger.NewProductionHandler()
+		return logger.NewProductionHandler(), nil
 	default:
-		panic("unsopported app env for logger")
+		return nil, envconfig.ErrInvalidAppEnv
 	}
 }
 
 func main() {
 
+	cfg, err := config.LoadAppConfig()
+
+	if err != nil {
+		logger.GetFallback().Error(err.Error())
+		os.Exit(1)
+	}
+
+	log, err := setupLooger(cfg.Env)
+
+	if err != nil {
+		logger.GetFallback().Error(err.Error())
+		os.Exit(1)
+	}
+
 	workdir, err := os.Getwd()
 
 	if err != nil {
-		panic(err)
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
-	cfg := config.MustLoadAppConfig()
-
-	log := mustSetupLooger(cfg.Env)
-
-	application, err := app.New(app.Config{
+	application, err := app.New(&app.Config{
 		DBURL:        cfg.DBUrl,
 		GRPCPort:     cfg.Port,
 		KafkaBrokers: cfg.KafkaBrokers,
 	}, log)
 
 	if err != nil {
-		panic(err)
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
 	sig, triggerSignal := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
@@ -54,13 +67,14 @@ func main() {
 
 	translationsDir := path.Join(workdir, cfg.TranslationPath)
 
-	err = i18n.Manager.Load(log, translationsDir)
+	err = i18n.Local.Load(translationsDir)
 
 	if err != nil {
-		panic(err)
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
-	application.MustRun(triggerSignal)
+	application.Run(triggerSignal)
 
 	<-sig.Done()
 

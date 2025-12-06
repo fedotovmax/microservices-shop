@@ -24,55 +24,59 @@ type appFlags struct {
 // Load config from file, when required APP_ENV variable provided and equal to local or development,
 // And required flag "config_path" for *.env file with variables: -c or -config_path
 // Else get env variables provided by operation system (defined by user/container/environment)
-func MustLoadAppConfig() *AppConfig {
+func LoadAppConfig() (*AppConfig, error) {
 	const op = "config.MustLoadAppConfig"
 
 	appEnv, err := envconfig.GetCurrentAppEnv(keys.AppEnv, keys.SupportedEnv)
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	if appEnv == keys.Local || appEnv == keys.Development {
 
-		appflags := loadAppConfigFlags()
+		appflags, err := loadAppConfigFlags()
+
+		if err != nil {
+			return nil, err
+		}
 
 		ok := envconfig.CheckConfigPathExists(appflags.ConfigPath)
 
 		if !ok {
-			panic(fmt.Errorf("%s: %w", op, errConfigPathNotExists))
+			return nil, fmt.Errorf("%s: %w", op, ErrConfigPathNotExists)
 		}
 
-		err := godotenv.Load(appflags.ConfigPath)
+		err = godotenv.Load(appflags.ConfigPath)
 
 		if err != nil {
-			panic(fmt.Errorf("%s: %w", op, err))
+			return nil, fmt.Errorf("%s: %w", op, err)
 		}
-
 	}
 
 	port, err := envconfig.GetEnvAs[uint16]("PORT")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	dbUrl, err := envconfig.GetEnv("DB_URL")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	kafkaBrokers, err := envconfig.GetEnvAsArr[string]("KAFKA_BROKERS")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	translationPath, err := envconfig.GetEnv("TRANSLATIONS_PATH")
 
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", op, err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+
 	}
 
 	config := &AppConfig{
@@ -83,10 +87,10 @@ func MustLoadAppConfig() *AppConfig {
 		TranslationPath: translationPath,
 	}
 
-	return config
+	return config, nil
 }
 
-func loadAppConfigFlags() *appFlags {
+func loadAppConfigFlags() (*appFlags, error) {
 
 	const op = "config.loadConfigPath"
 
@@ -98,10 +102,10 @@ func loadAppConfigFlags() *appFlags {
 	flag.Parse()
 
 	if configPath == "" {
-		panic(fmt.Errorf("%s: %w", op, errRequiredConfigPath))
+		return nil, fmt.Errorf("%s: %w", op, ErrRequiredConfigPath)
 	}
 
 	return &appFlags{
 		ConfigPath: configPath,
-	}
+	}, nil
 }

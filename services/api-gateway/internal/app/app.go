@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 
+	grpcadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/client/grpc"
+	httpadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
-	grpcclient "github.com/fedotovmax/microservices-shop/api-gateway/internal/infra/client/grpc"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/infra/logger"
-	httpserver "github.com/fedotovmax/microservices-shop/api-gateway/internal/infra/server/http"
+	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/logger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -24,7 +24,7 @@ type service interface {
 type App struct {
 	c           Config
 	log         *slog.Logger
-	http        *httpserver.Server
+	http        *httpadapter.Server
 	usersClient service
 }
 
@@ -34,7 +34,7 @@ func New(log *slog.Logger, c Config) (*App, error) {
 
 	r := chi.NewRouter()
 
-	usersClient, err := grpcclient.NewGRPCUsersClient(c.UsersGRPCAddr)
+	usersClient, err := grpcadapter.NewUsersClient(c.UsersGRPCAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -44,7 +44,7 @@ func New(log *slog.Logger, c Config) (*App, error) {
 
 	customerController.Register()
 
-	httpServer := httpserver.NewHTTPServer(httpserver.HTTPServerConfig{
+	httpServer := httpadapter.NewHTTPAdapter(httpadapter.HTTPServerConfig{
 		Port: c.HttpPort,
 	}, r)
 
@@ -56,7 +56,7 @@ func New(log *slog.Logger, c Config) (*App, error) {
 	}, nil
 }
 
-func (a *App) MustRun(cancel ...context.CancelFunc) {
+func (a *App) Run(cancel context.CancelFunc) {
 	const op = "app.MustRun"
 
 	log := a.log.With(slog.String("op", op))
@@ -65,13 +65,10 @@ func (a *App) MustRun(cancel ...context.CancelFunc) {
 
 	go func() {
 		if err := a.http.Start(); err != nil {
-			if len(cancel) > 0 {
-				log.Error("Cannot start http server", logger.Err(err))
-				log.Error("Signal to shutdown")
-				cancel[0]()
-				return
-			}
-			panic(fmt.Errorf("%s: %w", op, err))
+			log.Error("Cannot start http server", logger.Err(err))
+			log.Error("Signal to shutdown")
+			cancel()
+			return
 		}
 	}()
 }

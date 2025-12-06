@@ -7,13 +7,12 @@ import (
 	"sync"
 	"time"
 
-	adapterPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
+	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/queues/kafka"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/controller"
-	infraPostgres "github.com/fedotovmax/microservices-shop/users_service/internal/infra/db/postgres"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/logger"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/infra/queues/kafka"
-	grpcserver "github.com/fedotovmax/microservices-shop/users_service/internal/infra/server/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 	"github.com/fedotovmax/outbox"
 
 	"github.com/fedotovmax/pgxtx"
@@ -26,15 +25,15 @@ type Config struct {
 }
 
 type App struct {
-	c        Config
+	c        *Config
 	log      *slog.Logger
-	postgres infraPostgres.PostgresPool
-	grpc     *grpcserver.Server
+	postgres postgres.PostgresPool
+	grpc     *grpcadapter.Server
 	event    *outbox.Outbox
 	producer kafka.Producer
 }
 
-func New(c Config, log *slog.Logger) (*App, error) {
+func New(c *Config, log *slog.Logger) (*App, error) {
 
 	const op = "app.New"
 
@@ -43,7 +42,9 @@ func New(c Config, log *slog.Logger) (*App, error) {
 	poolConnectCtx, poolConnectCtxCancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer poolConnectCtxCancel()
 
-	postgresPool, err := infraPostgres.New(poolConnectCtx, c.DBURL)
+	postgresPool, err := postgres.NewConnection(poolConnectCtx, &postgres.Config{
+		DSN: c.DBURL,
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -59,7 +60,7 @@ func New(c Config, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	postgresAdapter := adapterPostgres.NewPostgresAdapter(ex)
+	postgresAdapter := postgres.NewAdapter(ex)
 
 	outboxConfig := outbox.SmallBatchConfig
 
@@ -86,8 +87,8 @@ func New(c Config, log *slog.Logger) (*App, error) {
 	useceses := usecase.NewUsecases(postgresAdapter, txManager, eventSender)
 	grpcController := controller.NewGRPCController(log, useceses)
 
-	grpcServer := grpcserver.NewGRPCServer(
-		grpcserver.Config{
+	grpcServer := grpcadapter.New(
+		grpcadapter.Config{
 			Addr: fmt.Sprintf(":%d", c.GRPCPort),
 		},
 		grpcController,
@@ -103,12 +104,13 @@ func New(c Config, log *slog.Logger) (*App, error) {
 		nil
 }
 
-func (a *App) MustRun(cancel ...context.CancelFunc) {
+func (a *App) Run(cancel context.CancelFunc) {
 
 	const op = "app.MustRun"
 
 	log := a.log.With(slog.String("op", op))
 
+	//TODO: return
 	//a.event.Start()
 
 	log.Info("event processor starting")
@@ -117,16 +119,12 @@ func (a *App) MustRun(cancel ...context.CancelFunc) {
 
 	go func() {
 		if err := a.grpc.Start(); err != nil {
-			if len(cancel) > 0 {
-				log.Error("Cannot start grpc server", logger.Err(err))
-				log.Error("Signal to shutdown")
-				cancel[0]()
-				return
-			}
-			panic(fmt.Errorf("%s: %w", op, err))
+			log.Error("Cannot start grpc server", logger.Err(err))
+			log.Error("Signal to shutdown")
+			cancel()
+			return
 		}
 	}()
-
 }
 
 func (a *App) Stop(ctx context.Context) {
@@ -135,22 +133,21 @@ func (a *App) Stop(ctx context.Context) {
 
 	log := a.log.With(slog.String("op", op))
 
-	stopErrosChan := make(chan error)
-
-	err := a.grpc.Stop(ctx)
-
-	go func() {
-		if err != nil {
-			stopErrosChan <- err
-		} else {
-			log.Info("grpc server stopped successfully!")
-		}
-	}()
-
 	lifesycleServices := []*service{
+		//TODO:return
 		//newService("event processor", a.event),
 		newService("kafka producer", a.producer),
 		newService("postgres", a.postgres),
+	}
+
+	stopErrorsChan := make(chan error, len(lifesycleServices))
+
+	err := a.grpc.Stop(ctx)
+
+	if err != nil {
+		log.Error(err.Error())
+	} else {
+		log.Info("grpc server stopped successfully!")
 	}
 
 	wg := &sync.WaitGroup{}
@@ -161,7 +158,7 @@ func (a *App) Stop(ctx context.Context) {
 			defer wg.Done()
 			err := s.Stop(ctx)
 			if err != nil {
-				stopErrosChan <- err
+				stopErrorsChan <- err
 			} else {
 				log.Info("successfully stopped:", slog.String("service", s.Name()))
 			}
@@ -170,12 +167,12 @@ func (a *App) Stop(ctx context.Context) {
 
 	go func() {
 		wg.Wait()
-		close(stopErrosChan)
+		close(stopErrorsChan)
 	}()
 
-	stopErrors := make([]error, 0)
+	stopErrors := make([]error, 0, len(lifesycleServices))
 
-	for err := range stopErrosChan {
+	for err := range stopErrorsChan {
 		stopErrors = append(stopErrors, err)
 	}
 
