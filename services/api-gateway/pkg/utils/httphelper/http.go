@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func DecodeJSON(r io.Reader, v any) error {
@@ -26,21 +27,35 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 	}
 }
 
-func HandleErrorFromGrpc(err error, w http.ResponseWriter) {
+type fallbackResponse struct {
+	Message string `json:"message"`
+}
+
+func HandleErrorFromGrpc(w http.ResponseWriter, err error) {
 
 	st, ok := status.FromError(err)
 
 	if ok {
-		for _, d := range st.Details() {
-			switch info := d.(type) {
-			case *errdetails.BadRequest:
-				WriteJSON(w, http.StatusBadRequest, info)
-				return
+		switch st.Code() {
+		case codes.InvalidArgument:
+			for _, d := range st.Details() {
+				switch info := d.(type) {
+				case *errdetails.BadRequest:
+					WriteJSON(w, http.StatusBadRequest, info)
+					return
+				}
 			}
+			WriteJSON(w, http.StatusBadRequest, fallbackResponse{Message: st.Message()})
+			return
+
+		default:
+			httpcode := GrpcCodeToHttp(st.Code())
+			WriteJSON(w, httpcode, fallbackResponse{Message: st.Message()})
+			return
 		}
 	}
 
-	WriteJSON(w, http.StatusBadRequest, domain.NewError(err.Error()))
+	WriteJSON(w, http.StatusInternalServerError, fallbackResponse{Message: st.Message()})
 }
 
 /*
@@ -62,7 +77,7 @@ Unavailable	503 Service Unavailable
 DataLoss	500 Internal Server Error
 Unauthenticated	401 Unauthorized
 */
-func GrpcCodeToHttp(grpcCode codes.Code, fallback ...int) int {
+func GrpcCodeToHttp(grpcCode codes.Code) int {
 
 	switch grpcCode {
 	case codes.OK:
@@ -80,9 +95,15 @@ func GrpcCodeToHttp(grpcCode codes.Code, fallback ...int) int {
 	case codes.Internal:
 		return http.StatusInternalServerError
 	default:
-		if len(fallback) > 0 {
-			return fallback[0]
-		}
 		return http.StatusInternalServerError
 	}
+}
+
+func TimestampToTimePtr(ts *timestamppb.Timestamp) *time.Time {
+	if ts == nil {
+		return nil
+	}
+
+	t := ts.AsTime()
+	return &t
 }

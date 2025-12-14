@@ -1,0 +1,36 @@
+package usecase
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/fedotovmax/kafka-lib/outbox"
+)
+
+func (u *usecases) ConfirmEvent(ctx context.Context, ev outbox.SuccessEvent) error {
+
+	const op = "usecase.ConfirmEvent"
+
+	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
+
+		err := u.s.RemoveEventReserve(txCtx, ev.GetID())
+
+		if err != nil {
+			return err
+		}
+
+		err = u.s.SetEventStatusDone(txCtx, ev.GetID())
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}

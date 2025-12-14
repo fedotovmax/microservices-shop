@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 
@@ -14,7 +15,7 @@ import (
 
 func main() {
 
-	log := logger.NewDevelopmentHandler()
+	log := logger.NewDevelopmentHandler(slog.LevelDebug)
 
 	cfg, err := config.LoadMigratorConfig()
 

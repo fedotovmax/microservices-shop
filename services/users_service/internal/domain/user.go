@@ -3,70 +3,30 @@ package domain
 import (
 	"time"
 
-	"github.com/fedotovmax/grpcutils/violations"
-	"github.com/fedotovmax/i18n"
+	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
-	"github.com/fedotovmax/validation"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type CreateUserInput struct {
-	email    string
-	password string
-}
+func (u *User) ToProto() *userspb.User {
 
-func NewCreateUserInput(email, password string) *CreateUserInput {
-
-	return &CreateUserInput{email: email, password: password}
-}
-
-func (i CreateUserInput) Validate(locale string) error {
-	var validationErrors violations.ValidationErrors
-
-	_, err := validation.IsEmail(i.email)
-
-	if err != nil {
-
-		msg, lerr := i18n.Local.Get(locale, keys.ValidationEmail)
-
-		if lerr != nil {
-			return lerr
-		}
-
-		validationErrors = append(validationErrors, AddValidationError("Email", locale, msg, err))
+	return &userspb.User{
+		CreatedAt: timestamppb.New(u.CreatedAt),
+		UpdatedAt: timestamppb.New(u.UpdatedAt),
+		Id:        u.ID,
+		Email:     u.Email,
+		Phone:     u.Phone,
+		Profile: &userspb.Profile{
+			UpdatedAt:  timestamppb.New(u.Profile.UpdatedAt),
+			BirthDate:  utils.TimePtrToString(keys.DateFormat, u.Profile.BirthDate),
+			LastName:   u.Profile.LastName,
+			FirstName:  u.Profile.FirstName,
+			MiddleName: u.Profile.MiddleName,
+			AvatarUrl:  u.Profile.AvatarURL,
+			Gender:     u.Profile.Gender.ToProto(),
+		},
 	}
-
-	err = validatePassword(i.password)
-
-	if err != nil {
-
-		msg, lerr := i18n.Local.Get(locale, keys.ValidationPassword)
-
-		if lerr != nil {
-			return lerr
-		}
-
-		validationErrors = append(validationErrors,
-			AddValidationError("Password", locale, msg, err))
-	}
-
-	if len(validationErrors) > 0 {
-		return validationErrors
-	}
-
-	return nil
-
-}
-
-func (i *CreateUserInput) GetEmail() string {
-	return i.email
-}
-
-func (i *CreateUserInput) GetPassword() string {
-	return i.password
-}
-
-func (i *CreateUserInput) SetPasswordHash(hash string) {
-	i.password = hash
 }
 
 type User struct {
@@ -81,9 +41,68 @@ type User struct {
 
 type Gender string
 
-const (
-	Male   Gender = "male"
-	Female Gender = "female"
+func (g *Gender) String() string {
+
+	if g == nil {
+		return ""
+	}
+
+	return string(*g)
+
+}
+
+func (g Gender) IsValid() bool {
+	switch g {
+	case Male, Female:
+		return true
+	default:
+		return false
+	}
+}
+
+func GenderFromProto(protoG *userspb.Gender) *Gender {
+
+	if protoG == nil {
+		return nil
+	}
+
+	switch *protoG {
+	case userspb.Gender_MALE:
+		g := Male
+		return &g
+	case userspb.Gender_FEMALE:
+		g := Female
+		return &g
+	case userspb.Gender_GENDER_UNSPECIFIED:
+		return nil
+	default:
+		g := InvalidGender
+		return &g
+	}
+
+}
+
+func (g *Gender) ToProto() *userspb.Gender {
+
+	if g == nil {
+		return userspb.Gender_GENDER_UNSPECIFIED.Enum()
+	}
+
+	switch *g {
+	case Male:
+		return userspb.Gender_MALE.Enum()
+	case Female:
+		return userspb.Gender_FEMALE.Enum()
+	default:
+		return userspb.Gender_GENDER_UNSPECIFIED.Enum()
+	}
+
+}
+
+var (
+	Male          Gender = "male"
+	Female        Gender = "female"
+	InvalidGender Gender = ""
 )
 
 type Profile struct {
@@ -94,8 +113,4 @@ type Profile struct {
 	MiddleName *string
 	AvatarURL  *string
 	Gender     *Gender
-}
-
-type UserCreatedEvent struct {
-	ID string
 }

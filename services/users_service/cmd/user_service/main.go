@@ -20,9 +20,9 @@ import (
 func setupLooger(env string) (*slog.Logger, error) {
 	switch env {
 	case keys.Development:
-		return logger.NewDevelopmentHandler(), nil
+		return logger.NewDevelopmentHandler(slog.LevelInfo), nil
 	case keys.Production:
-		return logger.NewProductionHandler(), nil
+		return logger.NewProductionHandler(slog.LevelWarn), nil
 	default:
 		return nil, envconfig.ErrInvalidAppEnv
 	}

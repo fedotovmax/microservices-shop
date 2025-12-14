@@ -4,42 +4,47 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 	"github.com/fedotovmax/pgxtx"
 	"github.com/jackc/pgx/v5"
 )
 
 type postgresAdapter struct {
-	ex pgxtx.Extractor
+	ex  pgxtx.Extractor
+	log *slog.Logger
 }
 
-func NewAdapter(ex pgxtx.Extractor) *postgresAdapter {
+func NewPostgresAdapter(ex pgxtx.Extractor, log *slog.Logger) *postgresAdapter {
+
 	return &postgresAdapter{
-		ex: ex,
+		ex:  ex,
+		log: log,
 	}
 }
 
-func (p *postgresAdapter) FindByID(ctx context.Context, id string) (*domain.User, error) {
-	return p.findBy(ctx, "id", id)
-}
+func (p *postgresAdapter) FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error) {
 
-func (p *postgresAdapter) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	return p.findBy(ctx, "email", email)
-}
+	const op = "adapter.postgres.FindUserBy"
 
-func (p *postgresAdapter) findBy(ctx context.Context, column string, value string) (*domain.User, error) {
+	err := db.IsUserEntityField(column)
 
-	const op = "adapter.postgres.user.findBy"
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
 	tx := p.ex.ExtractTx(ctx)
 
-	row := tx.QueryRow(ctx, findByQuery(column), value)
+	row := tx.QueryRow(ctx, findUserByQuery(column), value)
 
 	u := &domain.User{}
 
-	err := row.Scan(&u.ID, &u.Email, &u.Phone, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt, &u.Profile.LastName, &u.Profile.FirstName, &u.Profile.MiddleName, &u.Profile.BirthDate, &u.Profile.Gender, &u.Profile.AvatarURL, &u.Profile.UpdatedAt)
+	err = row.Scan(&u.ID, &u.Email, &u.Phone, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt, &u.Profile.LastName, &u.Profile.FirstName, &u.Profile.MiddleName, &u.Profile.BirthDate, &u.Profile.Gender, &u.Profile.AvatarURL, &u.Profile.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -51,12 +56,34 @@ func (p *postgresAdapter) findBy(ctx context.Context, column string, value strin
 	return u, nil
 }
 
-func (p *postgresAdapter) Create(ctx context.Context, d *domain.CreateUserInput) (string, error) {
-	const op = "adapter.postgres.user.Create"
+func (p *postgresAdapter) UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error {
+
+	const op = "adapter.postgres.UpdateUserProfile"
+
+	bqr, err := buildUpdateUserProfileQuery(in, id)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	tx := p.ex.ExtractTx(ctx)
 
-	row := tx.QueryRow(ctx, createUserQuery, d.GetEmail(), d.GetPassword())
+	_, err = tx.Exec(ctx, bqr.Query, bqr.Args...)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
+
+}
+
+func (p *postgresAdapter) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (string, error) {
+	const op = "adapter.postgres.CreateUser"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	row := tx.QueryRow(ctx, createUserQuery, in.GetEmail(), in.GetPassword())
 
 	var id string
 
@@ -73,5 +100,115 @@ func (p *postgresAdapter) Create(ctx context.Context, d *domain.CreateUserInput)
 	}
 
 	return id, nil
+
+}
+
+//TODO:
+// func (p *postgresAdapter) FindEvents(ctx context.Context, f any) ([]*domain.Event, error) {
+// 	const op = "adapter.postgres.FindEvents"
+
+// 	return nil, nil
+// }
+
+func (p *postgresAdapter) FindNewAndNotReservedEvents(ctx context.Context, limit int) ([]*domain.Event, error) {
+
+	const op = "adapter.postgres.FindNewAndNotReservedEvents"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	rows, err := tx.Query(ctx, findNewAndNotReservedEventsQuery, domain.EventStatusDone, limit)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+	defer rows.Close()
+
+	var events []*domain.Event
+
+	for rows.Next() {
+
+		e := &domain.Event{}
+
+		err := rows.Scan(&e.ID, &e.AggregateID, &e.Topic, &e.Type, &e.Payload,
+			&e.Status, &e.CreatedAt, &e.ReservedTo)
+
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+		}
+
+		events = append(events, e)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return events, nil
+
+}
+
+func (p *postgresAdapter) CreateEvent(ctx context.Context, in *inputs.CreateEvent) (string, error) {
+	const op = "outbox.postgres.CreateEvent"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	row := tx.QueryRow(ctx, createEventQuery,
+		in.GetAggregateID(), in.GetTopic(), in.GetType(), in.GetPayload())
+
+	var id string
+
+	err := row.Scan(&id)
+
+	if err != nil {
+		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return id, nil
+}
+
+func (p *postgresAdapter) RemoveEventReserve(ctx context.Context, id string) error {
+
+	const op = "adapter.postgres.RemoveEventReserve"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	_, err := tx.Exec(ctx, removeEventReserveQuery, id)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (p *postgresAdapter) SetEventStatusDone(ctx context.Context, id string) error {
+	const op = "adapter.postgres.SetEventStatusDone"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	_, err := tx.Exec(ctx, setEventStatusDoneQuery, domain.EventStatusDone, id)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (p *postgresAdapter) SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error {
+
+	const op = "adapter.postgres.SetEventsReservedToByIDs"
+
+	reservedTo := time.Now().Add(dur)
+
+	tx := p.ex.ExtractTx(ctx)
+
+	_, err := tx.Exec(ctx, setEventsReservedToByIDsQuery, reservedTo, ids)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
 
 }

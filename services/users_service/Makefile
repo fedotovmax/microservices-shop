@@ -2,7 +2,7 @@ VERSION=
 
 STEPS ?= 0
 
-grpcapp:
+app:
 	@APP_ENV=development go run ./cmd/user_service/main.go -c .env
 migrator-up:
 	@go run ./cmd/migrator/main.go -m up -steps $(STEPS) -c .env

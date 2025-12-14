@@ -23,7 +23,55 @@ func NewCustomerController(router chi.Router, log *slog.Logger, rpc userspb.User
 	return &customerController{router: router, users: rpc, log: log}
 }
 
+func (c *customerController) findUserByID(w http.ResponseWriter, r *http.Request) {
+
+	const op = "controller.customer.findUserByID"
+
+	l := c.log.With(slog.String("op", op))
+
+	locale := r.Header.Get(keys.HeaderLocale)
+
+	if locale == "" {
+		locale = keys.FallbackLocale
+	}
+
+	userId := r.PathValue("id")
+
+	if userId == "" {
+		msg, err := i18n.Local.Get(locale, keys.ValidationEmptyID)
+		if err != nil {
+			l.Error(err.Error())
+		}
+		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		return
+	}
+
+	md := metadata.Pairs(
+		keys.MetadataLocaleKey, locale,
+	)
+
+	ctx := metadata.NewOutgoingContext(r.Context(), md)
+
+	response, err := c.users.FindUserByID(ctx, &userspb.FindUserByIDRequest{
+		Id: userId,
+	})
+
+	if err != nil {
+		httphelper.HandleErrorFromGrpc(w, err)
+		return
+	}
+
+	user := domain.UserFromProto(locale, response)
+
+	httphelper.WriteJSON(w, http.StatusOK, user)
+
+}
+
 func (c *customerController) createUser(w http.ResponseWriter, r *http.Request) {
+
+	const op = "controller.customer.createUser"
+
+	l := c.log.With(slog.String("op", op))
 
 	locale := r.Header.Get(keys.HeaderLocale)
 
@@ -37,7 +85,11 @@ func (c *customerController) createUser(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 
-		msg := i18n.Manager.GetMessage(locale, keys.ValidationInvalidBody)
+		msg, err := i18n.Local.Get(locale, keys.ValidationInvalidBody)
+
+		if err != nil {
+			l.Error(err.Error())
+		}
 
 		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
@@ -52,7 +104,7 @@ func (c *customerController) createUser(w http.ResponseWriter, r *http.Request) 
 	response, err := c.users.CreateUser(ctx, &createUserReq)
 
 	if err != nil {
-		httphelper.HandleErrorFromGrpc(err, w)
+		httphelper.HandleErrorFromGrpc(w, err)
 		return
 	}
 
@@ -60,8 +112,61 @@ func (c *customerController) createUser(w http.ResponseWriter, r *http.Request) 
 
 }
 
-func (c *customerController) getUserById(w http.ResponseWriter, r *http.Request) {
+func (c *customerController) updateUserByID(w http.ResponseWriter, r *http.Request) {
 
+	const op = "controller.customer.updateUserByID"
+
+	l := c.log.With(slog.String("op", op))
+
+	locale := r.Header.Get(keys.HeaderLocale)
+
+	if locale == "" {
+		locale = keys.FallbackLocale
+	}
+
+	//TODO: get from session
+	userId := r.PathValue("id")
+
+	if userId == "" {
+		msg, err := i18n.Local.Get(locale, keys.ValidationEmptyID)
+		if err != nil {
+			l.Error(err.Error())
+		}
+		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		return
+	}
+
+	var updateUserProfileReq userspb.UpdateUserProfileRequest
+
+	err := httphelper.DecodeJSON(r.Body, &updateUserProfileReq)
+
+	if err != nil {
+
+		msg, err := i18n.Local.Get(locale, keys.ValidationInvalidBody)
+
+		if err != nil {
+			l.Error(err.Error())
+		}
+
+		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		return
+	}
+
+	md := metadata.Pairs(
+		keys.MetadataLocaleKey, locale,
+		keys.MetadataUserIDKey, userId,
+	)
+
+	ctx := metadata.NewOutgoingContext(r.Context(), md)
+
+	_, err = c.users.UpdateUserProfile(ctx, &updateUserProfileReq)
+
+	if err != nil {
+		httphelper.HandleErrorFromGrpc(w, err)
+		return
+	}
+
+	httphelper.WriteJSON(w, http.StatusOK, domain.OK())
 }
 
 func (c *customerController) Register() {
@@ -71,7 +176,9 @@ func (c *customerController) Register() {
 		cr.Route("/users", func(ur chi.Router) {
 
 			ur.Post("/", c.createUser)
-			ur.Get("/{id}", c.getUserById)
+			//TODO: get ID from session
+			ur.Patch("/{id}", c.updateUserByID)
+			ur.Get("/{id}", c.findUserByID)
 		})
 
 	})

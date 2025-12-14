@@ -7,3 +7,7 @@ type Error struct {
 func NewError(m string) Error {
 	return Error{Message: m}
 }
+
+func OK() Error {
+	return Error{Message: "OK"}
+}

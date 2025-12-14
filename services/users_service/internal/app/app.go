@@ -7,13 +7,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fedotovmax/kafka-lib/kafka"
+	"github.com/fedotovmax/kafka-lib/outbox"
+	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/queues/kafka"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/controller"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
-	"github.com/fedotovmax/outbox"
 
 	"github.com/fedotovmax/pgxtx"
 )
@@ -25,13 +27,20 @@ type Config struct {
 }
 
 type App struct {
-	c        *Config
-	log      *slog.Logger
-	postgres postgres.PostgresPool
-	grpc     *grpcadapter.Server
-	event    *outbox.Outbox
-	producer kafka.Producer
+	c             *Config
+	log           *slog.Logger
+	postgres      postgres.PostgresPool
+	grpc          *grpcadapter.Server
+	event         *outbox.Outbox
+	producer      kafka.Producer
+	consumerGroup kafka.ConsumerGroup
 }
+
+// TODO: remove fake usecase
+type ku struct{}
+
+// TODO: remove fake usecase
+func (u *ku) Test(ctx context.Context, payload any) {}
 
 func New(c *Config, log *slog.Logger) (*App, error) {
 
@@ -60,9 +69,12 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	postgresAdapter := postgres.NewAdapter(ex)
+	postgresAdapter := postgres.NewPostgresAdapter(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
+
+	outboxConfig.HeaderEventID = keys.KafkaHeaderEventID
+	outboxConfig.HeaderEventType = keys.KafkaHeaderEventType
 
 	flushConfig := outboxConfig.GetKafkaFlushConfig()
 
@@ -76,16 +88,28 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventProcessor, err := outbox.New(log, producer, txManager, ex, outboxConfig)
+	useceses := usecase.NewUsecases(postgresAdapter, txManager, log)
+
+	eventProcessor, err := outbox.New(log, producer, useceses, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventSender := eventProcessor.GetEventSender()
-
-	useceses := usecase.NewUsecases(postgresAdapter, txManager, eventSender)
 	grpcController := controller.NewGRPCController(log, useceses)
+
+	kafkaConsumerController := controller.NewKafkaController(log, &ku{})
+
+	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
+		Brokers:             c.KafkaBrokers,
+		Topics:              []string{events.USER_EVENTS},
+		GroupID:             "users-service-app",
+		SleepAfterRebalance: time.Second * 2,
+	}, log, kafkaConsumerController)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
 	grpcServer := grpcadapter.New(
 		grpcadapter.Config{
@@ -95,12 +119,14 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 	)
 
 	return &App{
-			c:        c,
-			log:      log,
-			grpc:     grpcServer,
-			postgres: postgresPool,
-			event:    eventProcessor,
-			producer: producer},
+			c:             c,
+			log:           log,
+			grpc:          grpcServer,
+			postgres:      postgresPool,
+			event:         eventProcessor,
+			producer:      producer,
+			consumerGroup: consumerGroup,
+		},
 		nil
 }
 
@@ -111,9 +137,10 @@ func (a *App) Run(cancel context.CancelFunc) {
 	log := a.log.With(slog.String("op", op))
 
 	//TODO: return
-	//a.event.Start()
-
+	a.event.Start()
 	log.Info("event processor starting")
+	a.consumerGroup.Start()
+	log.Info("consumer group starting")
 
 	log.Info("Try to start GRPC server:", slog.String("port", fmt.Sprintf("%d", a.c.GRPCPort)))
 
@@ -134,9 +161,9 @@ func (a *App) Stop(ctx context.Context) {
 	log := a.log.With(slog.String("op", op))
 
 	lifesycleServices := []*service{
-		//TODO:return
-		//newService("event processor", a.event),
+		newService("event processor", a.event),
 		newService("kafka producer", a.producer),
+		newService("kafka consumer-group", a.consumerGroup),
 		newService("postgres", a.postgres),
 	}
 

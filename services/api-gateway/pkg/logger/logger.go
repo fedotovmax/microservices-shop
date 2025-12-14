@@ -14,20 +14,20 @@ func Err(err error) slog.Attr {
 }
 
 func GetFallback() *slog.Logger {
-	return NewDevelopmentHandler()
+	return NewDevelopmentHandler(slog.LevelDebug)
 }
 
-func NewDevelopmentHandler() *slog.Logger {
+func NewDevelopmentHandler(level slog.Level) *slog.Logger {
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelDebug,
+		Level:     level,
 		AddSource: true,
 	})
 	return slog.New(handler)
 }
 
-func NewProductionHandler() *slog.Logger {
+func NewProductionHandler(level slog.Level) *slog.Logger {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
+		Level:     level,
 		AddSource: true,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.TimeKey {

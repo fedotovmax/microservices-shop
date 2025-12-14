@@ -1,3 +1,8 @@
 {
-	"validation_invalid_body": "the request body has an invalid format"
+	"validation_invalid_body": "the request body has an invalid format",
+	"validation_empty_id": "param id is empty",
+
+	"user_gender_unspecified": "not specified",
+	"user_gender_male": "male",
+	"user_gender_female": "female"
 }

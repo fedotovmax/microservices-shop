@@ -2,26 +2,37 @@ package usecase
 
 import (
 	"context"
+	"log/slog"
+	"time"
 
+	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
-	"github.com/fedotovmax/outbox"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 	"github.com/fedotovmax/pgxtx"
 )
 
 type Storage interface {
-	Create(ctx context.Context, d *domain.CreateUserInput) (string, error)
+	CreateUser(ctx context.Context, d *inputs.CreateUserInput) (string, error)
+	UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error
+	FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
+
+	SetEventStatusDone(ctx context.Context, id string) error
+	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error
+	RemoveEventReserve(ctx context.Context, id string) error
+	CreateEvent(ctx context.Context, d *inputs.CreateEvent) (string, error)
+	FindNewAndNotReservedEvents(ctx context.Context, limit int) ([]*domain.Event, error)
 }
 
 type usecases struct {
 	s   Storage
-	es  outbox.EventSender
 	txm pgxtx.Manager
+	log *slog.Logger
 }
 
-func NewUsecases(s Storage, txm pgxtx.Manager, es outbox.EventSender) *usecases {
+func NewUsecases(s Storage, txm pgxtx.Manager, log *slog.Logger) *usecases {
 	return &usecases{
 		s:   s,
-		es:  es,
 		txm: txm,
+		log: log,
 	}
 }
