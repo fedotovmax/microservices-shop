@@ -36,7 +36,7 @@ type PostgresPool interface {
 }
 
 func (p *postgresPool) Stop(ctx context.Context) error {
-	op := "db.postgres.Close"
+	op := "adapter.postgres.Stop"
 
 	done := make(chan struct{})
 

@@ -12,7 +12,8 @@ import (
 //USER QUERIES
 
 func findUserByQuery(column db.UserEntityFields) string {
-	return fmt.Sprintf(`select u.id, u.email, u.phone, u.password_hash, u.created_at, u.updated_at,
+	return fmt.Sprintf(`select u.id, u.email, u.phone, u.password_hash, u.is_email_verified,
+u.is_phone_verified, u.created_at, u.updated_at, u.deleted_at,
 p.last_name, p.first_name, p.middle_name, p.birth_date, p.gender, p.avatar_url, p.updated_at
 from users as u
 inner join profiles as p on u.id = p.user_id
@@ -82,6 +83,12 @@ func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*bui
 const createUserQuery = "insert into users (email, password_hash) values ($1, $2) returning id;"
 
 const createProfileQuery = "insert into profiles (user_id) values ($1);"
+
+const createEmailVerifyLinkQuery = "insert into email_verification (user_id) values ($1) returning link, user_id, validity_period;"
+
+const findEmailVerifyLinkQuery = "select link, user_id, validity_period from email_verification where link = $1;"
+
+const updateEmailVerifyLinkByUserIDQuery = "update email_verification set link = gen_random_uuid(), validity_period = now() + interval '15 minutes' where user_id = $1 returning link, user_id, validity_period;"
 
 //EVENT QUERIES
 

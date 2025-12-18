@@ -12,10 +12,10 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils/hashing"
 )
 
-func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (string, error) {
+func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, emailIn *inputs.EmailVerifyNotificationInput) (string, error) {
 	const op = "usecase.CreateUser"
 
-	var userId string
+	var userID string
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 
@@ -39,28 +39,60 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (
 
 		in.SetPassword(hashedPassword)
 
-		userId, err = u.s.CreateUser(txCtx, in)
+		userID, err = u.s.CreateUser(txCtx, in)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		payload := events.UserCreatedEventPayload{ID: userId}
-
-		b, err := json.Marshal(payload)
+		link, err := u.s.CreateEmailVerifyLink(txCtx, userID)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		eventIn := inputs.NewCreateEventInput()
+		userCreatedPayload := events.UserCreatedEventPayload{ID: userID}
 
-		eventIn.SetAggregateID(userId)
-		eventIn.SetTopic(events.USER_EVENTS)
-		eventIn.SetType(events.USER_CREATED)
-		eventIn.SetPayload(b)
+		userCreatedPayloadBytes, err := json.Marshal(userCreatedPayload)
 
-		_, err = u.s.CreateEvent(txCtx, eventIn)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		userCreatedEventIn := inputs.NewCreateEventInput()
+
+		userCreatedEventIn.SetAggregateID(userID)
+		userCreatedEventIn.SetTopic(events.USER_EVENTS)
+		userCreatedEventIn.SetType(events.USER_CREATED)
+		userCreatedEventIn.SetPayload(userCreatedPayloadBytes)
+
+		_, err = u.s.CreateEvent(txCtx, userCreatedEventIn)
+
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		emailVerifyNotificationPayload := events.EmailVerifyNotificationPayload{
+			Email:       in.GetEmail(),
+			Title:       emailIn.GetTitle(),
+			Description: emailIn.GetDescription(),
+			Link:        link.Link,
+			Locale:      emailIn.GetLocale(),
+		}
+
+		emailVerifyNotificationPayloadBytes, err := json.Marshal(emailVerifyNotificationPayload)
+
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		emailVerifyNotificationIn := inputs.NewCreateEventInput()
+		emailVerifyNotificationIn.SetAggregateID(userID)
+		emailVerifyNotificationIn.SetTopic(events.NOTIFICATIONS_EVENTS)
+		emailVerifyNotificationIn.SetType(events.NOTIFICATIONS_EMAIL)
+		emailVerifyNotificationIn.SetPayload(emailVerifyNotificationPayloadBytes)
+
+		_, err = u.s.CreateEvent(txCtx, emailVerifyNotificationIn)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -73,6 +105,6 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (
 		return "", err
 	}
 
-	return userId, nil
+	return userID, nil
 
 }

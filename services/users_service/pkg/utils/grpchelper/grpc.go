@@ -37,13 +37,6 @@ func GetFromMetadata(ctx context.Context, key string, fallback ...string) []stri
 
 }
 
-func ReturnGRPCInternal(l *slog.Logger, msg string, err error) error {
-
-	l.Warn(err.Error())
-	st := status.New(codes.Internal, msg)
-	return st.Err()
-}
-
 func ReturnGRPCBadRequest(l *slog.Logger, msg string, err error) error {
 
 	var ve violations.ValidationErrors

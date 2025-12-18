@@ -7,9 +7,3 @@ const (
 
 	ValidationEmptyID = "validation_empty_id"
 )
-
-const (
-	UserGenderUnspecified = "user_gender_unspecified"
-	UserGenderMale        = "user_gender_male"
-	UserGenderFemale      = "user_gender_female"
-)

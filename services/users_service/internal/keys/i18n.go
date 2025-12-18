@@ -25,3 +25,9 @@ const (
 	UserNotFound      = "user_not_found"
 	UserAlreadyExists = "user_already_exists"
 )
+
+const (
+	UserGenderUnspecified = "user_gender_unspecified"
+	UserGenderMale        = "user_gender_male"
+	UserGenderFemale      = "user_gender_female"
+)

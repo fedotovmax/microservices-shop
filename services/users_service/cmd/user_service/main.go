@@ -80,6 +80,7 @@ func main() {
 
 	log.Info("Signal recieved, shutdown app")
 
+	//TODO: real time out for shutdown
 	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer shutdownCtxCancel()
 

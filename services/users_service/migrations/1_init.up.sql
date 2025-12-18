@@ -5,7 +5,7 @@ check (value ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 create domain phone_e164_d as text
 check (VALUE ~ '^\+[1-9][0-9]{7,14}$');
 
-create type gender_enum as enum ('male', 'female');
+create type gender_enum as enum ('male', 'female', 'unspecified');
 
 create table if not exists users (
 
@@ -40,7 +40,7 @@ create table if not exists profiles (
 
   birth_date DATE,
 
-  gender gender_enum,
+  gender gender_enum default 'unspecified',
 
   avatar_url TEXT,
 

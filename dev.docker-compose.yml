@@ -129,9 +129,24 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+  notify_service_redis:
+    image: redis:7
+    container_name: notify_service_redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${NOTIFY_SERVICE_REDIS_PASSWORD}
+    volumes:
+      - notify-service-redis-data:/data
+    ports:
+      - "${NOTIFY_SERVICE_REDIS_PORT}:6379"
+    environment:
+      REDIS_PASSWORD: ${NOTIFY_SERVICE_REDIS_PASSWORD}
 
 volumes:
   user-service-pgdata:
+  notify-service-redis-data:
   kafka-1-data:
   kafka-2-data:
   kafka-3-data:

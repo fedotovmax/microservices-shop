@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"path"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
@@ -24,7 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	migrationsPath := "file://" + path.Join(cfg.MigrationsPath)
+	migrationsPath := "file://" + cfg.MigrationsPath
 
 	m, err := migrate.New(
 		migrationsPath,

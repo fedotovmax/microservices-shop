@@ -1,0 +1,136 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/fedotovmax/kafka-lib/kafka"
+	"github.com/fedotovmax/microservices-shop-protos/events"
+	redisadapter "github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/db/redis"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/telegram"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/controller"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/usecase"
+	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
+	"github.com/go-telegram/bot"
+)
+
+type Config struct {
+	KafkaBrokers  []string
+	TgBotToken    string
+	RedisAddr     string
+	RedisPassword string
+}
+
+type App struct {
+	c             *Config
+	log           *slog.Logger
+	tgBot         telegram.Bot
+	redisAdapter  redisadapter.RedisAdapter
+	consumerGroup kafka.ConsumerGroup
+}
+
+// TODO: remove fake usecase
+type ku struct{}
+
+// TODO: remove fake usecase
+func (u *ku) Test(ctx context.Context, payload any) {}
+
+func New(c *Config, log *slog.Logger) (*App, error) {
+
+	const op = "app.New"
+
+	l := log.With(slog.String("op", op))
+
+	redisAdapter, err := redisadapter.New(&redisadapter.Config{
+		Addr:     c.RedisAddr,
+		Password: c.RedisPassword,
+	}, log)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	l.Info("redis client successfully connected")
+
+	usecases := usecase.New(log, redisAdapter)
+
+	kafkaConsumerController := controller.NewKafkaController(log, &ku{})
+
+	tgBotController := controller.NewTgBotController(log, usecases)
+
+	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
+		Brokers:             c.KafkaBrokers,
+		Topics:              []string{events.NOTIFICATIONS_EVENTS},
+		GroupID:             "notify-service-app",
+		SleepAfterRebalance: time.Second * 2,
+	}, log, kafkaConsumerController)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	opts := []bot.Option{
+		bot.WithDefaultHandler(tgBotController.Handler),
+	}
+
+	tgbot, err := telegram.New(&telegram.Config{
+		Token:   c.TgBotToken,
+		Options: opts,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &App{
+			c:             c,
+			log:           log,
+			consumerGroup: consumerGroup,
+			tgBot:         tgbot,
+			redisAdapter:  redisAdapter,
+		},
+		nil
+
+}
+
+func (a *App) Run() {
+	const op = "app.Run"
+
+	log := a.log.With(slog.String("op", op))
+
+	a.consumerGroup.Start()
+	log.Info("consumer group starting")
+
+	a.tgBot.Start()
+	log.Info("trying to start telegram bot")
+
+}
+
+func (a *App) Stop(ctx context.Context) {
+
+	const op = "app.Stop"
+
+	log := a.log.With(slog.String("op", op))
+
+	a.tgBot.Stop()
+	log.Info("telegram bot stoppped")
+
+	err := a.consumerGroup.Stop(ctx)
+
+	if err != nil {
+		log.Error("error when stop consumer group", logger.Err(err))
+	} else {
+		log.Info("consumer group stopped successfully")
+	}
+
+	err = a.redisAdapter.Stop(ctx)
+
+	if err != nil {
+		log.Error("error when stop redis client", logger.Err(err))
+	} else {
+		log.Info("redis client stopped successfully")
+	}
+
+}

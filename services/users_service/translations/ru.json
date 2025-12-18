@@ -22,5 +22,8 @@
 	"validation_date_format": "неверный формат даты",
 
 	"user_not_found": "пользователь не найден",
-	"user_already_exists": "пользователь уже существует"
+	"user_already_exists": "пользователь уже существует",
+	"user_gender_unspecified": "не указан",
+	"user_gender_male": "мужской",
+	"user_gender_female": "женский"
 }

@@ -10,8 +10,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
+	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
@@ -101,9 +100,9 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 			for _, header := range message.Headers {
 				key := string(header.Key)
 				switch key {
-				case keys.KafkaHeaderEventType:
+				case kafka.HeaderEventType:
 					eventType = string(header.Value)
-				case keys.KafkaHeaderEventID:
+				case kafka.HeaderEventID:
 					eventID = string(header.Value)
 				}
 			}
@@ -124,11 +123,11 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 			switch eventType {
 
-			case events.USER_CREATED:
+			case events.NOTIFICATIONS_EMAIL:
 
-				var createdUserPayload events.UserCreatedEventPayload
+				var emailVerifyNotificationPayload events.EmailVerifyNotificationPayload
 
-				err := json.Unmarshal(payload, &createdUserPayload)
+				err := json.Unmarshal(payload, &emailVerifyNotificationPayload)
 
 				if err != nil {
 					l.Error("invalid payload", logger.Err(err), slog.String("event_type", eventType))
@@ -137,10 +136,10 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 				}
 
 				//TODO: real handle
-				k.usecases.Test(s.Context(), createdUserPayload)
+				k.usecases.Test(s.Context(), emailVerifyNotificationPayload)
 				l.Info(
-					"======================successfully consume message",
-					slog.Any("payload", createdUserPayload),
+					"notify service: successfully consume message",
+					slog.Any("payload", emailVerifyNotificationPayload),
 					slog.Any("partition", message.Partition),
 					slog.Int64("offset", message.Offset),
 				)

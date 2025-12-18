@@ -9,11 +9,10 @@ import (
 
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
-	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/controller"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
+	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
+	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 
@@ -73,9 +72,6 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 
 	outboxConfig := outbox.SmallBatchConfig
 
-	outboxConfig.HeaderEventID = keys.KafkaHeaderEventID
-	outboxConfig.HeaderEventType = keys.KafkaHeaderEventType
-
 	flushConfig := outboxConfig.GetKafkaFlushConfig()
 
 	producer, err := kafka.NewAsyncProducer(kafka.ProducerConfig{
@@ -96,13 +92,14 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	grpcController := controller.NewGRPCController(log, useceses)
+	grpcController := grpccontroller.NewGRPCController(log, useceses)
 
-	kafkaConsumerController := controller.NewKafkaController(log, &ku{})
+	kafkaConsumerController := kafkacontroller.NewKafkaController(log, &ku{})
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
-		Brokers:             c.KafkaBrokers,
-		Topics:              []string{events.USER_EVENTS},
+		Brokers: c.KafkaBrokers,
+		//TODO:change topics for real
+		Topics:              []string{"permissions.events"},
 		GroupID:             "users-service-app",
 		SleepAfterRebalance: time.Second * 2,
 	}, log, kafkaConsumerController)
@@ -132,11 +129,10 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 
 func (a *App) Run(cancel context.CancelFunc) {
 
-	const op = "app.MustRun"
+	const op = "app.Run"
 
 	log := a.log.With(slog.String("op", op))
 
-	//TODO: return
 	a.event.Start()
 	log.Info("event processor starting")
 	a.consumerGroup.Start()

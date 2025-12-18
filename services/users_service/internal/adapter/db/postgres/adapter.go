@@ -44,7 +44,7 @@ func (p *postgresAdapter) FindUserBy(ctx context.Context, column db.UserEntityFi
 
 	u := &domain.User{}
 
-	err = row.Scan(&u.ID, &u.Email, &u.Phone, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt, &u.Profile.LastName, &u.Profile.FirstName, &u.Profile.MiddleName, &u.Profile.BirthDate, &u.Profile.Gender, &u.Profile.AvatarURL, &u.Profile.UpdatedAt)
+	err = row.Scan(&u.ID, &u.Email, &u.Phone, &u.PasswordHash, &u.IsEmailVerified, &u.IsPhoneVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt, &u.Profile.LastName, &u.Profile.FirstName, &u.Profile.MiddleName, &u.Profile.BirthDate, &u.Profile.Gender, &u.Profile.AvatarURL, &u.Profile.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -90,16 +90,78 @@ func (p *postgresAdapter) CreateUser(ctx context.Context, in *inputs.CreateUserI
 	err := row.Scan(&id)
 
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
 	}
 
 	_, err = tx.Exec(ctx, createProfileQuery, id)
 
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
 	}
 
 	return id, nil
+
+}
+
+func (p *postgresAdapter) CreateEmailVerifyLink(ctx context.Context, userID string) (*domain.EmailVerifyLink, error) {
+
+	const op = "adapter.postgres.CreateEmailVerifyLink"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	emailVerifyLink := &domain.EmailVerifyLink{}
+
+	row := tx.QueryRow(ctx, createEmailVerifyLinkQuery, userID)
+
+	err := row.Scan(&emailVerifyLink.Link, &emailVerifyLink.UserID, &emailVerifyLink.ValidityPeriod)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return emailVerifyLink, nil
+
+}
+
+func (p *postgresAdapter) FindEmailVerifyLink(ctx context.Context, link string) (*domain.EmailVerifyLink, error) {
+
+	const op = "adapter.postgres.FindEmailVerifyLink"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	emailVerifyLink := &domain.EmailVerifyLink{}
+
+	row := tx.QueryRow(ctx, findEmailVerifyLinkQuery, link)
+
+	err := row.Scan(&emailVerifyLink.Link, &emailVerifyLink.UserID, &emailVerifyLink.ValidityPeriod)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrNotFound, err)
+		}
+		return nil, fmt.Errorf("%s:  %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return emailVerifyLink, nil
+}
+
+func (p *postgresAdapter) UpdateEmailVerifyLinkByUserID(ctx context.Context, userID string) (*domain.EmailVerifyLink, error) {
+
+	const op = "adapter.postgres.UpdateEmailVerifyLinkByUserID"
+
+	tx := p.ex.ExtractTx(ctx)
+
+	emailVerifyLink := &domain.EmailVerifyLink{}
+
+	row := tx.QueryRow(ctx, updateEmailVerifyLinkByUserIDQuery, userID)
+
+	err := row.Scan(&emailVerifyLink.Link, &emailVerifyLink.UserID, &emailVerifyLink.ValidityPeriod)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return emailVerifyLink, nil
 
 }
 

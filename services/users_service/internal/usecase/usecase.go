@@ -16,6 +16,10 @@ type Storage interface {
 	UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error
 	FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
 
+	CreateEmailVerifyLink(ctx context.Context, userID string) (*domain.EmailVerifyLink, error)
+	FindEmailVerifyLink(ctx context.Context, link string) (*domain.EmailVerifyLink, error)
+	UpdateEmailVerifyLinkByUserID(ctx context.Context, userID string) (*domain.EmailVerifyLink, error)
+
 	SetEventStatusDone(ctx context.Context, id string) error
 	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error
 	RemoveEventReserve(ctx context.Context, id string) error

@@ -3,9 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 )
 
 type User struct {
@@ -24,29 +22,7 @@ type Profile struct {
 	FirstName  *string   `json:"first_name,omitempty"`
 	MiddleName *string   `json:"middle_name,omitempty"`
 	AvatarURL  *string   `json:"avatar_url,omitempty"`
-	Gender     Gender    `json:"gender,omitempty"`
-}
-
-type Gender struct {
-	Value int32  `json:"value"`
-	Label string `json:"label"`
-}
-
-func genderFromProto(lang string, g userspb.Gender) Gender {
-	switch g {
-	case userspb.Gender_FEMALE:
-		label, _ := i18n.Local.Get(lang, keys.UserGenderFemale)
-		return Gender{Value: int32(g), Label: label}
-	case userspb.Gender_MALE:
-		label, _ := i18n.Local.Get(lang, keys.UserGenderMale)
-		return Gender{Value: int32(g), Label: label}
-	case userspb.Gender_GENDER_UNSPECIFIED:
-		label, _ := i18n.Local.Get(lang, keys.UserGenderUnspecified)
-		return Gender{Value: int32(g), Label: label}
-	default:
-		label, _ := i18n.Local.Get(lang, keys.UserGenderUnspecified)
-		return Gender{Value: int32(g), Label: label}
-	}
+	Gender     string    `json:"gender,omitempty"`
 }
 
 func UserFromProto(lang string, u *userspb.User) *User {
@@ -63,7 +39,7 @@ func UserFromProto(lang string, u *userspb.User) *User {
 			FirstName:  u.Profile.FirstName,
 			MiddleName: u.Profile.MiddleName,
 			AvatarURL:  u.Profile.AvatarUrl,
-			Gender:     genderFromProto(lang, u.Profile.GetGender()),
+			Gender:     u.Profile.GetGender(),
 		},
 	}
 }
