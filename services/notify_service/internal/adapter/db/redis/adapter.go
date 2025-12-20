@@ -25,10 +25,6 @@ type redisAdapter struct {
 	log *slog.Logger
 }
 
-type RedisAdapter interface {
-	Stop(ctx context.Context) error
-}
-
 func New(cfg *Config, log *slog.Logger) (*redisAdapter, error) {
 
 	const op = "adapter.redis.New"
@@ -59,14 +55,10 @@ func (r *redisAdapter) SaveUserIDByChatID(ctx context.Context, chatID int64, use
 
 	const op = "adapter.redis.SaveUserIDByChatID"
 
-	ok, err := r.rdb.SetNX(ctx, chatUserKey(chatID), userID, 0).Result()
+	_, err := r.rdb.Set(ctx, chatUserKey(chatID), userID, 0).Result()
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
-	}
-
-	if !ok {
-		return fmt.Errorf("%s: %w: %v", op, adapter.ErrAlreadyExists, err)
 	}
 
 	return nil
@@ -76,14 +68,10 @@ func (r *redisAdapter) SaveChatIDByUserID(ctx context.Context, chatID int64, use
 
 	const op = "adapter.redis.SaveChatIDByUserID"
 
-	ok, err := r.rdb.SetNX(ctx, userChatKey(userID), chatID, 0).Result()
+	_, err := r.rdb.Set(ctx, userChatKey(userID), chatID, 0).Result()
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
-	}
-
-	if !ok {
-		return fmt.Errorf("%s: %w: %v", op, adapter.ErrAlreadyExists, err)
 	}
 
 	return nil

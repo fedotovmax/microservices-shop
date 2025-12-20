@@ -12,11 +12,6 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-type Bot interface {
-	Start()
-	Stop()
-}
-
 type tgAdapter struct {
 	tgbot *bot.Bot
 	ctx   context.Context
@@ -41,14 +36,14 @@ func setCommands(ctx context.Context, b *bot.Bot) error {
 	}
 
 	for locale := range locales {
-		startDescription, _ := i18n.Local.Get(locale, domain.Start)
-		helpDescription, _ := i18n.Local.Get(locale, domain.Help)
+		startDescription, _ := i18n.Local.Get(locale, domain.Start.String())
+		helpDescription, _ := i18n.Local.Get(locale, domain.Help.String())
 
 		ok, err := b.SetMyCommands(ctx, &bot.SetMyCommandsParams{
 			LanguageCode: locale,
 			Commands: []models.BotCommand{
-				{Command: domain.Start, Description: startDescription},
-				{Command: domain.Help, Description: helpDescription},
+				{Command: domain.Start.String(), Description: startDescription},
+				{Command: domain.Help.String(), Description: helpDescription},
 			},
 		})
 
@@ -65,7 +60,7 @@ func setCommands(ctx context.Context, b *bot.Bot) error {
 
 }
 
-func New(cfg *Config) (Bot, error) {
+func New(cfg *Config) (*tgAdapter, error) {
 
 	const op = "adapter.telegram.New"
 
@@ -100,5 +95,36 @@ func (tg *tgAdapter) Start() {
 
 func (tg *tgAdapter) Stop() {
 	tg.stop()
+
+}
+
+func (tg *tgAdapter) RegisterCommand(cmdType bot.HandlerType, cmd domain.Cmd, f bot.HandlerFunc) error {
+
+	const op = "adapter.telegram.RegisterCommand"
+
+	err := cmd.Validate()
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	tg.tgbot.RegisterHandler(cmdType, cmd.String(), bot.MatchTypePrefix, f)
+	return nil
+}
+
+func (tg *tgAdapter) SendMessage(ctx context.Context, n *domain.TgNotification) error {
+
+	const op = "adapter.telegram.SendMessage"
+
+	_, err := tg.tgbot.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: n.ChatID,
+		Text:   n.Text,
+	})
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 
 }

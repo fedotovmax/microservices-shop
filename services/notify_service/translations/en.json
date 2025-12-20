@@ -1,4 +1,7 @@
 {
 	"/start": "Start bot",
-	"/help": "Help"
+	"/help": "Help",
+	"start_response_text": "You have successfully subscribed to notifications!👌",
+	"help_response_text": "Help",
+	"unable_identify_user": "Unable to identify user"
 }

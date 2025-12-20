@@ -10,10 +10,12 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	redisadapter "github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/db/redis"
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/telegram"
-	"github.com/fedotovmax/microservices-shop/notify_service/internal/controller"
+	"github.com/go-telegram/bot"
+
+	kafkacontroller "github.com/fedotovmax/microservices-shop/notify_service/internal/controller/kafka_controller"
+	tgbotcontroller "github.com/fedotovmax/microservices-shop/notify_service/internal/controller/tgbot_controller"
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/usecase"
 	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
-	"github.com/go-telegram/bot"
 )
 
 type Config struct {
@@ -23,19 +25,22 @@ type Config struct {
 	RedisPassword string
 }
 
+type TGBot interface {
+	Start()
+	Stop()
+}
+
+type RedisAdapter interface {
+	Stop(ctx context.Context) error
+}
+
 type App struct {
 	c             *Config
 	log           *slog.Logger
-	tgBot         telegram.Bot
-	redisAdapter  redisadapter.RedisAdapter
+	tgBot         TGBot
+	redisAdapter  RedisAdapter
 	consumerGroup kafka.ConsumerGroup
 }
-
-// TODO: remove fake usecase
-type ku struct{}
-
-// TODO: remove fake usecase
-func (u *ku) Test(ctx context.Context, payload any) {}
 
 func New(c *Config, log *slog.Logger) (*App, error) {
 
@@ -54,11 +59,24 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 
 	l.Info("redis client successfully connected")
 
-	usecases := usecase.New(log, redisAdapter)
+	opts := []bot.Option{}
 
-	kafkaConsumerController := controller.NewKafkaController(log, &ku{})
+	tgbot, err := telegram.New(&telegram.Config{
+		Token:   c.TgBotToken,
+		Options: opts,
+	})
 
-	tgBotController := controller.NewTgBotController(log, usecases)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	usecases := usecase.New(log, redisAdapter, tgbot)
+
+	kafkaConsumerController := kafkacontroller.NewKafkaController(log, usecases)
+
+	tgBotController := tgbotcontroller.NewTgBotController(log, usecases, tgbot)
+
+	tgBotController.Register()
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
 		Brokers:             c.KafkaBrokers,
@@ -66,19 +84,6 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 		GroupID:             "notify-service-app",
 		SleepAfterRebalance: time.Second * 2,
 	}, log, kafkaConsumerController)
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	opts := []bot.Option{
-		bot.WithDefaultHandler(tgBotController.Handler),
-	}
-
-	tgbot, err := telegram.New(&telegram.Config{
-		Token:   c.TgBotToken,
-		Options: opts,
-	})
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

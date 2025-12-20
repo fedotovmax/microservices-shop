@@ -3,7 +3,7 @@ module github.com/fedotovmax/microservices-shop/api-gateway
 go 1.25.4
 
 require (
-	github.com/fedotovmax/microservices-shop-protos v1.0.11
+	github.com/fedotovmax/microservices-shop-protos v1.0.12
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/grpc v1.77.0

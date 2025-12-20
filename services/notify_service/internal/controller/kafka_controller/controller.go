@@ -1,4 +1,4 @@
-package controller
+package kafkacontroller
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
@@ -14,18 +15,19 @@ import (
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
+var ErrInvalidPayloadForEventType = errors.New("invalid payload for current event type")
 
 // TODO: real methods
-type KafkaUsecases interface {
-	Test(ctx context.Context, payload any)
+type Usecases interface {
+	SendTgMessage(ctx context.Context, text string, userId string) error
 }
 
 type kafkaController struct {
 	log      *slog.Logger
-	usecases KafkaUsecases
+	usecases Usecases
 }
 
-func NewKafkaController(log *slog.Logger, usecases KafkaUsecases) *kafkaController {
+func NewKafkaController(log *slog.Logger, usecases Usecases) *kafkaController {
 	return &kafkaController{
 		log:      log,
 		usecases: usecases,
@@ -84,10 +86,12 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 	l := k.log.With(slog.String("op", op))
 
+	ctx := s.Context()
+
 	for {
 		select {
-		case <-s.Context().Done():
-			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, s.Context().Err())
+		case <-ctx.Done():
+			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, ctx.Err())
 		case message, ok := <-c.Messages():
 
 			if !ok {
@@ -130,13 +134,13 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 				err := json.Unmarshal(payload, &emailVerifyNotificationPayload)
 
 				if err != nil {
+
 					l.Error("invalid payload", logger.Err(err), slog.String("event_type", eventType))
 					s.MarkMessage(message, "")
 					continue
 				}
 
 				//TODO: real handle
-				k.usecases.Test(s.Context(), emailVerifyNotificationPayload)
 				l.Info(
 					"notify service: successfully consume message",
 					slog.Any("payload", emailVerifyNotificationPayload),
@@ -146,10 +150,54 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 				s.MarkMessage(message, "")
 
+			case events.NOTIFICATIONS_TELEGRAM:
+
+				err := k.handleTgNotification(ctx, payload)
+
+				if err != nil {
+					if errors.Is(err, ErrInvalidPayloadForEventType) {
+						l.Error("invalid payload", logger.Err(err), slog.String("event_type", eventType))
+						s.MarkMessage(message, "")
+						continue
+					}
+					//todo: store events for retry maybe?
+					l.Error("error when try to send message", logger.Err(err), slog.String("event_type", eventType))
+					//todo: no mark, will retry via kafka offsets
+					//s.MarkMessage(message, "")
+					continue
+				}
+
+				s.MarkMessage(message, "")
+
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))
 				s.MarkMessage(message, "")
 			}
 		}
 	}
+}
+
+func (k *kafkaController) handleTgNotification(ctx context.Context, payload []byte) error {
+
+	const op = "controller.kafka_consumer.handleTgNotification"
+
+	var tgNotificationPayload events.TelegramNotificationPayload
+	err := json.Unmarshal(payload, &tgNotificationPayload)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, ErrInvalidPayloadForEventType, err)
+	}
+
+	sendCtx, cancelSetCtx := context.WithTimeout(ctx, time.Second*3)
+	defer cancelSetCtx()
+
+	err = k.usecases.SendTgMessage(sendCtx,
+		tgNotificationPayload.Text, tgNotificationPayload.UserID)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+
 }

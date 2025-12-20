@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"log/slog"
+
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain"
 )
 
 type Storage interface {
@@ -12,14 +14,20 @@ type Storage interface {
 	SaveUserIDByChatID(ctx context.Context, chatID int64, userID string) error
 }
 
-type usecases struct {
-	log     *slog.Logger
-	storage Storage
+type TgSender interface {
+	SendMessage(ctx context.Context, n *domain.TgNotification) error
 }
 
-func New(log *slog.Logger, storage Storage) *usecases {
+type usecases struct {
+	log      *slog.Logger
+	storage  Storage
+	tgSender TgSender
+}
+
+func New(log *slog.Logger, storage Storage, tgSender TgSender) *usecases {
 	return &usecases{
-		log:     log,
-		storage: storage,
+		log:      log,
+		storage:  storage,
+		tgSender: tgSender,
 	}
 }

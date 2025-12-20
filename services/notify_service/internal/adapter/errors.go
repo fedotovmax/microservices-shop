@@ -13,3 +13,5 @@ var ErrUnavailable = errors.New("resource unavailable")
 var ErrInternal = errors.New("internal error")
 
 var ErrNoFieldsToUpdate = errors.New("no fields to update")
+
+var ErrBadParams = errors.New("bad params")
