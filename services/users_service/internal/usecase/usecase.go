@@ -12,7 +12,7 @@ import (
 )
 
 type Storage interface {
-	CreateUser(ctx context.Context, d *inputs.CreateUserInput) (string, error)
+	CreateUser(ctx context.Context, d *inputs.CreateUserInput) (*domain.UserPrimaryFields, error)
 	UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error
 	FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
 

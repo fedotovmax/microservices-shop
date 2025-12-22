@@ -11,13 +11,13 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
-func (u *usecases) UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error {
+func (u *usecases) UpdateUserProfile(ctx context.Context, meta *inputs.MetaParams, in *inputs.UpdateUserInput) error {
 
 	const op = "usecase.UpdateUserProfile"
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 
-		user, err := u.FindUserByID(txCtx, id)
+		user, err := u.FindUserByID(txCtx, meta.GetUserID())
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -30,23 +30,21 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, id string, in *inputs.
 		}
 
 		//TODO: locale
-		tgNotificationPayload := events.TelegramNotificationPayload{
-			UserID: user.ID,
-			Text:   "Ваш профиль был обновлен!",
-		}
-		tgNotificationPayloadBytes, err := json.Marshal(tgNotificationPayload)
+		userProfileUpdatedPayload := events.UserUpdatedEventPayload{ID: user.ID, Locale: meta.GetLocale()}
+
+		userProfileUpdatedPayloadBytes, err := json.Marshal(userProfileUpdatedPayload)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		tgNotificationIn := inputs.NewCreateEventInput()
-		tgNotificationIn.SetAggregateID(user.ID)
-		tgNotificationIn.SetTopic(events.NOTIFICATIONS_EVENTS)
-		tgNotificationIn.SetType(events.NOTIFICATIONS_TELEGRAM)
-		tgNotificationIn.SetPayload(tgNotificationPayloadBytes)
+		userProfileUpdatedIn := inputs.NewCreateEventInput()
+		userProfileUpdatedIn.SetAggregateID(user.ID)
+		userProfileUpdatedIn.SetTopic(events.USER_EVENTS)
+		userProfileUpdatedIn.SetType(events.USER_PROFILE_UPDATED)
+		userProfileUpdatedIn.SetPayload(userProfileUpdatedPayloadBytes)
 
-		_, err = u.s.CreateEvent(txCtx, tgNotificationIn)
+		_, err = u.s.CreateEvent(txCtx, userProfileUpdatedIn)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

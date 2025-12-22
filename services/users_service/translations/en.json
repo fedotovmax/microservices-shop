@@ -23,7 +23,10 @@
 
 	"user_not_found": "user not found",
 	"user_already_exists": "user already exists",
-	"user_gender_unspecified": "not specified",
-	"user_gender_male": "male",
-	"user_gender_female": "female"
+
+	"validation_failed": "validation failed",
+	"get_user_internal": "internal error when get user",
+	"create_user_internal": "internal error when create user",
+	"update_user_profile_internal": "internal error when update user profile",
+	"user_session_action_internal": "internal error occurred while executing a session request"
 }

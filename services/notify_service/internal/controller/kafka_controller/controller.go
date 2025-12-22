@@ -2,15 +2,14 @@ package kafkacontroller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/microservices-shop-protos/events"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
 )
 
@@ -20,6 +19,8 @@ var ErrInvalidPayloadForEventType = errors.New("invalid payload for current even
 // TODO: real methods
 type Usecases interface {
 	SendTgMessage(ctx context.Context, text string, userId string) error
+	SaveEvent(ctx context.Context, eventID string) error
+	IsNewEvent(ctx context.Context, eventID string) error
 }
 
 type kafkaController struct {
@@ -98,6 +99,10 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 				return fmt.Errorf("%s: %w", op, ErrKafkaMessagesChannelClosed)
 			}
 
+			commit := func() {
+				s.MarkMessage(message, "")
+			}
+
 			var eventID string
 			var eventType string
 
@@ -113,91 +118,53 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 			if eventID == "" {
 				l.Error("empty event ID")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			if eventType == "" {
 				l.Error("empty event type")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			payload := message.Value
 
+			l.Info("new event", slog.String("event_type", eventType), slog.String("event_id", eventID))
+
 			switch eventType {
 
-			case events.NOTIFICATIONS_EMAIL:
-
-				var emailVerifyNotificationPayload events.EmailVerifyNotificationPayload
-
-				err := json.Unmarshal(payload, &emailVerifyNotificationPayload)
-
+			case events.USER_PROFILE_UPDATED:
+				err := k.handleUserProfileUpdated(ctx, eventID, payload)
 				if err != nil {
-
-					l.Error("invalid payload", logger.Err(err), slog.String("event_type", eventType))
-					s.MarkMessage(message, "")
+					k.handleErrors(err, commit, l)
 					continue
 				}
-
-				//TODO: real handle
-				l.Info(
-					"notify service: successfully consume message",
-					slog.Any("payload", emailVerifyNotificationPayload),
-					slog.Any("partition", message.Partition),
-					slog.Int64("offset", message.Offset),
-				)
-
-				s.MarkMessage(message, "")
-
-			case events.NOTIFICATIONS_TELEGRAM:
-
-				err := k.handleTgNotification(ctx, payload)
-
-				if err != nil {
-					if errors.Is(err, ErrInvalidPayloadForEventType) {
-						l.Error("invalid payload", logger.Err(err), slog.String("event_type", eventType))
-						s.MarkMessage(message, "")
-						continue
-					}
-					//todo: store events for retry maybe?
-					l.Error("error when try to send message", logger.Err(err), slog.String("event_type", eventType))
-					//todo: no mark, will retry via kafka offsets
-					//s.MarkMessage(message, "")
-					continue
-				}
-
-				s.MarkMessage(message, "")
-
+				commit()
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))
-				s.MarkMessage(message, "")
+				commit()
 			}
 		}
 	}
 }
 
-func (k *kafkaController) handleTgNotification(ctx context.Context, payload []byte) error {
+func (k *kafkaController) handleErrors(err error, commit func(), l *slog.Logger) {
 
-	const op = "controller.kafka_consumer.handleTgNotification"
-
-	var tgNotificationPayload events.TelegramNotificationPayload
-	err := json.Unmarshal(payload, &tgNotificationPayload)
-
-	if err != nil {
-		return fmt.Errorf("%s: %w: %v", op, ErrInvalidPayloadForEventType, err)
+	switch {
+	case errors.Is(err, ErrInvalidPayloadForEventType):
+		l.Error("invalid payload", logger.Err(err))
+		commit()
+	case errors.Is(err, errs.ErrEventAlreadyHandled):
+		l.Error("event was handled", logger.Err(err))
+		commit()
+	case errors.Is(err, errs.ErrChatIDNotFound):
+		l.Error("user are not subscribed for telegram notifications", logger.Err(err))
+		commit()
+	case errors.Is(err, errs.ErrSendTelegramMessage):
+		//no commit)
+		l.Error("cannot send message to telegram, will be retry later", logger.Err(err))
+	default:
+		commit()
 	}
-
-	sendCtx, cancelSetCtx := context.WithTimeout(ctx, time.Second*3)
-	defer cancelSetCtx()
-
-	err = k.usecases.SendTgMessage(sendCtx,
-		tgNotificationPayload.Text, tgNotificationPayload.UserID)
-
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
-
 }

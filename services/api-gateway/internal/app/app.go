@@ -7,7 +7,7 @@ import (
 
 	grpcadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/client/grpc"
 	httpadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
+	customercontroller "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller/customer_controller"
 	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/logger"
 	"github.com/go-chi/chi/v5"
 )
@@ -40,7 +40,7 @@ func New(log *slog.Logger, c Config) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	customerController := controller.NewCustomerController(r, log, usersClient.RPC)
+	customerController := customercontroller.New(r, log, usersClient.RPC)
 
 	customerController.Register()
 

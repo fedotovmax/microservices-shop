@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -113,6 +114,34 @@ func (r *redisAdapter) GetChatIDByUserID(ctx context.Context, userID string) (in
 	}
 
 	return chatID, nil
+}
+
+func (r *redisAdapter) SaveEventID(ctx context.Context, eventID string) error {
+	const op = "adapter.redis.SaveEventID"
+
+	_, err := r.rdb.Set(ctx, eventKey(eventID), domain.HandledEventStatus, 0).Result()
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (r *redisAdapter) FindEvent(ctx context.Context, eventID string) (string, error) {
+
+	const op = "adapter.redis.GetChatIDByUserID"
+
+	status, err := r.rdb.Get(ctx, eventKey(eventID)).Result()
+
+	if err != nil {
+		if err == redis.Nil {
+			return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrNotFound, err)
+		}
+		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return status, nil
 }
 
 func (r *redisAdapter) Stop(ctx context.Context) error {

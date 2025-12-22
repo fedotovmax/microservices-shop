@@ -102,6 +102,7 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 		Topics:              []string{"permissions.events"},
 		GroupID:             "users-service-app",
 		SleepAfterRebalance: time.Second * 2,
+		AutoCommit:          true,
 	}, log, kafkaConsumerController)
 
 	if err != nil {

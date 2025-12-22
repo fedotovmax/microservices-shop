@@ -8,4 +8,3 @@ drop table if exists users;
 
 drop domain if exists email_d;
 drop domain if exists phone_e164_d;
-drop type gender_enum;

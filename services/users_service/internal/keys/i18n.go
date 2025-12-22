@@ -19,15 +19,16 @@ const (
 	ValidationGender     = "validation_gender"
 	ValidationFullName   = "validation_fullname"
 	ValidationDateFormat = "validation_date_format"
+
+	ValidationFailed = "validation_failed"
 )
 
 const (
 	UserNotFound      = "user_not_found"
 	UserAlreadyExists = "user_already_exists"
-)
 
-const (
-	UserGenderUnspecified = "user_gender_unspecified"
-	UserGenderMale        = "user_gender_male"
-	UserGenderFemale      = "user_gender_female"
+	GetUserInternal           = "get_user_internal"
+	CreateUserInternal        = "create_user_internal"
+	UpdateUserProfileInternal = "update_user_profile_internal"
+	UserSessionActionInternal = "user_session_action_internal"
 )

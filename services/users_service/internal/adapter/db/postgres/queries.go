@@ -58,7 +58,7 @@ func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*bui
 	}
 
 	if g := input.GetGender(); g != nil {
-		add("gender = $%d", g.String())
+		add("gender = $%d", g)
 	}
 
 	if len(queryParts) > 0 {
@@ -80,7 +80,7 @@ func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*bui
 	return nil, adapter.ErrNoFieldsToUpdate
 }
 
-const createUserQuery = "insert into users (email, password_hash) values ($1, $2) returning id;"
+const createUserQuery = "insert into users (email, password_hash) values ($1, $2) returning id, email;"
 
 const createProfileQuery = "insert into profiles (user_id) values ($1);"
 

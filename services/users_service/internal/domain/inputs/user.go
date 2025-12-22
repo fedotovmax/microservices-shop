@@ -11,6 +11,16 @@ import (
 	"github.com/fedotovmax/validation"
 )
 
+type SessionActionInput struct {
+	*CreateUserInput
+}
+
+func NewSessionActionInput() *SessionActionInput {
+	return &SessionActionInput{
+		CreateUserInput: NewCreateUserInput(),
+	}
+}
+
 type CreateUserInput struct {
 	email    string
 	password string
@@ -72,7 +82,7 @@ type UpdateUserInput struct {
 	firstName  *string
 	middleName *string
 	avatarURL  *string
-	gender     *domain.Gender
+	gender     *domain.GenderValue
 }
 
 func NewUpdateUserInput() *UpdateUserInput {
@@ -154,7 +164,7 @@ func (i *UpdateUserInput) GetAvatarURL() *string {
 	return i.avatarURL
 }
 
-func (i *UpdateUserInput) GetGender() *domain.Gender {
+func (i *UpdateUserInput) GetGender() *domain.GenderValue {
 	return i.gender
 }
 
@@ -166,7 +176,7 @@ func (i *UpdateUserInput) SetFromProto(req *userspb.UpdateUserProfileRequest) {
 		i.firstName = req.FirstName
 		i.lastName = req.LastName
 		i.middleName = req.MiddleName
-		i.gender = domain.GenderFromProto(req.Gender)
+		i.gender = domain.GenderFromProto(req.GenderValue)
 	}
 }
 
@@ -190,6 +200,6 @@ func (i *UpdateUserInput) SetAvatarURL(url *string) {
 	i.avatarURL = url
 }
 
-func (i *UpdateUserInput) SetGender(g *domain.Gender) {
+func (i *UpdateUserInput) SetGender(g *domain.GenderValue) {
 	i.gender = g
 }

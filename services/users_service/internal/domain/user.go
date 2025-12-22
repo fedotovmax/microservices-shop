@@ -3,15 +3,75 @@ package domain
 import (
 	"time"
 
-	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (u *User) ToProto(locale string) *userspb.User {
+type UserSessionStatus int8
 
+const (
+	UserSessionStatusUnspecified      UserSessionStatus = 0
+	UserSessionStatusDeleted          UserSessionStatus = 1
+	UserSessionStatusEmailNotVerified UserSessionStatus = 2
+	UserSessionStatusBadCredentials   UserSessionStatus = 3
+	UserSessionStatusOK               UserSessionStatus = 4
+)
+
+func (s UserSessionStatus) ToProto() userspb.UserSessionActionStatus {
+	switch s {
+	case UserSessionStatusUnspecified:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
+	case UserSessionStatusDeleted:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_DELETED
+	case UserSessionStatusEmailNotVerified:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED
+	case UserSessionStatusBadCredentials:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS
+	case UserSessionStatusOK:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_OK
+	default:
+		return userspb.UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
+	}
+}
+
+type UserSessionActionResponse struct {
+	Fields UserPrimaryFields
+	Status UserSessionStatus
+}
+
+func NewUserSessionActionResponse(id, email string, status UserSessionStatus) *UserSessionActionResponse {
+	return &UserSessionActionResponse{
+		Status: UserSessionStatusBadCredentials,
+		Fields: UserPrimaryFields{
+			ID:    id,
+			Email: email,
+		},
+	}
+}
+
+func (sr *UserSessionActionResponse) ToProto() *userspb.UserSessionActionResponse {
+
+	var email *string
+	var userId *string
+
+	if sr.Fields.Email != "" {
+		email = &sr.Fields.Email
+	}
+
+	if sr.Fields.ID != "" {
+		userId = &sr.Fields.ID
+	}
+
+	return &userspb.UserSessionActionResponse{
+		UserSessionActionStatus: sr.Status.ToProto(),
+		Email:                   email,
+		UserId:                  userId,
+	}
+}
+
+func (u *User) ToProto() *userspb.User {
 	return &userspb.User{
 		CreatedAt: timestamppb.New(u.CreatedAt),
 		UpdatedAt: timestamppb.New(u.UpdatedAt),
@@ -25,7 +85,7 @@ func (u *User) ToProto(locale string) *userspb.User {
 			FirstName:  u.Profile.FirstName,
 			MiddleName: u.Profile.MiddleName,
 			AvatarUrl:  u.Profile.AvatarURL,
-			Gender:     u.Profile.Gender.ToProto(locale),
+			Gender:     u.Profile.Gender.ToProto(),
 		},
 	}
 }
@@ -43,60 +103,61 @@ type User struct {
 	IsPhoneVerified bool
 }
 
-type Gender string
+type GenderValue int8
 
-func (g *Gender) String() string {
+var (
+	GenderInvalid    GenderValue = -1
+	GenderUnselected GenderValue = 1
+	GenderMale       GenderValue = 2
+	GenderFemale     GenderValue = 3
+)
 
-	if g == nil {
-		return ""
-	}
+func GenderFromProto(g *userspb.GenderValue) *GenderValue {
 
-	return string(*g)
-
-}
-
-func GenderFromProto(g *string) *Gender {
 	if g == nil {
 		return nil
 	}
 
-	ng := Gender(*g)
-
-	return &ng
-}
-
-func (g Gender) ToProto(locale string) string {
-	switch g {
-	case Male:
-		label, _ := i18n.Local.Get(locale, keys.UserGenderMale)
-		return label
-	case Female:
-		label, _ := i18n.Local.Get(locale, keys.UserGenderFemale)
-		return label
-	case Unspecified:
-		label, _ := i18n.Local.Get(locale, keys.UserGenderUnspecified)
-		return label
+	switch *g {
+	case userspb.GenderValue_GENDER_MALE:
+		male := GenderMale
+		return &male
+	case userspb.GenderValue_GENDER_FEMALE:
+		female := GenderFemale
+		return &female
+	case userspb.GenderValue_GENDER_UNSELECTED:
+		unselected := GenderUnselected
+		return &unselected
 	default:
-		label, _ := i18n.Local.Get(locale, keys.UserGenderUnspecified)
-		return label
+		invalid := GenderInvalid
+		return &invalid
 	}
 }
 
-func (g Gender) IsValid() bool {
+func (g GenderValue) ToProto() userspb.GenderValue {
+
 	switch g {
-	case Male, Female, Unspecified:
+
+	case GenderMale:
+		return userspb.GenderValue_GENDER_MALE
+	case GenderFemale:
+		return userspb.GenderValue_GENDER_FEMALE
+	case GenderUnselected:
+		return userspb.GenderValue_GENDER_UNSELECTED
+	default:
+		return userspb.GenderValue_GENDER_UNSPECIFIED
+	}
+
+}
+
+func (g GenderValue) IsValid() bool {
+	switch g {
+	case GenderMale, GenderFemale, GenderUnselected:
 		return true
 	default:
 		return false
 	}
 }
-
-var (
-	Male          Gender = "male"
-	Female        Gender = "female"
-	Unspecified   Gender = "unspecified"
-	InvalidGender Gender = ""
-)
 
 type Profile struct {
 	UpdatedAt  time.Time
@@ -105,11 +166,16 @@ type Profile struct {
 	FirstName  *string
 	MiddleName *string
 	AvatarURL  *string
-	Gender     Gender
+	Gender     GenderValue
 }
 
 type EmailVerifyLink struct {
 	Link           string
 	UserID         string
 	ValidityPeriod time.Time
+}
+
+type UserPrimaryFields struct {
+	ID    string
+	Email string
 }

@@ -92,7 +92,7 @@ func ValidateUUID(id string, locale string) error {
 
 }
 
-func validateGender(gender *domain.Gender) error {
+func validateGender(gender *domain.GenderValue) error {
 
 	if gender == nil {
 		return nil

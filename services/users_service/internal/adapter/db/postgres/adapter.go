@@ -78,28 +78,27 @@ func (p *postgresAdapter) UpdateUserProfile(ctx context.Context, id string, in *
 
 }
 
-func (p *postgresAdapter) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (string, error) {
+func (p *postgresAdapter) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (*domain.UserPrimaryFields, error) {
 	const op = "adapter.postgres.CreateUser"
 
 	tx := p.ex.ExtractTx(ctx)
 
 	row := tx.QueryRow(ctx, createUserQuery, in.GetEmail(), in.GetPassword())
 
-	var id string
+	pf := &domain.UserPrimaryFields{}
 
-	err := row.Scan(&id)
-
-	if err != nil {
-		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
-	}
-
-	_, err = tx.Exec(ctx, createProfileQuery, id)
+	err := row.Scan(&pf.ID, &pf.Email)
 
 	if err != nil {
-		return "", fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
 	}
 
-	return id, nil
+	_, err = tx.Exec(ctx, createProfileQuery, pf.ID)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+	return pf, nil
 
 }
 

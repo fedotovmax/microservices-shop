@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain/errs"
 )
 
 func (u *usecases) SendTgMessage(ctx context.Context, text string, userId string) error {
 
-	//TODO::
 	const op = "usecase.SendTgMessage"
 
 	chatID, err := u.FindChatByUser(ctx, userId)
@@ -26,7 +26,7 @@ func (u *usecases) SendTgMessage(ctx context.Context, text string, userId string
 	err = u.tgSender.SendMessage(ctx, n)
 
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w: %v", op, errs.ErrSendTelegramMessage, err)
 	}
 
 	return nil

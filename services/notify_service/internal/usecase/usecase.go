@@ -12,6 +12,9 @@ type Storage interface {
 	GetUserIDByChatID(ctx context.Context, chatID int64) (string, error)
 	SaveChatIDByUserID(ctx context.Context, chatID int64, userID string) error
 	SaveUserIDByChatID(ctx context.Context, chatID int64, userID string) error
+
+	FindEvent(ctx context.Context, eventID string) (string, error)
+	SaveEventID(ctx context.Context, eventID string) error
 }
 
 type TgSender interface {

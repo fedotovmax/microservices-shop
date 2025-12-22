@@ -10,3 +10,7 @@ var ErrChatIDAlreadyExists = errors.New("chat id already exists")
 
 var ErrChatIDNotFound = errors.New("chat id not found")
 var ErrUserIDNotFound = errors.New("user id not found")
+
+var ErrEventAlreadyHandled = errors.New("event already handled")
+
+var ErrSendTelegramMessage = errors.New("error when send message to telegram")
