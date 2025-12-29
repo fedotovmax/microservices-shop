@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils/hashing"
 )
 
-func (u *usecases) CreateUser(ctx context.Context, meta *inputs.MetaParams, in *inputs.CreateUserInput) (string, error) {
+func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, locale string) (string, error) {
 
 	const op = "usecase.CreateUser"
 
@@ -33,7 +33,7 @@ func (u *usecases) CreateUser(ctx context.Context, meta *inputs.MetaParams, in *
 			return fmt.Errorf("%s: %w", op, errs.ErrUserAlreadyExists)
 		}
 
-		hashedPassword, err := hashing.Password(in.GetPassword())
+		hashedPassword, err := hashPassword(in.GetPassword())
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -47,18 +47,18 @@ func (u *usecases) CreateUser(ctx context.Context, meta *inputs.MetaParams, in *
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		link, err := u.s.CreateEmailVerifyLink(txCtx, createUserResult.ID)
+		link, err := u.s.CreateEmailVerifyLink(txCtx, createUserResult.ID, time.Now().Add(20*time.Minute))
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
 		userCreatedPayload := events.UserCreatedEventPayload{
-			EmailVerifyLinkValidityPeriod: link.ValidityPeriod,
-			ID:                            createUserResult.ID,
-			EmailVerifyLink:               link.Link,
-			Email:                         createUserResult.Email,
-			Locale:                        meta.GetLocale(),
+			ID:                       createUserResult.ID,
+			EmailVerifyLink:          link.Link,
+			EmailVerifyLinkExpiresAt: link.LinkExpiresAt,
+			Email:                    createUserResult.Email,
+			Locale:                   locale,
 		}
 
 		userCreatedPayloadBytes, err := json.Marshal(userCreatedPayload)

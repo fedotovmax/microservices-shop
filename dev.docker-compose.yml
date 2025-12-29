@@ -13,6 +13,36 @@ services:
       - "${USER_SERVICE_POSTGRES_DB_PORT}:5432"
     networks:
       - app-net
+  sessions_service_db:
+    container_name: sessions_service_db
+    restart: always
+    image: postgres:17.6-alpine
+    volumes:
+      - sessions_service_db-pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${SESSIONS_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${SESSIONS_SERVICE_POSTGRES_LOGIN}
+      - POSTGRES_DB=${SESSIONS_SERVICE_POSTGRES_DB_NAME}
+    ports:
+      - "${SESSIONS_SERVICE_POSTGRES_DB_PORT}:5432"
+    networks:
+      - app-net
+  notify_service_redis:
+    image: redis:7
+    container_name: notify_service_redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${NOTIFY_SERVICE_REDIS_PASSWORD}
+    volumes:
+      - notify-service-redis-data:/data
+    ports:
+      - "${NOTIFY_SERVICE_REDIS_PORT}:6379"
+    environment:
+      REDIS_PASSWORD: ${NOTIFY_SERVICE_REDIS_PASSWORD}
+    networks:
+      - app-net
   kafka-1:
     image: apache/kafka:4.1.0
     hostname: kafka-1
@@ -129,23 +159,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
-  notify_service_redis:
-    image: redis:7
-    container_name: notify_service_redis
-    restart: always
-    command: >
-      redis-server
-      --appendonly yes
-      --requirepass ${NOTIFY_SERVICE_REDIS_PASSWORD}
-    volumes:
-      - notify-service-redis-data:/data
-    ports:
-      - "${NOTIFY_SERVICE_REDIS_PORT}:6379"
-    environment:
-      REDIS_PASSWORD: ${NOTIFY_SERVICE_REDIS_PASSWORD}
 
 volumes:
   user-service-pgdata:
+  sessions_service_db-pgdata:
   notify-service-redis-data:
   kafka-1-data:
   kafka-2-data:

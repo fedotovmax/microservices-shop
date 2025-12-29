@@ -10,6 +10,7 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	redisadapter "github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/db/redis"
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/telegram"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/config"
 	"github.com/go-telegram/bot"
 
 	kafkacontroller "github.com/fedotovmax/microservices-shop/notify_service/internal/controller/kafka_controller"
@@ -17,13 +18,6 @@ import (
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/usecase"
 	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
 )
-
-type Config struct {
-	KafkaBrokers  []string
-	TgBotToken    string
-	RedisAddr     string
-	RedisPassword string
-}
 
 type TGBot interface {
 	Start()
@@ -35,14 +29,14 @@ type RedisAdapter interface {
 }
 
 type App struct {
-	c             *Config
+	c             *config.AppConfig
 	log           *slog.Logger
 	tgBot         TGBot
 	redisAdapter  RedisAdapter
 	consumerGroup kafka.ConsumerGroup
 }
 
-func New(c *Config, log *slog.Logger) (*App, error) {
+func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	const op = "app.New"
 

@@ -31,7 +31,8 @@ func New(cfg Config, svc userspb.UserServiceServer, opt ...grpc.ServerOption) *S
 }
 
 func (s *Server) Start() error {
-	const op = "server.grpc.Start"
+
+	const op = "adapter.grpc.Start"
 
 	listener, err := net.Listen("tcp", s.addr)
 
@@ -49,7 +50,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	const op = "server.grpc.Stop2"
+	const op = "adapter.grpc.Stop2"
 
 	done := make(chan struct{})
 

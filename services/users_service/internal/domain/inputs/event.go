@@ -1,11 +1,15 @@
 package inputs
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CreateEvent struct {
 	aggregateID string
 	topic       string
 	ttype       string
+	createdAt   time.Time
 	payload     json.RawMessage
 }
 
@@ -29,6 +33,10 @@ func (i *CreateEvent) SetPayload(p json.RawMessage) {
 	i.payload = p
 }
 
+func (i *CreateEvent) SetCreatedAt(t time.Time) {
+	i.createdAt = t
+}
+
 func (i *CreateEvent) GetAggregateID() string {
 	return i.aggregateID
 }
@@ -43,4 +51,8 @@ func (i *CreateEvent) GetType() string {
 
 func (i *CreateEvent) GetPayload() json.RawMessage {
 	return i.payload
+}
+
+func (i *CreateEvent) GetCreatedAt() time.Time {
+	return i.createdAt
 }

@@ -1,14 +1,10 @@
 package inputs
 
 import (
-	"time"
-
 	"github.com/fedotovmax/grpcutils/violations"
-	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
-	"github.com/fedotovmax/validation"
 )
 
 type SessionActionInput struct {
@@ -34,21 +30,15 @@ func NewCreateUserInput() *CreateUserInput {
 func (i *CreateUserInput) Validate(locale string) error {
 	var validationErrors violations.ValidationErrors
 
-	_, err := validation.IsEmail(i.email)
+	msg, err := validateEmail(i.email, locale)
 
 	if err != nil {
-
-		msg, _ := i18n.Local.Get(locale, keys.ValidationEmail)
-
 		validationErrors = append(validationErrors, addValidationError("Email", locale, msg, err))
 	}
 
-	err = validatePassword(i.password)
+	msg, err = validatePassword(i.password, locale)
 
 	if err != nil {
-
-		msg, _ := i18n.Local.Get(locale, keys.ValidationPassword)
-
 		validationErrors = append(validationErrors,
 			addValidationError("Password", locale, msg, err))
 	}
@@ -77,6 +67,7 @@ func (i *CreateUserInput) SetPassword(password string) {
 }
 
 type UpdateUserInput struct {
+	userID     string
 	birthDate  *string
 	lastName   *string
 	firstName  *string
@@ -93,10 +84,15 @@ func (i *UpdateUserInput) Validate(locale string) error {
 
 	var validationErrors violations.ValidationErrors
 
-	err := validateGender(i.gender)
+	msg, err := validateUUID(i.userID, locale)
 
 	if err != nil {
-		msg, _ := i18n.Local.Get(locale, keys.ValidationGender)
+		validationErrors = append(validationErrors, addValidationError("UserID", locale, msg, err))
+	}
+
+	msg, err = validateGender(i.gender, locale)
+
+	if err != nil {
 		validationErrors = append(validationErrors, addValidationError("Gender", locale, msg, err))
 	}
 
@@ -122,18 +118,16 @@ func (i *UpdateUserInput) Validate(locale string) error {
 	}
 
 	if i.avatarURL != nil {
-		err := validation.IsFilePath(*i.avatarURL)
+		msg, err := validateFilePath(*i.avatarURL, locale)
 		if err != nil {
-			msg, _ := i18n.Local.Get(locale, keys.ValidationStrFilePath)
 			validationErrors = append(validationErrors, addValidationError("AvatarURL", locale, msg, err))
 		}
 	}
 
 	if i.birthDate != nil {
-		_, err := time.Parse(keys.DateFormat, *i.birthDate)
+		msg, err := validateDateString(*i.birthDate, keys.DateFormat, locale)
 		if err != nil {
-			msg, _ := i18n.Local.Get(locale, keys.ValidationDateFormat)
-			validationErrors = append(validationErrors, addValidationError("AvatarURL", locale, msg, err))
+			validationErrors = append(validationErrors, addValidationError("BirthDate", locale, msg, err))
 		}
 	}
 
@@ -168,15 +162,20 @@ func (i *UpdateUserInput) GetGender() *domain.GenderValue {
 	return i.gender
 }
 
+func (i *UpdateUserInput) GetUserID() string {
+	return i.userID
+}
+
 func (i *UpdateUserInput) SetFromProto(req *userspb.UpdateUserProfileRequest) {
 
-	if req != nil {
-		i.avatarURL = req.AvatarUrl
-		i.birthDate = req.BirthDate
-		i.firstName = req.FirstName
-		i.lastName = req.LastName
-		i.middleName = req.MiddleName
-		i.gender = domain.GenderFromProto(req.GenderValue)
+	if req != nil && req.Data != nil {
+		i.avatarURL = req.Data.AvatarUrl
+		i.birthDate = req.Data.BirthDate
+		i.firstName = req.Data.FirstName
+		i.lastName = req.Data.LastName
+		i.middleName = req.Data.MiddleName
+		i.gender = domain.GenderFromProto(req.Data.GenderValue)
+		i.userID = req.UserId
 	}
 }
 
@@ -202,4 +201,37 @@ func (i *UpdateUserInput) SetAvatarURL(url *string) {
 
 func (i *UpdateUserInput) SetGender(g *domain.GenderValue) {
 	i.gender = g
+}
+
+type FindUserByIDInput struct {
+	userID string
+}
+
+func NewFindUserByIDInput() *FindUserByIDInput {
+	return &FindUserByIDInput{}
+}
+
+func (i *FindUserByIDInput) SetUserID(id string) {
+	i.userID = id
+}
+
+func (i *FindUserByIDInput) GetUserID(id string) string {
+	return i.userID
+}
+
+func (i *FindUserByIDInput) Validate(locale string) error {
+	var validationErrors violations.ValidationErrors
+
+	msg, err := validateUUID(i.userID, locale)
+
+	if err != nil {
+		validationErrors = append(validationErrors, addValidationError("UserID", locale, msg, err))
+	}
+
+	if len(validationErrors) > 0 {
+		return validationErrors
+	}
+
+	return nil
+
 }

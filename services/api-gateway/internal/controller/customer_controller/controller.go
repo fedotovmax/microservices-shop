@@ -30,7 +30,7 @@ func (c *controller) Register() {
 		})
 
 		cr.Route("/session", func(sr chi.Router) {
-			sr.Post("/login", c.login)
+			sr.Post("/login", c.sessionLogin)
 		})
 
 	})

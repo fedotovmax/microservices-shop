@@ -7,34 +7,30 @@ import (
 
 	grpcadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/client/grpc"
 	httpadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/config"
 	customercontroller "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller/customer_controller"
 	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/logger"
 	"github.com/go-chi/chi/v5"
 )
-
-type Config struct {
-	HttpPort      uint16
-	UsersGRPCAddr string
-}
 
 type service interface {
 	Stop(ctx context.Context) error
 }
 
 type App struct {
-	c           Config
+	c           *config.AppConfig
 	log         *slog.Logger
 	http        *httpadapter.Server
 	usersClient service
 }
 
-func New(log *slog.Logger, c Config) (*App, error) {
+func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 
 	const op = "app.New"
 
 	r := chi.NewRouter()
 
-	usersClient, err := grpcadapter.NewUsersClient(c.UsersGRPCAddr)
+	usersClient, err := grpcadapter.NewUsersClient(c.UsersClientAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -45,7 +41,7 @@ func New(log *slog.Logger, c Config) (*App, error) {
 	customerController.Register()
 
 	httpServer := httpadapter.NewHTTPAdapter(httpadapter.HTTPServerConfig{
-		Port: c.HttpPort,
+		Port: c.Port,
 	}, r)
 
 	return &App{
@@ -61,7 +57,7 @@ func (a *App) Run(cancel context.CancelFunc) {
 
 	log := a.log.With(slog.String("op", op))
 
-	log.Info("Try to start HTTP server", slog.String("port", fmt.Sprintf("%d", a.c.HttpPort)))
+	log.Info("Try to start HTTP server", slog.String("port", fmt.Sprintf("%d", a.c.Port)))
 
 	go func() {
 		if err := a.http.Start(); err != nil {

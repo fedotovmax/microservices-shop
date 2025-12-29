@@ -1,4 +1,6 @@
 {
 	"validation_invalid_body": "тело запроса имеет недопустимый формат",
-	"validation_empty_id": "параметр id не передан"
+	"validation_empty_id": "параметр id не передан",
+	"bad_credentials": "неверные учетные данные",
+	"unexpected_session_status": "неожиданный статус сессии"
 }

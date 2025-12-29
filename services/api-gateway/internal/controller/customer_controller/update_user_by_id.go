@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
-	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/utils/httphelper"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -32,13 +32,13 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 
-	var updateUserProfileReq userspb.UpdateUserProfileRequest
+	var updateUserProfileData userspb.UpdateUserProfileData
 
-	err := httphelper.DecodeJSON(r.Body, &updateUserProfileReq)
+	err := httputils.DecodeJSON(r.Body, &updateUserProfileData)
 
 	if err != nil {
 
@@ -48,23 +48,27 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 			l.Error(err.Error())
 		}
 
-		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 
 	md := metadata.Pairs(
 		keys.MetadataLocaleKey, locale,
-		keys.MetadataUserIDKey, userId,
 	)
 
 	ctx := metadata.NewOutgoingContext(r.Context(), md)
 
-	_, err = c.users.UpdateUserProfile(ctx, &updateUserProfileReq)
+	updateUserProfileReq := &userspb.UpdateUserProfileRequest{
+		UserId: userId,
+		Data:   &updateUserProfileData,
+	}
+
+	_, err = c.users.UpdateUserProfile(ctx, updateUserProfileReq)
 
 	if err != nil {
-		httphelper.HandleErrorFromGrpc(w, err)
+		httputils.HandleErrorFromGrpc(w, err)
 		return
 	}
 
-	httphelper.WriteJSON(w, http.StatusOK, domain.OK())
+	httputils.WriteJSON(w, http.StatusOK, domain.OK())
 }

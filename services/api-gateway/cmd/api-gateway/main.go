@@ -51,10 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	application, err := app.New(log, app.Config{
-		HttpPort:      cfg.Port,
-		UsersGRPCAddr: cfg.UsersClientAddr,
-	})
+	application, err := app.New(log, cfg)
 
 	if err != nil {
 		log.Error(err.Error())

@@ -4,16 +4,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
-	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/utils/httphelper"
 	"google.golang.org/grpc/metadata"
 )
 
-func (c *controller) login(w http.ResponseWriter, r *http.Request) {
-	const op = "controller.customer.updateUserByID"
+func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
+	const op = "controller.customer.sessionLogin"
 
 	l := c.log.With(slog.String("op", op))
 
@@ -25,14 +25,14 @@ func (c *controller) login(w http.ResponseWriter, r *http.Request) {
 
 	var userSessionActionReq userspb.UserSessionActionRequest
 
-	err := httphelper.DecodeJSON(r.Body, &userSessionActionReq)
+	err := httputils.DecodeJSON(r.Body, &userSessionActionReq)
 
 	if err != nil {
 		msg, err := i18n.Local.Get(locale, keys.ValidationInvalidBody)
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 
@@ -45,10 +45,31 @@ func (c *controller) login(w http.ResponseWriter, r *http.Request) {
 	response, err := c.users.UserSessionAction(ctx, &userSessionActionReq)
 
 	if err != nil {
-		httphelper.HandleErrorFromGrpc(w, err)
+		httputils.HandleErrorFromGrpc(w, err)
 		return
 	}
 
-	httphelper.WriteJSON(w, http.StatusOK, response)
+	c.parseUserSessionActionStatus(w, locale, response)
+}
 
+func (c *controller) parseUserSessionActionStatus(w http.ResponseWriter, locale string, res *userspb.UserSessionActionResponse) {
+
+	//TODO: login
+	switch res.UserSessionActionStatus {
+	case userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS:
+		msg, _ := i18n.Local.Get(locale, keys.BadCredentials)
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		return
+	case userspb.UserSessionActionStatus_SESSION_STATUS_DELETED, userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED:
+		httputils.WriteJSON(w, http.StatusForbidden, res)
+		return
+	case userspb.UserSessionActionStatus_SESSION_STATUS_OK:
+		httputils.WriteJSON(w, http.StatusOK, res)
+		return
+	default:
+		c.log.Error("unexpected session status")
+		msg, _ := i18n.Local.Get(locale, keys.UnexpectedSessionStatus)
+		httputils.WriteJSON(w, http.StatusInternalServerError, domain.NewError(msg))
+		return
+	}
 }

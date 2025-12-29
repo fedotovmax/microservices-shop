@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fedotovmax/goutils/sliceutils"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils"
 )
 
 func (u *usecases) ReserveNewEvents(ctx context.Context, limit int, reserveDuration time.Duration) ([]outbox.Event, error) {
@@ -43,5 +43,5 @@ func (u *usecases) ReserveNewEvents(ctx context.Context, limit int, reserveDurat
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return utils.SliceToSliceInterface[*domain.Event, outbox.Event](events), nil
+	return sliceutils.SliceToSliceInterface[*domain.Event, outbox.Event](events), nil
 }

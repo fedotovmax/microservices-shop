@@ -17,8 +17,8 @@ import (
 )
 
 type Usecases interface {
-	CreateUser(ctx context.Context, meta *inputs.MetaParams, d *inputs.CreateUserInput) (string, error)
-	UpdateUserProfile(ctx context.Context, meta *inputs.MetaParams, in *inputs.UpdateUserInput) error
+	CreateUser(ctx context.Context, in *inputs.CreateUserInput, locale string) (string, error)
+	UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserInput, locale string) error
 	FindUserByID(ctx context.Context, id string) (*domain.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserSessionActionResponse, error)

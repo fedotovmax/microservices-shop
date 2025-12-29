@@ -8,7 +8,6 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils/hashing"
 )
 
 func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (
@@ -25,7 +24,7 @@ func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActi
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	ok := hashing.ComparePassword(in.GetPassword(), user.PasswordHash)
+	ok := comparePassword(in.GetPassword(), user.PasswordHash)
 
 	if !ok {
 		return domain.NewUserSessionActionResponse("", "", domain.UserSessionStatusBadCredentials), nil

@@ -8,7 +8,8 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
-	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/utils/httphelper"
+
+	"github.com/fedotovmax/httputils"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -26,7 +27,7 @@ func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 
 	var createUserReq userspb.CreateUserRequest
 
-	err := httphelper.DecodeJSON(r.Body, &createUserReq)
+	err := httputils.DecodeJSON(r.Body, &createUserReq)
 
 	if err != nil {
 
@@ -36,7 +37,7 @@ func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 			l.Error(err.Error())
 		}
 
-		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 
@@ -49,10 +50,10 @@ func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 	response, err := c.users.CreateUser(ctx, &createUserReq)
 
 	if err != nil {
-		httphelper.HandleErrorFromGrpc(w, err)
+		httputils.HandleErrorFromGrpc(w, err)
 		return
 	}
 
-	httphelper.WriteJSON(w, http.StatusCreated, response)
+	httputils.WriteJSON(w, http.StatusCreated, response)
 
 }

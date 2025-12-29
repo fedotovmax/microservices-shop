@@ -5,7 +5,7 @@ create table if not exists events (
   event_type varchar(100) not null, 
   payload jsonb not null,
   status varchar not null default 'new' check(status in ('new', 'done')),
-  created_at timestamp default now(),
+  created_at timestamp not null,
   reserved_to timestamp default null
 );
 

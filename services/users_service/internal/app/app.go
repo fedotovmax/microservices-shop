@@ -11,6 +11,7 @@ import (
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
@@ -19,14 +20,8 @@ import (
 	"github.com/fedotovmax/pgxtx"
 )
 
-type Config struct {
-	DBURL        string
-	GRPCPort     uint16
-	KafkaBrokers []string
-}
-
 type App struct {
-	c             *Config
+	c             *config.AppConfig
 	log           *slog.Logger
 	postgres      postgres.PostgresPool
 	grpc          *grpcadapter.Server
@@ -41,7 +36,7 @@ type ku struct{}
 // TODO: remove fake usecase
 func (u *ku) Test(ctx context.Context, payload any) {}
 
-func New(c *Config, log *slog.Logger) (*App, error) {
+func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	const op = "app.New"
 
@@ -50,8 +45,8 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 	poolConnectCtx, poolConnectCtxCancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer poolConnectCtxCancel()
 
-	postgresPool, err := postgres.NewConnection(poolConnectCtx, &postgres.Config{
-		DSN: c.DBURL,
+	postgresPool, err := postgres.NewConnection(poolConnectCtx, &postgres.ConnectionConfig{
+		DSN: c.DBUrl,
 	})
 
 	if err != nil {
@@ -111,7 +106,7 @@ func New(c *Config, log *slog.Logger) (*App, error) {
 
 	grpcServer := grpcadapter.New(
 		grpcadapter.Config{
-			Addr: fmt.Sprintf(":%d", c.GRPCPort),
+			Addr: fmt.Sprintf(":%d", c.Port),
 		},
 		grpcController,
 	)
@@ -139,7 +134,7 @@ func (a *App) Run(cancel context.CancelFunc) {
 	a.consumerGroup.Start()
 	log.Info("consumer group starting")
 
-	log.Info("Try to start GRPC server:", slog.String("port", fmt.Sprintf("%d", a.c.GRPCPort)))
+	log.Info("Try to start GRPC server:", slog.String("port", fmt.Sprintf("%d", a.c.Port)))
 
 	go func() {
 		if err := a.grpc.Start(); err != nil {

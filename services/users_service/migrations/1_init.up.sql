@@ -19,16 +19,16 @@ create table if not exists users (
 
   is_phone_verified boolean default false,
 
-  created_at timestamp default now(),
+  created_at timestamp not null,
 
-  updated_at timestamp default now(),
+  updated_at timestamp not null,
 
   deleted_at timestamp null
 );
 
 create table if not exists profiles (
 
-  user_id uuid primary key references users (id),
+  user_id uuid primary key references users (id) on delete cascade,
 
   last_name varchar(100),
 
@@ -42,17 +42,17 @@ create table if not exists profiles (
 
   avatar_url TEXT,
 
-  updated_at timestamp default now()
+  updated_at timestamp not null
 
 );
 
 create table if not exists change_password_codes (
 
-  user_id uuid primary key references users(id),
+  user_id uuid primary key references users(id) on delete cascade,
 
   code varchar(6) not null,
 
-  validity_period timestamp not null default now() + interval '2 minutes',
+  code_expires_at timestamp not null,
 
   attempts smallint not null default 0,
 
@@ -64,21 +64,20 @@ create table if not exists email_verification (
   
   link uuid primary key default gen_random_uuid(),
 
-  user_id uuid not null references users (id) unique,
+  user_id uuid not null references users (id) unique on delete cascade,
 
-  validity_period timestamp not null default now() + interval '15 minutes'
+  link_expires_at timestamp not null
 );
 
 create table if not exists phone_verification (
 
-  user_id uuid primary key references users(id),
+  user_id uuid primary key references users(id) on delete cascade,
 
   code varchar(6) not null,
 
-  validity_period timestamp not null default now() + interval '5 minutes',
+  code_expires_at timestamp not null,
 
   attempts smallint not null default 0,
 
   blocked_until timestamp default null
-
 );

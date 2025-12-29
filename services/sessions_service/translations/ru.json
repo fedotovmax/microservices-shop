@@ -1,0 +1,5 @@
+{
+	"validation_uuid": "недопустимый формат UUID",
+	"validation_ip": "недопустимый формат IP-адреса",
+	"validation_str_symbols_min": "количество символов должно быть не менее %v"
+}

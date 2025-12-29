@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/fedotovmax/grpcutils"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils/grpchelper"
 )
 
 func (c *grpcController) CreateUser(ctx context.Context, req *userspb.CreateUserRequest) (*userspb.CreateUserResponse, error) {
@@ -15,24 +15,23 @@ func (c *grpcController) CreateUser(ctx context.Context, req *userspb.CreateUser
 	const op = "controller.grpc.CreateUser"
 
 	l := c.log.With(slog.String("op", op))
-	metaParams := inputs.NewMetaParams()
 
-	metaParams.SetLocale(grpchelper.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0])
+	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
 	createUserInput := inputs.NewCreateUserInput()
 	createUserInput.SetEmail(req.GetEmail())
 	createUserInput.SetPassword(req.GetPassword())
 
-	err := createUserInput.Validate(metaParams.GetLocale())
+	err := createUserInput.Validate(locale)
 
 	if err != nil {
-		return nil, grpchelper.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
+		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
 	}
 
-	userId, err := c.usecases.CreateUser(ctx, metaParams, createUserInput)
+	userId, err := c.usecases.CreateUser(ctx, createUserInput, locale)
 
 	if err != nil {
-		return nil, handleError(l, metaParams.GetLocale(), keys.CreateUserInternal, err)
+		return nil, handleError(l, locale, keys.CreateUserInternal, err)
 	}
 
 	return &userspb.CreateUserResponse{

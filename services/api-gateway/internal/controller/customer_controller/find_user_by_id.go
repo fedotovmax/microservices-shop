@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
-	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/utils/httphelper"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -31,7 +31,7 @@ func (c *controller) findUserByID(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httphelper.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
 		return
 	}
 
@@ -46,10 +46,10 @@ func (c *controller) findUserByID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		httphelper.HandleErrorFromGrpc(w, err)
+		httputils.HandleErrorFromGrpc(w, err)
 		return
 	}
 
-	httphelper.WriteJSON(w, http.StatusOK, response)
+	httputils.WriteJSON(w, http.StatusOK, response)
 
 }

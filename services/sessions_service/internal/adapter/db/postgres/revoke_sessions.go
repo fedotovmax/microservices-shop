@@ -1,0 +1,31 @@
+package postgres
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter"
+)
+
+const revokeSessionQuery = "update sessions set revoked_at = $1 where id = any($2) and revoked_at is null;"
+
+func (p *postgres) RevokeSessions(ctx context.Context, sids []string) error {
+
+	const op = "adapter.db.postgres.RevokeSessions"
+
+	if len(sids) == 0 {
+		return nil
+	}
+
+	tx := p.ex.ExtractTx(ctx)
+
+	_, err := tx.Exec(ctx, revokeSessionQuery, time.Now(), sids)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)
+	}
+
+	return nil
+
+}

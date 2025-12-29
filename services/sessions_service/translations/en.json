@@ -1,0 +1,5 @@
+{
+	"validation_uuid": "invalid uuid format",
+	"validation_ip": "invalid IP address format",
+	"validation_str_symbols_min": "symbols count must be at least %v"
+}

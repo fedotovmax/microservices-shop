@@ -3,9 +3,9 @@ package domain
 import (
 	"time"
 
+	"github.com/fedotovmax/goutils/timeutils"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
-	"github.com/fedotovmax/microservices-shop/users_service/pkg/utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -43,7 +43,7 @@ type UserSessionActionResponse struct {
 
 func NewUserSessionActionResponse(id, email string, status UserSessionStatus) *UserSessionActionResponse {
 	return &UserSessionActionResponse{
-		Status: UserSessionStatusBadCredentials,
+		Status: status,
 		Fields: UserPrimaryFields{
 			ID:    id,
 			Email: email,
@@ -80,7 +80,7 @@ func (u *User) ToProto() *userspb.User {
 		Phone:     u.Phone,
 		Profile: &userspb.Profile{
 			UpdatedAt:  timestamppb.New(u.Profile.UpdatedAt),
-			BirthDate:  utils.TimePtrToString(keys.DateFormat, u.Profile.BirthDate),
+			BirthDate:  timeutils.TimePtrToString(keys.DateFormat, u.Profile.BirthDate),
 			LastName:   u.Profile.LastName,
 			FirstName:  u.Profile.FirstName,
 			MiddleName: u.Profile.MiddleName,
@@ -170,9 +170,9 @@ type Profile struct {
 }
 
 type EmailVerifyLink struct {
-	Link           string
-	UserID         string
-	ValidityPeriod time.Time
+	Link          string
+	UserID        string
+	LinkExpiresAt time.Time
 }
 
 type UserPrimaryFields struct {

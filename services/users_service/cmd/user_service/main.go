@@ -51,11 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	application, err := app.New(&app.Config{
-		DBURL:        cfg.DBUrl,
-		GRPCPort:     cfg.Port,
-		KafkaBrokers: cfg.KafkaBrokers,
-	}, log)
+	application, err := app.New(cfg, log)
 
 	if err != nil {
 		log.Error(err.Error())

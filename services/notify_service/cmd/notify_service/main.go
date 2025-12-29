@@ -58,12 +58,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	application, err := app.New(&app.Config{
-		KafkaBrokers:  cfg.KafkaBrokers,
-		TgBotToken:    cfg.TgBotToken,
-		RedisAddr:     cfg.RedisAddr,
-		RedisPassword: cfg.RedisPassword,
-	}, log)
+	application, err := app.New(cfg, log)
 
 	if err != nil {
 		log.Error(err.Error())

@@ -11,13 +11,13 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
-func (u *usecases) UpdateUserProfile(ctx context.Context, meta *inputs.MetaParams, in *inputs.UpdateUserInput) error {
+func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserInput, locale string) error {
 
 	const op = "usecase.UpdateUserProfile"
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 
-		user, err := u.FindUserByID(txCtx, meta.GetUserID())
+		user, err := u.FindUserByID(txCtx, in.GetUserID())
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -29,8 +29,21 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, meta *inputs.MetaParam
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		//TODO: locale
-		userProfileUpdatedPayload := events.UserUpdatedEventPayload{ID: user.ID, Locale: meta.GetLocale()}
+		user, err = u.FindUserByID(txCtx, user.ID)
+
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		userProfileUpdatedPayload := events.UserProfileUpdatedEventPayload{
+			ID:            user.ID,
+			Email:         user.Email,
+			NewLastName:   user.Profile.LastName,
+			NewFirstName:  user.Profile.FirstName,
+			NewMiddleName: user.Profile.MiddleName,
+			NewAvatarURL:  user.Profile.AvatarURL,
+			Locale:        locale,
+		}
 
 		userProfileUpdatedPayloadBytes, err := json.Marshal(userProfileUpdatedPayload)
 

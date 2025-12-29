@@ -3,6 +3,7 @@ package inputs
 import (
 	"errors"
 	"regexp"
+	"time"
 
 	"github.com/fedotovmax/grpcutils/violations"
 	"github.com/fedotovmax/i18n"
@@ -30,6 +31,48 @@ func addValidationError(f, l, m string, err error) violations.ValidationError {
 	}
 }
 
+func validateEmail(email string, locale string) (string, error) {
+	_, err := validation.IsEmail(email)
+
+	if err != nil {
+		msg, _ := i18n.Local.Get(locale, keys.ValidationEmail)
+		return msg, nil
+	}
+
+	return "", nil
+
+}
+
+func validateUUID(uuid string, locale string) (string, error) {
+	_, err := validation.IsUUID(uuid)
+
+	if err != nil {
+		msg, _ := i18n.Local.Get(locale, keys.ValidationUUID)
+		return msg, err
+	}
+	return "", nil
+}
+
+func validateDateString(date string, format string, locale string) (string, error) {
+	_, err := time.Parse(format, date)
+
+	if err != nil {
+		msg, _ := i18n.Local.Get(locale, keys.ValidationDateFormat)
+		return msg, err
+	}
+	return "", nil
+}
+
+func validateFilePath(path string, locale string) (string, error) {
+	err := validation.IsFilePath(path)
+
+	if err != nil {
+		msg, _ := i18n.Local.Get(locale, keys.ValidationStrFilePath)
+		return msg, err
+	}
+	return "", nil
+}
+
 func validateName(name string, locale string) (string, error) {
 
 	err := validation.LengthRange(name, 1, 100)
@@ -48,60 +91,57 @@ func validateName(name string, locale string) (string, error) {
 	return "", nil
 }
 
-func validatePassword(password string) error {
-	err := validation.Regex(password, UpperLettersRegexp)
+func validatePassword(password string, locale string) (string, error) {
+
+	err := validation.MinLength(password, 8)
+
 	if err != nil {
-		return err
+		msg, _ := i18n.Local.Get(locale, keys.ValidationStrSymbolsMin, 8)
+		return msg, err
+	}
+
+	err = validation.Regex(password, UpperLettersRegexp)
+	if err != nil {
+		msg, _ := i18n.Local.Get(locale, keys.ValidationPassword)
+		return msg, err
 	}
 
 	err = validation.Regex(password, LowerLettersRegexp)
 
 	if err != nil {
-		return err
+		msg, _ := i18n.Local.Get(locale, keys.ValidationPassword)
+		return msg, err
 	}
 
 	err = validation.Regex(password, DigitRegexp)
 
 	if err != nil {
-		return err
+		msg, _ := i18n.Local.Get(locale, keys.ValidationPassword)
+		return msg, err
 	}
 
 	err = validation.Regex(password, SpecialRegexp)
 
 	if err != nil {
-		return err
+		msg, _ := i18n.Local.Get(locale, keys.ValidationPassword)
+		return msg, err
 	}
 
-	return nil
+	return "", nil
 }
 
-func ValidateUUID(id string, locale string) error {
-
-	_, err := validation.IsUUID(id)
-
-	if err != nil {
-		msg, _ := i18n.Local.Get(locale, keys.ValidationUUID)
-
-		ve := violations.ValidationErrors{}
-		ve = append(ve, addValidationError("ID", locale, msg, err))
-
-		return ve
-	}
-
-	return nil
-
-}
-
-func validateGender(gender *domain.GenderValue) error {
+func validateGender(gender *domain.GenderValue, locale string) (string, error) {
 
 	if gender == nil {
-		return nil
+		return "", nil
 	}
 
 	if gender.IsValid() {
-		return nil
+		return "", nil
 	}
 
-	return errors.New("invalid gender")
+	msg, _ := i18n.Local.Get(locale, keys.ValidationGender)
+
+	return msg, errors.New("invalid gender")
 
 }
