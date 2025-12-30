@@ -38,8 +38,9 @@ func (err *UserSessionRevokedError) Unwrap() error {
 var ErrUserSessionsInBlackList = errors.New("session in blacklist")
 
 type UserSessionsInBlacklistError struct {
-	Email string
-	UID   string
+	Email              string
+	UID                string
+	NeedNewUnblockCode bool
 }
 
 func NewUserSessionsInBlacklistError(email, uid string) *UserSessionsInBlacklistError {
@@ -57,6 +58,36 @@ func (err *UserSessionsInBlacklistError) Unwrap() error {
 	return ErrUserSessionsInBlackList
 }
 
+var ErrBlacklistCodeExpired = errors.New("blacklist code expired")
+
+var ErrBadBlacklistCode = errors.New("bad blacklist code")
+
 var ErrAgentLooksLikeBot = errors.New("the user agent looks like a bot")
 
 var ErrInvalidSessionIP = errors.New("invalid session IP")
+
+var ErrLoginFromNewIPOrDevice = errors.New("login from a new IP address or device")
+
+type LoginFromNewIPOrDeviceError struct {
+	Email string
+	UID   string
+}
+
+func NewLoginFromNewIPOrDeviceError(email, uid string) *LoginFromNewIPOrDeviceError {
+	return &LoginFromNewIPOrDeviceError{
+		Email: email,
+		UID:   uid,
+	}
+}
+
+func (err *LoginFromNewIPOrDeviceError) Error() string {
+	return fmt.Sprintf("login from a new IP address or device: uid=%s; email=%s", err.UID, err.Email)
+}
+
+func (err *LoginFromNewIPOrDeviceError) Unwrap() error {
+	return ErrLoginFromNewIPOrDevice
+}
+
+var ErrBypassCodeExpired = errors.New("bypass code expired")
+
+var ErrBadBypassCode = errors.New("bad bypass code")

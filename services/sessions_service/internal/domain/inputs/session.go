@@ -172,7 +172,7 @@ func (i *PrepareSessionInput) GetUserAgent() string {
 	return i.userAgent
 }
 
-type AddToBlackListInput struct {
+type SecurityInput struct {
 	UID           string
 	Code          string
 	CodeExpiresAt time.Time

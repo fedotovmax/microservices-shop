@@ -2,28 +2,36 @@ package grpccontroller
 
 import (
 	"context"
+	"log/slog"
 
+	"github.com/fedotovmax/grpcutils"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
-	"github.com/google/uuid"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
 )
 
 func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSessionRequest) (*sessionspb.CreateSessionResponse, error) {
+
 	const op = "grpc_controller.CreateSession"
 
-	uid := uuid.New().String()
-	ua := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+	l := c.log.With(slog.String("op", op))
 
-	ip := "45.59.125.130"
+	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	issuer := "api-gateway-app"
+	input := inputs.NewPrepareSessionInput(
+		req.Uid, req.UserAgent, req.Ip, req.Issuer,
+	)
 
-	newSession, err := c.usecases.CreateSession(ctx, inputs.NewPrepareSessionInput(
-		uid, ua, ip, issuer,
-	))
+	err := input.Validate(locale)
 
 	if err != nil {
-		return nil, err
+		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
+	}
+
+	newSession, err := c.usecases.CreateSession(ctx, input)
+
+	if err != nil {
+		return nil, handleError(l, locale, keys.CreateSessionInternal, err)
 	}
 
 	return newSession.ToProto(), nil

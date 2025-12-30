@@ -1,5 +1,8 @@
 {
 	"validation_uuid": "недопустимый формат UUID",
 	"validation_ip": "недопустимый формат IP-адреса",
-	"validation_str_symbols_min": "количество символов должно быть не менее %v"
+	"validation_str_symbols_min": "количество символов должно быть не менее %v",
+	"validation_failed": "тело запроса имеет недопустимый формат",
+
+	"create_session_internal": "неожиданная ошибка при создании сессии"
 }

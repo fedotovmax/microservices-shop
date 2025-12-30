@@ -44,6 +44,7 @@ require (
 )
 
 require (
+	github.com/fedotovmax/goutils v1.0.1
 	github.com/fedotovmax/i18n v1.0.2
 	github.com/fedotovmax/pgxtx v1.0.2
 	github.com/golang-jwt/jwt/v5 v5.3.0

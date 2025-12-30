@@ -20,6 +20,7 @@ func (u *usecases) VerifyAccessToken(ctx context.Context, in *inputs.VerifyAcces
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	//TODO: switch errors?
 	session, err := u.FindSessionByID(ctx, sid)
 
 	if err != nil {
@@ -60,6 +61,7 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrAgentLooksLikeBot)
 	}
 
+	//TODO: switch errors?
 	session, err := u.VerifyRefreshToken(ctx, in.GetRefreshToken())
 
 	if err != nil {
@@ -82,7 +84,7 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	refreshExpTime := time.Now().Add(u.refreshExpiresDuration)
+	refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration)
 
 	err = u.storage.UpdateSession(ctx, &inputs.CreateSessionInput{
 		SID:            session.ID,

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/fedotovmax/kafka-lib/kafka"
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	jwtadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/auth/jwt"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
@@ -24,6 +26,8 @@ type App struct {
 	log           *slog.Logger
 	postgres      postgres.PostgresPool
 	grpc          *grpcadapter.Server
+	event         *outbox.Outbox
+	producer      kafka.Producer
 	consumerGroup kafka.ConsumerGroup
 }
 
@@ -56,16 +60,39 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	postgresAdapter := postgres.NewAdapter(ex, log)
 
+	outboxConfig := outbox.SmallBatchConfig
+
+	flushConfig := outboxConfig.GetKafkaFlushConfig()
+
+	producer, err := kafka.NewAsyncProducer(kafka.ProducerConfig{
+		Brokers:     c.KafkaBrokers,
+		MaxMessages: flushConfig.MaxMessages,
+		Frequency:   flushConfig.Frequency,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
 	jwtAdapter := jwtadapter.New(&jwtadapter.Config{
 		AccessTokenExpDuration: c.AccessTokenExpDuration,
 		AccessTokenSecret:      c.AccessTokenSecret,
 	})
 
-	usecases := usecase.New(log, txManager, jwtAdapter, postgresAdapter, c.RefreshTokenExpDuration)
+	usecases := usecase.New(log, txManager, jwtAdapter, postgresAdapter, &usecase.Config{
+		RefreshExpiresDuration: c.RefreshTokenExpDuration,
+		BlacklistCodeLength:    6,
+	})
 
 	grpcController := grpccontroller.New(log, usecases)
 
 	kafkaConsumerController := kafkacontroller.New(log, usecases)
+
+	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
 		Brokers: c.KafkaBrokers,
@@ -93,6 +120,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 			grpc:          grpcServer,
 			postgres:      postgresPool,
 			consumerGroup: consumerGroup,
+			event:         eventProcessor,
+			producer:      producer,
 		},
 		nil
 }
@@ -103,6 +132,8 @@ func (a *App) Run(cancel context.CancelFunc) {
 
 	log := a.log.With(slog.String("op", op))
 
+	a.event.Start()
+	log.Info("event processor starting")
 	a.consumerGroup.Start()
 	log.Info("consumer group starting")
 
@@ -124,6 +155,15 @@ func (a *App) Stop(ctx context.Context) {
 
 	log := a.log.With(slog.String("op", op))
 
+	lifesycleServices := []*service{
+		newService("event processor", a.event),
+		newService("kafka producer", a.producer),
+		newService("kafka consumer-group", a.consumerGroup),
+		newService("postgres", a.postgres),
+	}
+
+	stopErrorsChan := make(chan error, len(lifesycleServices))
+
 	err := a.grpc.Stop(ctx)
 
 	if err != nil {
@@ -132,19 +172,36 @@ func (a *App) Stop(ctx context.Context) {
 		log.Info("grpc server stopped successfully!")
 	}
 
-	err = a.consumerGroup.Stop(ctx)
+	wg := &sync.WaitGroup{}
 
-	if err != nil {
-		log.Error("error when stop consumer group", logger.Err(err))
-	} else {
-		log.Info("consumer group stopped successfully")
+	for _, s := range lifesycleServices {
+		wg.Go(func() {
+			err := s.Stop(ctx)
+			if err != nil {
+				stopErrorsChan <- err
+			} else {
+				log.Info("successfully stopped:", slog.String("service", s.Name()))
+			}
+		})
 	}
 
-	err = a.postgres.Stop(ctx)
+	go func() {
+		wg.Wait()
+		close(stopErrorsChan)
+	}()
 
-	if err != nil {
-		log.Error("error when stop postgres connection", logger.Err(err))
+	stopErrors := make([]error, 0, len(lifesycleServices))
+
+	for err := range stopErrorsChan {
+		stopErrors = append(stopErrors, err)
+	}
+
+	if len(stopErrors) == 0 {
+		log.Info("All resources are closed successfully, exit app")
 	} else {
-		log.Info("postgres connection stopped successfully")
+		log.Error("resource with errors:", slog.Int("stop_errors", len(stopErrors)))
+		for _, err := range stopErrors {
+			log.Error(err.Error())
+		}
 	}
 }

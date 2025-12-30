@@ -29,3 +29,10 @@ create table blacklist (
   code varchar(6) not null, 
   code_expires_at timestamp not null
 )
+
+
+create table bypass (
+  uid uuid primary key references sessions_users(uid) on delete cascade,
+  code varchar(12) not null, 
+  bypass_expires_at timestamp not null
+)

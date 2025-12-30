@@ -79,15 +79,15 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	useceses := usecase.NewUsecases(postgresAdapter, txManager, log)
+	usecases := usecase.NewUsecases(postgresAdapter, txManager, log)
 
-	eventProcessor, err := outbox.New(log, producer, useceses, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	grpcController := grpccontroller.NewGRPCController(log, useceses)
+	grpcController := grpccontroller.NewGRPCController(log, usecases)
 
 	kafkaConsumerController := kafkacontroller.NewKafkaController(log, &ku{})
 
@@ -172,16 +172,14 @@ func (a *App) Stop(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 
 	for _, s := range lifesycleServices {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := s.Stop(ctx)
 			if err != nil {
 				stopErrorsChan <- err
 			} else {
 				log.Info("successfully stopped:", slog.String("service", s.Name()))
 			}
-		}()
+		})
 	}
 
 	go func() {

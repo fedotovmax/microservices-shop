@@ -13,8 +13,6 @@ import (
 
 func (u *usecases) findSession(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error) {
 
-	//TODO: when find session and if revoked will report this (leaked session)
-
 	const op = "usecases.findSession"
 
 	session, err := u.storage.FindSession(ctx, column, value)

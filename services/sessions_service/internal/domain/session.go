@@ -22,13 +22,66 @@ type BlackList struct {
 	CodeExpiresAt time.Time
 }
 
+type Bypass struct {
+	Code            string
+	BypassExpiresAt time.Time
+}
+
 type SessionsUser struct {
 	Info      User
 	BlackList *BlackList
+	Bypass    *Bypass
+}
+
+func (u *SessionsUser) Clone() SessionsUser {
+	var bl *BlackList
+
+	if u.BlackList != nil {
+		bl = &BlackList{
+			Code:          u.BlackList.Code,
+			CodeExpiresAt: u.BlackList.CodeExpiresAt,
+		}
+	}
+	var bp *Bypass
+
+	if u.Bypass != nil {
+		bp = &Bypass{
+			Code:            u.Bypass.Code,
+			BypassExpiresAt: u.Bypass.BypassExpiresAt,
+		}
+	}
+	return SessionsUser{
+		Info: User{
+			UID:   u.Info.UID,
+			Email: u.Info.Email,
+		},
+		BlackList: bl,
+		Bypass:    bp,
+	}
 }
 
 func (u *SessionsUser) IsInBlackList() bool {
 	return u.BlackList != nil
+}
+
+func (u *SessionsUser) HasBypass() bool {
+	return u.Bypass != nil
+}
+
+func (bl *BlackList) IsCodeExpired() bool {
+	return time.Now().After(bl.CodeExpiresAt)
+}
+
+func (bl *BlackList) ComapreCodes(code string) bool {
+	return bl.Code == code
+}
+
+func (bp *Bypass) IsCodeExpired() bool {
+	return time.Now().After(bp.BypassExpiresAt)
+}
+
+func (bp *Bypass) ComapreCodes(code string) bool {
+	return bp.Code == code
 }
 
 type Session struct {
@@ -44,6 +97,24 @@ type Session struct {
 	UpdatedAt      time.Time
 	RevokedAt      *time.Time
 	ExpiresAt      time.Time
+}
+
+func (s *Session) Clone() Session {
+
+	return Session{
+		ID:             s.ID,
+		User:           s.User.Clone(),
+		RefreshHash:    s.RefreshHash,
+		IP:             s.IP,
+		Browser:        s.Browser,
+		BrowserVersion: s.BrowserVersion,
+		OS:             s.OS,
+		Device:         s.Device,
+		CreatedAt:      s.CreatedAt,
+		UpdatedAt:      s.UpdatedAt,
+		RevokedAt:      s.RevokedAt,
+		ExpiresAt:      s.ExpiresAt,
+	}
 }
 
 func (s *Session) IsExpired() bool {

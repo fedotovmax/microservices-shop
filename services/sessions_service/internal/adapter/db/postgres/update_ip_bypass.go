@@ -8,16 +8,16 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
 )
 
-const addToBlackListQuery = `
-insert into blacklist (uid, code, code_expires_at) values ($1, $2, $3);`
+const updateIPBypassQuery = `
+update bypass (code, bypass_expires_at) values ($1, $2) where uid = $3;`
 
-func (p *postgres) AddToBlackList(ctx context.Context, in *inputs.SecurityInput) error {
+func (p *postgres) UpdateIPBypass(ctx context.Context, in *inputs.SecurityInput) error {
 
-	const op = "adapter.db.postgres.AddToBlacklist"
+	const op = "adapter.db.postgres.UpdateIPBypass"
 
 	tx := p.ex.ExtractTx(ctx)
 
-	_, err := tx.Exec(ctx, addToBlackListQuery, in.UID, in.Code, in.CodeExpiresAt)
+	_, err := tx.Exec(ctx, updateIPBypassQuery, in.Code, in.CodeExpiresAt, in.UID)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)

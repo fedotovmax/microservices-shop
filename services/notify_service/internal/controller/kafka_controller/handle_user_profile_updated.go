@@ -24,7 +24,7 @@ func (k *kafkaController) handleUserProfileUpdated(ctx context.Context, eventID 
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	var userProfileUpdatedPayload events.UserUpdatedEventPayload
+	var userProfileUpdatedPayload events.UserProfileUpdatedEventPayload
 	err = json.Unmarshal(payload, &userProfileUpdatedPayload)
 
 	if err != nil {
