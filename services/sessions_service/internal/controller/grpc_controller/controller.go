@@ -15,7 +15,7 @@ import (
 )
 
 type Usecases interface {
-	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput) (*domain.SessionResponse, error)
+	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput, bypassCode string) (*domain.SessionResponse, error)
 }
 
 type controller struct {

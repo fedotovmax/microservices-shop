@@ -5,17 +5,33 @@ import (
 	"fmt"
 
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db"
 )
 
 const removeUserFromBlacklistQuery = "delete from blacklist where uid = $1;"
 
-func (p *postgres) RemoveUserFromBlacklist(ctx context.Context, uid string) error {
+const removeUserBypassQuery = "delete from bypass where uid = $1;"
 
-	const op = "adapter.db.postgres.RemoveUserFromBlacklist"
+func (p *postgres) RemoveSecurityBlock(ctx context.Context, table db.SecurityTable, uid string) error {
+
+	const op = "adapter.db.postgres.RemoveSecurityBlock"
+
+	var err error
+
+	err = db.IsSecurityTable(table)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	tx := p.ex.ExtractTx(ctx)
 
-	_, err := tx.Exec(ctx, removeUserFromBlacklistQuery, uid)
+	switch table {
+	case db.SecurityTableBlacklist:
+		_, err = tx.Exec(ctx, removeUserFromBlacklistQuery, uid)
+	case db.SecurityTableBypass:
+		_, err = tx.Exec(ctx, removeUserBypassQuery, uid)
+	}
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)

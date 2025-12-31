@@ -28,15 +28,11 @@ type Storage interface {
 	FindSession(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error)
 	UpdateSession(ctx context.Context, in *inputs.CreateSessionInput) error
 
-	AddToBlackList(ctx context.Context, in *inputs.SecurityInput) error
-	UpdateBlacklistCode(ctx context.Context, in *inputs.SecurityInput) error
-	RemoveUserFromBlacklist(ctx context.Context, uid string) error
+	AddSecurityBlock(ctx context.Context, operation db.Operation, table db.SecurityTable, in *inputs.SecurityInput) error
+	RemoveSecurityBlock(ctx context.Context, table db.SecurityTable, uid string) error
 
 	FindUser(ctx context.Context, uid string) (*domain.SessionsUser, error)
 	FindUserSessions(ctx context.Context, uid string) ([]*domain.Session, error)
-
-	AddIPBypass(ctx context.Context, in *inputs.SecurityInput) error
-	UpdateIPBypass(ctx context.Context, in *inputs.SecurityInput) error
 
 	SetEventStatusDone(ctx context.Context, id string) error
 	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error

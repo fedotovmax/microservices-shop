@@ -28,7 +28,8 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
 	}
 
-	newSession, err := c.usecases.CreateSession(ctx, input)
+	//todo: add bypasscode
+	newSession, err := c.usecases.CreateSession(ctx, input, "12345")
 
 	if err != nil {
 		return nil, handleError(l, locale, keys.CreateSessionInternal, err)

@@ -24,26 +24,19 @@ func (u *usecases) findSession(ctx context.Context, column db.SessionEntityField
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if session.User.IsInBlackList() {
-		return nil, fmt.Errorf("%s: %w", op, errs.NewUserSessionsInBlacklistError(
-			session.User.Info.Email,
-			session.User.Info.UID,
-		))
-	}
-
-	if session.IsRevoked() {
-		return nil, fmt.Errorf("%s: %w", op, errs.NewUserSessionRevokedError(
-			session.User.Info.Email,
-			session.User.Info.UID,
-			session.ID,
-		))
-	}
-
-	if session.IsExpired() {
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionExpired)
-	}
-
 	return session, nil
+	// if session.User.IsInBlackList() {
+	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrUserSessionsInBlackList)
+	// }
+
+	// if session.IsRevoked() {
+	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionRevoked)
+	// }
+
+	// if session.IsExpired() {
+	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionExpired)
+	// }
+
 }
 
 func (u *usecases) FindSessionByHash(ctx context.Context, hash string) (*domain.Session, error) {
