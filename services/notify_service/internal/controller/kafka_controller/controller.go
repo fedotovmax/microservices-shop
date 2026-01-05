@@ -2,6 +2,7 @@ package kafkacontroller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -140,6 +141,17 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 					k.handleErrors(err, commit, l)
 					continue
 				}
+				commit()
+			case events.SESSION_BYPASS_ADDED:
+				//TODO: handle
+				var p events.SessionBypassAddedEventPayload
+				err := json.Unmarshal(payload, &p)
+
+				if err != nil {
+					k.handleErrors(ErrInvalidPayloadForEventType, commit, l)
+					continue
+				}
+				l.Info("Send Email", slog.String("email", p.Email), slog.String("code", p.Code))
 				commit()
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))

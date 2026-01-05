@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,9 +33,12 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 	}
 
 	var newSession *domain.SessionResponse
-	var err error
 
-	err = u.txm.Wrap(pctx, func(txCtx context.Context) error {
+	var independentTxErr error
+
+	var txBasedErr error
+
+	txBasedErr = u.txm.Wrap(pctx, func(txCtx context.Context) error {
 
 		user, err := u.FindUserByID(txCtx, in.GetUID())
 
@@ -45,6 +49,10 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		err = u.handleUserBlacklist(txCtx, user)
 
 		if err != nil {
+			if errors.Is(err, errs.ErrUserSessionsInBlackList) || errors.Is(err, errs.ErrBlacklistCodeExpired) {
+				independentTxErr = err
+				return nil
+			}
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
@@ -55,6 +63,10 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		})
 
 		if err != nil {
+			if errors.Is(err, errs.ErrBypassCodeExpired) || errors.Is(err, errs.ErrBadBypassCode) || errors.Is(err, errs.ErrLoginFromNewIPOrDevice) {
+				independentTxErr = err
+				return nil
+			}
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
@@ -88,7 +100,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		_, err = u.storage.CreateSession(txCtx, &inputs.CreateSessionInput{
+		_, err = u.storage.sessions.CreateSession(txCtx, &inputs.CreateSessionInput{
 			SID:            sid,
 			UID:            data.uid,
 			RefreshHash:    refreshToken.hashed,
@@ -114,8 +126,12 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		return nil
 	})
 
-	if err != nil {
-		return nil, err
+	if txBasedErr != nil {
+		return nil, txBasedErr
+	}
+
+	if independentTxErr != nil {
+		return nil, fmt.Errorf("%s: %w", op, independentTxErr)
 	}
 
 	return newSession, nil

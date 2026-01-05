@@ -53,11 +53,7 @@ func (p *postgresPool) Stop(ctx context.Context) error {
 	}
 }
 
-type ConnectionConfig struct {
-	DSN string
-}
-
-func NewConnection(ctx context.Context, newCfg *ConnectionConfig) (PostgresPool, error) {
+func New(ctx context.Context, newCfg *Config) (PostgresPool, error) {
 	const op = "db.postgres.New"
 	syncOnce.Do(func() {
 

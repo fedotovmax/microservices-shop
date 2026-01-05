@@ -13,7 +13,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
-func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser) (*domain.SessionsUser, error) {
+func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser) error {
 
 	const op = "usecases.AddToBlackList"
 
@@ -25,7 +25,7 @@ func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser
 
 	if err != nil {
 		l.Error("error when generate code for blacklist", slog.String("uid", user.Info.UID), logger.Err(err))
-		return nil, err
+		return err
 	}
 
 	codeExpiresAt := time.Now().Add(u.cfg.BlacklistCodeExpDuration)
@@ -37,48 +37,41 @@ func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser
 	}
 
 	if user.IsInBlackList() {
-		err = u.storage.AddSecurityBlock(ctx, db.OperationUpdate, db.SecurityTableBlacklist, blacklistInput)
+		err = u.storage.sessions.AddSecurityBlock(ctx, db.OperationUpdate, db.SecurityTableBlacklist, blacklistInput)
 	} else {
-		err = u.storage.AddSecurityBlock(ctx, db.OperationInsert, db.SecurityTableBlacklist, blacklistInput)
+		err = u.storage.sessions.AddSecurityBlock(ctx, db.OperationInsert, db.SecurityTableBlacklist, blacklistInput)
 	}
 
 	if err != nil {
 		l.Error("error when add/update blacklist", slog.String("uid", user.Info.UID), logger.Err(err))
-		return nil, err
-	}
-
-	updatedUser := user.Clone()
-
-	updatedUser.BlackList = &domain.BlackList{
-		Code:          code,
-		CodeExpiresAt: codeExpiresAt,
+		return err
 	}
 
 	eventPayload := events.SessionBlacklistAddedEventPayload{
-		UID:           updatedUser.Info.UID,
-		Email:         updatedUser.Info.Email,
-		Code:          updatedUser.BlackList.Code,
-		CodeExpiresAt: updatedUser.BlackList.CodeExpiresAt,
+		UID:           user.Info.UID,
+		Email:         user.Info.Email,
+		Code:          blacklistInput.Code,
+		CodeExpiresAt: blacklistInput.CodeExpiresAt,
 	}
 
 	eventPayloadBytes, err := json.Marshal(eventPayload)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	eventInput := inputs.NewCreateEventInput()
-	eventInput.SetAggregateID(updatedUser.Info.UID)
+	eventInput.SetAggregateID(user.Info.UID)
 	eventInput.SetTopic(events.SESSION_EVENTS)
 	eventInput.SetType(events.SESSION_BLACKLIST_ADDED)
 	eventInput.SetPayload(eventPayloadBytes)
 
-	_, err = u.storage.CreateEvent(ctx, eventInput)
+	_, err = u.storage.events.CreateEvent(ctx, eventInput)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &updatedUser, nil
+	return nil
 
 }

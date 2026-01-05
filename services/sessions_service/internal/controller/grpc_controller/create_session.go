@@ -18,6 +18,8 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
+	bypassCode := grpcutils.GetFromMetadata(ctx, keys.MetadataBypassCodeKey, "")[0]
+
 	input := inputs.NewPrepareSessionInput(
 		req.Uid, req.UserAgent, req.Ip, req.Issuer,
 	)
@@ -28,8 +30,7 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
 	}
 
-	//todo: add bypasscode
-	newSession, err := c.usecases.CreateSession(ctx, input, "12345")
+	newSession, err := c.usecases.CreateSession(ctx, input, bypassCode)
 
 	if err != nil {
 		return nil, handleError(l, locale, keys.CreateSessionInternal, err)

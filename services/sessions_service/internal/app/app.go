@@ -12,6 +12,8 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	jwtadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/auth/jwt"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
+	eventspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/events_postgres"
+	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/sessions_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
@@ -40,7 +42,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	poolConnectCtx, poolConnectCtxCancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer poolConnectCtxCancel()
 
-	postgresPool, err := postgres.NewConnection(poolConnectCtx, &postgres.ConnectionConfig{
+	postgresPool, err := postgres.New(poolConnectCtx, &postgres.Config{
 		DSN: c.DBUrl,
 	})
 
@@ -58,7 +60,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	postgresAdapter := postgres.NewAdapter(ex, log)
+	sessionsPostgres := sessionspostgres.New(ex, log)
+	eventsPostgres := eventspostgres.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
 
@@ -79,9 +82,15 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		AccessTokenSecret:      c.AccessTokenSecret,
 	})
 
-	usecases := usecase.New(log, txManager, jwtAdapter, postgresAdapter, &usecase.Config{
+	storage := usecase.CreateStorage(eventsPostgres, sessionsPostgres)
+
+	usecases := usecase.New(log, txManager, jwtAdapter, storage, &usecase.Config{
 		RefreshExpiresDuration: c.RefreshTokenExpDuration,
-		BlacklistCodeLength:    6,
+		//TODO: from cfg
+		BlacklistCodeLength:      6,
+		BlacklistCodeExpDuration: time.Hour * 1,
+		LoginBypassCodeLength:    12,
+		LoginBypassExpDuration:   time.Minute * 20,
 	})
 
 	grpcController := grpccontroller.New(log, usecases)
@@ -95,8 +104,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	}
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
-		Brokers: c.KafkaBrokers,
-		//TODO:change topics for real
+		Brokers:             c.KafkaBrokers,
 		Topics:              []string{events.USER_EVENTS},
 		GroupID:             "sessions-service-app",
 		SleepAfterRebalance: time.Second * 2,

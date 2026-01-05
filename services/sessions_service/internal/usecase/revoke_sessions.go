@@ -9,7 +9,7 @@ func (u *usecases) RevokeSessions(ctx context.Context, sids []string) error {
 
 	const op = "usecases.RevokeSessions"
 
-	err := u.storage.RevokeSessions(ctx, sids)
+	err := u.storage.sessions.RevokeSessions(ctx, sids)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

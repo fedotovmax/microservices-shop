@@ -17,7 +17,7 @@ type grpcUsersClient struct {
 
 func NewUsersClient(addr string) (*grpcUsersClient, error) {
 
-	const op = "client.grpc.user-client.NewGRPCUserClient"
+	const op = "client.grpc.user-client.NewUserClient"
 
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(
 		insecure.NewCredentials(),

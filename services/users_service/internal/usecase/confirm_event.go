@@ -13,13 +13,13 @@ func (u *usecases) ConfirmEvent(ctx context.Context, ev outbox.SuccessEvent) err
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 
-		err := u.s.RemoveEventReserve(txCtx, ev.GetID())
+		err := u.s.events.RemoveEventReserve(txCtx, ev.GetID())
 
 		if err != nil {
 			return err
 		}
 
-		err = u.s.SetEventStatusDone(txCtx, ev.GetID())
+		err = u.s.events.SetEventStatusDone(txCtx, ev.GetID())
 
 		if err != nil {
 			return err

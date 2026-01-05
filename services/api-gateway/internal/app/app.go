@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	grpcadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/client/grpc"
 	httpadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
@@ -13,15 +14,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type service interface {
-	Stop(ctx context.Context) error
-}
-
 type App struct {
-	c           *config.AppConfig
-	log         *slog.Logger
-	http        *httpadapter.Server
-	usersClient service
+	c                 *config.AppConfig
+	log               *slog.Logger
+	http              *httpadapter.Server
+	lifesycleServices []*service
 }
 
 func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
@@ -36,7 +33,13 @@ func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	customerController := customercontroller.New(r, log, usersClient.RPC)
+	sessionsClient, err := grpcadapter.NewSessionsClient(c.SessionsClientAddr)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	customerController := customercontroller.New(r, log, usersClient.RPC, sessionsClient.RPC)
 
 	customerController.Register()
 
@@ -44,11 +47,16 @@ func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 		Port: c.Port,
 	}, r)
 
+	lifesycleServices := []*service{
+		newService("users grpc client", usersClient),
+		newService("sessions grpc client", sessionsClient),
+	}
+
 	return &App{
-		c:           c,
-		log:         log,
-		http:        httpServer,
-		usersClient: usersClient,
+		c:                 c,
+		log:               log,
+		http:              httpServer,
+		lifesycleServices: lifesycleServices,
 	}, nil
 }
 
@@ -81,10 +89,39 @@ func (a *App) Stop(ctx context.Context) {
 		log.Info("HTTP server stopped successfully!")
 	}
 
-	//TODO: parallel close any grpc clients
-	if err := a.usersClient.Stop(ctx); err != nil {
-		log.Error("Error when stop GRPC users client", logger.Err(err))
-	} else {
-		log.Info("GRPC users client stopped successfully!")
+	stopErrorsChan := make(chan error, len(a.lifesycleServices))
+
+	wg := &sync.WaitGroup{}
+
+	for _, s := range a.lifesycleServices {
+		wg.Go(func() {
+			err := s.Stop(ctx)
+			if err != nil {
+				stopErrorsChan <- err
+			} else {
+				log.Info("successfully stopped:", slog.String("service", s.Name()))
+			}
+		})
 	}
+
+	go func() {
+		wg.Wait()
+		close(stopErrorsChan)
+	}()
+
+	stopErrors := make([]error, 0, len(a.lifesycleServices))
+
+	for err := range stopErrorsChan {
+		stopErrors = append(stopErrors, err)
+	}
+
+	if len(stopErrors) == 0 {
+		log.Info("All resources are closed successfully, exit app")
+	} else {
+		log.Error("resource with errors:", slog.Int("stop_errors", len(stopErrors)))
+		for _, err := range stopErrors {
+			log.Error(err.Error())
+		}
+	}
+
 }

@@ -64,7 +64,7 @@ create table if not exists email_verification (
   
   link uuid primary key default gen_random_uuid(),
 
-  user_id uuid not null references users (id) unique on delete cascade,
+  user_id uuid not null unique references users(id) on delete cascade,
 
   link_expires_at timestamp not null
 );

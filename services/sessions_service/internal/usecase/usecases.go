@@ -22,7 +22,15 @@ type JwtAdapter interface {
 	ParseAccessToken(token string, issuer string) (jti string, uid string, perr error)
 }
 
-type Storage interface {
+type EventsStorage interface {
+	SetEventStatusDone(ctx context.Context, id string) error
+	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error
+	RemoveEventReserve(ctx context.Context, id string) error
+	CreateEvent(ctx context.Context, d *inputs.CreateEvent) (string, error)
+	FindNewAndNotReservedEvents(ctx context.Context, limit int) ([]*domain.Event, error)
+}
+
+type SessionsStorage interface {
 	CreateSession(ctx context.Context, in *inputs.CreateSessionInput) (string, error)
 	RevokeSessions(ctx context.Context, sids []string) error
 	FindSession(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error)
@@ -33,15 +41,13 @@ type Storage interface {
 
 	FindUser(ctx context.Context, uid string) (*domain.SessionsUser, error)
 	FindUserSessions(ctx context.Context, uid string) ([]*domain.Session, error)
-
-	SetEventStatusDone(ctx context.Context, id string) error
-	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error
-	RemoveEventReserve(ctx context.Context, id string) error
-	CreateEvent(ctx context.Context, d *inputs.CreateEvent) (string, error)
-	FindNewAndNotReservedEvents(ctx context.Context, limit int) ([]*domain.Event, error)
+	CreateUser(ctx context.Context, uid string, email string) error
 }
 
-//todo: implement ip-bypass
+type Storage struct {
+	events   EventsStorage
+	sessions SessionsStorage
+}
 
 type Config struct {
 	RefreshExpiresDuration   time.Duration
@@ -55,12 +61,19 @@ type usecases struct {
 	log      *slog.Logger
 	txm      pgxtx.Manager
 	jwt      JwtAdapter
-	storage  Storage
+	storage  *Storage
 	uaparser *useragent.Parser
 	cfg      *Config
 }
 
-func New(log *slog.Logger, txm pgxtx.Manager, jwt JwtAdapter, storage Storage, cfg *Config) *usecases {
+func CreateStorage(events EventsStorage, sessions SessionsStorage) *Storage {
+	return &Storage{
+		events:   events,
+		sessions: sessions,
+	}
+}
+
+func New(log *slog.Logger, txm pgxtx.Manager, jwt JwtAdapter, storage *Storage, cfg *Config) *usecases {
 	uaparser := useragent.NewParser()
 	return &usecases{
 		log:      log,

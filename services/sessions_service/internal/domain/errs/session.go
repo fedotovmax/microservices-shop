@@ -8,8 +8,6 @@ var ErrInvalidSession = errors.New("invalid session")
 
 var ErrSessionNotFound = errors.New("session not found")
 
-var ErrUserNotFound = errors.New("user not found")
-
 var ErrSessionExpired = errors.New("session is expired")
 
 var ErrSessionRevoked = errors.New("session is revoked")

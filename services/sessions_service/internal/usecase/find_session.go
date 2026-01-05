@@ -15,7 +15,7 @@ func (u *usecases) findSession(ctx context.Context, column db.SessionEntityField
 
 	const op = "usecases.findSession"
 
-	session, err := u.storage.FindSession(ctx, column, value)
+	session, err := u.storage.sessions.FindSession(ctx, column, value)
 
 	if err != nil {
 		if errors.Is(err, adapter.ErrNotFound) {
@@ -25,18 +25,6 @@ func (u *usecases) findSession(ctx context.Context, column db.SessionEntityField
 	}
 
 	return session, nil
-	// if session.User.IsInBlackList() {
-	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrUserSessionsInBlackList)
-	// }
-
-	// if session.IsRevoked() {
-	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionRevoked)
-	// }
-
-	// if session.IsExpired() {
-	// 	return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionExpired)
-	// }
-
 }
 
 func (u *usecases) FindSessionByHash(ctx context.Context, hash string) (*domain.Session, error) {

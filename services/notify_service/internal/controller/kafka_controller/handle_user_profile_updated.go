@@ -31,8 +31,8 @@ func (k *kafkaController) handleUserProfileUpdated(ctx context.Context, eventID 
 		return fmt.Errorf("%s: %w: %v", op, ErrInvalidPayloadForEventType, err)
 	}
 
-	sendCtx, cancelSetCtx := context.WithTimeout(ctx, time.Second*3)
-	defer cancelSetCtx()
+	sendCtx, cancelSendCtx := context.WithTimeout(ctx, time.Second*3)
+	defer cancelSendCtx()
 
 	text, err := i18n.Local.Get(userProfileUpdatedPayload.Locale, keys.ProfileUpdatedText)
 

@@ -13,7 +13,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
-func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUser) (*domain.SessionsUser, error) {
+func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUser) error {
 
 	const op = "usecases.AddLoginIPBypass"
 
@@ -25,7 +25,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 
 	if err != nil {
 		l.Error("error when generate code for bypass", slog.String("uid", user.Info.UID), logger.Err(err))
-		return nil, err
+		return err
 	}
 
 	codeExpiresAt := time.Now().Add(u.cfg.LoginBypassExpDuration)
@@ -37,48 +37,41 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 	}
 
 	if user.HasBypass() {
-		err = u.storage.AddSecurityBlock(ctx, db.OperationUpdate, db.SecurityTableBypass, bypassInput)
+		err = u.storage.sessions.AddSecurityBlock(ctx, db.OperationUpdate, db.SecurityTableBypass, bypassInput)
 	} else {
-		err = u.storage.AddSecurityBlock(ctx, db.OperationInsert, db.SecurityTableBypass, bypassInput)
+		err = u.storage.sessions.AddSecurityBlock(ctx, db.OperationInsert, db.SecurityTableBypass, bypassInput)
 	}
 
 	if err != nil {
 		l.Error("error when add/update bypass", slog.String("uid", user.Info.UID), logger.Err(err))
-		return nil, err
-	}
-
-	updatedUser := user.Clone()
-
-	updatedUser.Bypass = &domain.Bypass{
-		Code:            code,
-		BypassExpiresAt: codeExpiresAt,
+		return err
 	}
 
 	eventPayload := events.SessionBypassAddedEventPayload{
-		UID:             updatedUser.Info.UID,
-		Email:           updatedUser.Info.Email,
-		Code:            updatedUser.Bypass.Code,
-		BypassExpiresAt: updatedUser.Bypass.BypassExpiresAt,
+		UID:             user.Info.UID,
+		Email:           user.Info.Email,
+		Code:            bypassInput.Code,
+		BypassExpiresAt: bypassInput.CodeExpiresAt,
 	}
 
 	eventPayloadBytes, err := json.Marshal(eventPayload)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	eventInput := inputs.NewCreateEventInput()
-	eventInput.SetAggregateID(updatedUser.Info.UID)
+	eventInput.SetAggregateID(user.Info.UID)
 	eventInput.SetTopic(events.SESSION_EVENTS)
 	eventInput.SetType(events.SESSION_BYPASS_ADDED)
 	eventInput.SetPayload(eventPayloadBytes)
 
-	_, err = u.storage.CreateEvent(ctx, eventInput)
+	_, err = u.storage.events.CreateEvent(ctx, eventInput)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &updatedUser, nil
+	return nil
 
 }

@@ -1,7 +1,5 @@
 package keys
 
-const FallbackLocale = "ru"
-
 const (
 	ValidationUUID          = "validation_uuid"
 	ValidationIP            = "validation_ip"
@@ -11,5 +9,16 @@ const (
 )
 
 const (
-	CreateSessionInternal = "create_session_internal"
+	CreateSessionInternal  = "create_session_internal"
+	RefreshSessionInternal = "refresh_session_internal"
+	VerifyAccessInternal   = "verify_access_internal"
+)
+
+const (
+	UserNotFound           = "user_not_found"
+	UserAlreadyExists      = "user_already_exists"
+	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
+	BadBypassCode          = "bad_bypass_code"
+	BadBlacklistCode       = "bad_blacklist_code"
+	//TODO: add tranlations for bad_bypass_code, bad_blacklist_code
 )

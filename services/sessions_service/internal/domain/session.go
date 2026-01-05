@@ -33,7 +33,7 @@ type SessionsUser struct {
 	Bypass    *Bypass
 }
 
-func (u *SessionsUser) Clone() SessionsUser {
+func (u *SessionsUser) Clone() *SessionsUser {
 	var bl *BlackList
 
 	if u.BlackList != nil {
@@ -50,7 +50,7 @@ func (u *SessionsUser) Clone() SessionsUser {
 			BypassExpiresAt: u.Bypass.BypassExpiresAt,
 		}
 	}
-	return SessionsUser{
+	return &SessionsUser{
 		Info: User{
 			UID:   u.Info.UID,
 			Email: u.Info.Email,
@@ -86,7 +86,7 @@ func (bp *Bypass) ComapreCodes(code string) bool {
 
 type Session struct {
 	ID             string
-	User           SessionsUser
+	User           *SessionsUser
 	RefreshHash    string
 	IP             string
 	Browser        string

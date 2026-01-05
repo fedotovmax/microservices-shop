@@ -53,6 +53,7 @@ func handleError(l *slog.Logger, locale string, fallback string, err error) erro
 	default:
 		l.Warn(err.Error())
 		code = codes.Internal
+		msgKey = fallback
 	}
 
 	msg, err := i18n.Local.Get(locale, msgKey)

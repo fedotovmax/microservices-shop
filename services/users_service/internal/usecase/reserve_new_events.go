@@ -18,7 +18,7 @@ func (u *usecases) ReserveNewEvents(ctx context.Context, limit int, reserveDurat
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 		var err error
-		events, err = u.s.FindNewAndNotReservedEvents(txCtx, limit)
+		events, err = u.s.events.FindNewAndNotReservedEvents(txCtx, limit)
 
 		if err != nil {
 			return err
@@ -30,7 +30,7 @@ func (u *usecases) ReserveNewEvents(ctx context.Context, limit int, reserveDurat
 			eventsIds[i] = events[i].ID
 		}
 
-		err = u.s.SetEventsReservedToByIDs(txCtx, eventsIds, reserveDuration)
+		err = u.s.events.SetEventsReservedToByIDs(txCtx, eventsIds, reserveDuration)
 
 		if err != nil {
 			return err

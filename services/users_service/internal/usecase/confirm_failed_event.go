@@ -12,7 +12,7 @@ func (u *usecases) ConfirmFailedEvent(ctx context.Context, ev outbox.FailedEvent
 
 	err := u.txm.Wrap(ctx, func(txCtx context.Context) error {
 
-		err := u.s.RemoveEventReserve(txCtx, ev.GetID())
+		err := u.s.events.RemoveEventReserve(txCtx, ev.GetID())
 
 		if err != nil {
 			return err

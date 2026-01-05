@@ -54,7 +54,7 @@ func (a *jwtAdapter) CreateAccessToken(issuer, uid, sid string) (*domain.NewAcce
 
 func (a *jwtAdapter) ParseAccessToken(token string, issuer string) (jti string, uid string, perr error) {
 
-	const op = "adapter.auth.jwt.Parse"
+	const op = "adapter.auth.jwt.ParseAccessToken"
 
 	opts := []jwt.ParserOption{
 		jwt.WithExpirationRequired(),

@@ -41,13 +41,13 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 
 		in.SetPassword(hashedPassword)
 
-		createUserResult, err = u.s.CreateUser(txCtx, in)
+		createUserResult, err = u.s.users.CreateUser(txCtx, in)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		link, err := u.s.CreateEmailVerifyLink(txCtx, createUserResult.ID, time.Now().Add(20*time.Minute))
+		link, err := u.s.users.CreateEmailVerifyLink(txCtx, createUserResult.ID, time.Now().Add(20*time.Minute))
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -73,7 +73,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 		userCreatedEventIn.SetType(events.USER_CREATED)
 		userCreatedEventIn.SetPayload(userCreatedPayloadBytes)
 
-		_, err = u.s.CreateEvent(txCtx, userCreatedEventIn)
+		_, err = u.s.events.CreateEvent(txCtx, userCreatedEventIn)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

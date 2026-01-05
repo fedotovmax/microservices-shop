@@ -1,18 +1,24 @@
 package kafkacontroller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
+	"github.com/fedotovmax/microservices-shop-protos/events"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
+	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
+var ErrInvalidPayloadForEventType = errors.New("invalid payload for current event type")
 
 // TODO: real methods
 type Usecases interface {
+	CreateUser(ctx context.Context, uid string, email string) error
 }
 
 type kafkaController struct {
@@ -79,14 +85,20 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 	l := k.log.With(slog.String("op", op))
 
+	ctx := s.Context()
+
 	for {
 		select {
-		case <-s.Context().Done():
-			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, s.Context().Err())
+		case <-ctx.Done():
+			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, ctx.Err())
 		case message, ok := <-c.Messages():
 
 			if !ok {
 				return fmt.Errorf("%s: %w", op, ErrKafkaMessagesChannelClosed)
+			}
+
+			commit := func() {
+				s.MarkMessage(message, "")
 			}
 
 			var eventID string
@@ -104,28 +116,49 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 			if eventID == "" {
 				l.Error("empty event ID")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			if eventType == "" {
 				l.Error("empty event type")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			payload := message.Value
 
+			l.Info("new event", slog.String("event_type", eventType), slog.String("event_id", eventID))
+
 			switch eventType {
-			//TODO:
-			case "--------":
 
-				_ = payload
-
+			case events.USER_CREATED:
+				err := k.handleUserCreated(ctx, payload)
+				if err != nil {
+					k.handleErrors(err, commit, l)
+					continue
+				}
+				commit()
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))
-				s.MarkMessage(message, "")
+				commit()
 			}
 		}
+	}
+}
+
+func (k *kafkaController) handleErrors(err error, commit func(), l *slog.Logger) {
+
+	switch {
+	case errors.Is(err, ErrInvalidPayloadForEventType):
+		l.Error("invalid payload", logger.Err(err))
+		commit()
+		return
+	case errors.Is(err, errs.ErrInternalCreateUser):
+		l.Error("Failed to create user, event will not be commited")
+		return
+	default:
+		commit()
+		return
 	}
 }

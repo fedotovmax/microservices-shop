@@ -11,3 +11,5 @@ var SupportedEnv = map[string]struct{}{
 	Development: {},
 	Production:  {},
 }
+
+const APP_NAME = "api-gateway"

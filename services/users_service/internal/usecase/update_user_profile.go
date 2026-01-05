@@ -23,7 +23,7 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserI
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.s.UpdateUserProfile(txCtx, user.ID, in)
+		err = u.s.users.UpdateUserProfile(txCtx, user.ID, in)
 
 		if err != nil && !errors.Is(err, adapter.ErrNoFieldsToUpdate) {
 			return fmt.Errorf("%s: %w", op, err)
@@ -57,7 +57,7 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserI
 		userProfileUpdatedIn.SetType(events.USER_PROFILE_UPDATED)
 		userProfileUpdatedIn.SetPayload(userProfileUpdatedPayloadBytes)
 
-		_, err = u.s.CreateEvent(txCtx, userProfileUpdatedIn)
+		_, err = u.s.events.CreateEvent(txCtx, userProfileUpdatedIn)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

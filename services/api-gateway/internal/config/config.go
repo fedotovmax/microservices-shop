@@ -10,10 +10,11 @@ import (
 )
 
 type AppConfig struct {
-	Env             string
-	Port            uint16
-	UsersClientAddr string
-	TranslationPath string
+	Env                string
+	Port               uint16
+	UsersClientAddr    string
+	SessionsClientAddr string
+	TranslationPath    string
 }
 
 type appFlags struct {
@@ -65,6 +66,12 @@ func LoadAppConfig() (*AppConfig, error) {
 		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
 	}
 
+	sessionsClientAddr, err := envconfig.GetEnv("SESSIONS_CLIENT_ADDR")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
+	}
+
 	translationPath, err := envconfig.GetEnv("TRANSLATIONS_PATH")
 
 	if err != nil {
@@ -72,10 +79,11 @@ func LoadAppConfig() (*AppConfig, error) {
 	}
 
 	config := &AppConfig{
-		Env:             appEnv,
-		Port:            port,
-		UsersClientAddr: usersClientAddr,
-		TranslationPath: translationPath,
+		Env:                appEnv,
+		Port:               port,
+		UsersClientAddr:    usersClientAddr,
+		SessionsClientAddr: sessionsClientAddr,
+		TranslationPath:    translationPath,
 	}
 
 	return config, nil

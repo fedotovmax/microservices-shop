@@ -74,7 +74,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
 		Brokers:             c.KafkaBrokers,
-		Topics:              []string{events.USER_EVENTS},
+		Topics:              []string{events.USER_EVENTS, events.SESSION_EVENTS},
 		GroupID:             "notify-service-app",
 		SleepAfterRebalance: time.Second * 2,
 		AutoCommit:          true,

@@ -15,7 +15,7 @@ func (u *usecases) FindUserByEmail(ctx context.Context, email string) (*domain.U
 
 	const op = "usecases.FindUserByEmail"
 
-	user, err := u.s.FindUserBy(ctx, db.UserFieldEmail, email)
+	user, err := u.s.users.FindUserBy(ctx, db.UserFieldEmail, email)
 
 	if err != nil {
 		if errors.Is(err, adapter.ErrNotFound) {
@@ -30,7 +30,7 @@ func (u *usecases) FindUserByEmail(ctx context.Context, email string) (*domain.U
 func (u *usecases) FindUserByID(ctx context.Context, id string) (*domain.User, error) {
 	const op = "usecases.FindUserByID"
 
-	user, err := u.s.FindUserBy(ctx, db.UserFieldID, id)
+	user, err := u.s.users.FindUserBy(ctx, db.UserFieldID, id)
 
 	if err != nil {
 		if errors.Is(err, adapter.ErrNotFound) {

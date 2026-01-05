@@ -20,7 +20,6 @@ func (u *usecases) VerifyAccessToken(ctx context.Context, in *inputs.VerifyAcces
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	//TODO: switch errors?
 	session, err := u.FindSessionByID(ctx, sid)
 
 	if err != nil {
@@ -30,6 +29,18 @@ func (u *usecases) VerifyAccessToken(ctx context.Context, in *inputs.VerifyAcces
 	if session.User.Info.UID != uid {
 		u.log.Warn("the received user ID is not equal to the session user ID")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionNotFound)
+	}
+
+	err = u.handleUserBlacklist(ctx, session.User)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.handleSessionRevoked(ctx, session)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return session, nil
@@ -47,12 +58,31 @@ func (u *usecases) VerifyRefreshToken(ctx context.Context, refreshToken string) 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	err = u.handleSessionExpired(ctx, session)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.handleUserBlacklist(ctx, session.User)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.handleSessionRevoked(ctx, session)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
 	return session, nil
 
 }
 
 func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error) {
 
+	//TODO?
 	const op = "usecases.RefreshTokens"
 
 	agent := u.uaparser.Parse(in.GetUserAgent())
@@ -61,7 +91,6 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrAgentLooksLikeBot)
 	}
 
-	//TODO: switch errors?
 	session, err := u.VerifyRefreshToken(ctx, in.GetRefreshToken())
 
 	if err != nil {
@@ -86,7 +115,7 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 
 	refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration)
 
-	err = u.storage.UpdateSession(ctx, &inputs.CreateSessionInput{
+	err = u.storage.sessions.UpdateSession(ctx, &inputs.CreateSessionInput{
 		SID:            session.ID,
 		UID:            session.User.Info.UID,
 		RefreshHash:    newRefreshToken.hashed,

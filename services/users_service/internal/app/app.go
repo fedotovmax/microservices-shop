@@ -10,6 +10,8 @@ import (
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
+	eventspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/events_postgres"
+	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/users_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
@@ -45,7 +47,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	poolConnectCtx, poolConnectCtxCancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer poolConnectCtxCancel()
 
-	postgresPool, err := postgres.NewConnection(poolConnectCtx, &postgres.ConnectionConfig{
+	postgresPool, err := postgres.New(poolConnectCtx, &postgres.Config{
 		DSN: c.DBUrl,
 	})
 
@@ -63,7 +65,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	postgresAdapter := postgres.NewPostgresAdapter(ex, log)
+	usersPostgres := userspostgres.New(ex, log)
+	eventsPostgres := eventspostgres.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
 
@@ -79,7 +82,9 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	usecases := usecase.NewUsecases(postgresAdapter, txManager, log)
+	storage := usecase.CreateStorage(eventsPostgres, usersPostgres)
+
+	usecases := usecase.NewUsecases(storage, txManager, log)
 
 	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
 
