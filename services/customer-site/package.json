@@ -1,0 +1,23 @@
+{
+  "name": "customer-site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "alpinejs": "^3.15.3",
+    "htmx.org": "^2.0.8",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@types/alpinejs": "^3.13.11",
+    "esbuild": "^0.27.2"
+  }
+}

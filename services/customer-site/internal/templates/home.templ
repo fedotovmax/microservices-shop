@@ -1,0 +1,27 @@
+package templates
+
+templ Homepage(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/public/css/styles.css"/>
+			<title>Document</title>
+		</head>
+		<body>
+			<h1 class="text-pink-700 text-4xl font-bold">Hello, { title }</h1>
+			<div x-data="{value: 0}" class="mb-5">
+				<h2 class="text-2xl">Alpine</h2>
+				<button @click="value = value + 1">кнопка 1</button>
+				<span x-text="value"></span>
+			</div>
+			<div>
+				<h2 class="text-2xl">HTMX</h2>
+				<button class="text-orange-600 font-medium" hx-get="/htmx">click me</button>
+				<div id="result"></div>
+			</div>
+			<script type="module" src="/public/js/home.js"></script>
+		</body>
+	</html>
+}
