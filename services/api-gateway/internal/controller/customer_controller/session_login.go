@@ -11,7 +11,6 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
 	controolerPkg "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
@@ -54,7 +53,7 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
 		return
 	}
 
@@ -85,7 +84,7 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 	switch params.Response.UserSessionActionStatus {
 	case userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS:
 		msg, _ := i18n.Local.Get(params.Locale, keys.BadCredentials)
-		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
 		return
 	case userspb.UserSessionActionStatus_SESSION_STATUS_DELETED, userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED:
 		httputils.WriteJSON(w, http.StatusForbidden, params.Response)
@@ -107,12 +106,12 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 			return
 		}
 		c.log.Error("unexpected grpc response from users client")
-		httputils.WriteJSON(w, http.StatusInternalServerError, domain.NewError("unexpected grpc response"))
+		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError("unexpected grpc response"))
 		return
 	default:
 		c.log.Error("unexpected session status")
 		msg, _ := i18n.Local.Get(params.Locale, keys.UnexpectedSessionStatus)
-		httputils.WriteJSON(w, http.StatusInternalServerError, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError(msg))
 		return
 	}
 }

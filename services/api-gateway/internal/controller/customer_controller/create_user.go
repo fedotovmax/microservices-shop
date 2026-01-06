@@ -6,13 +6,23 @@ import (
 
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 
 	"github.com/fedotovmax/httputils"
 	"google.golang.org/grpc/metadata"
 )
 
+// @Summary      Create user account
+// @Description  Create new user account
+// @Tags         /customers/users
+// @Accept       json
+// @Produce      json
+// @Param dto body userspb.CreateUserRequest true "Create user account with body dto"
+// @Success      200  {object}  userspb.CreateUserResponse
+// @Failure      400  {object}  errdetails.BadRequest
+// @Failure      403  {object}  httputils.ErrorResponse
+// @Failure      500  {object}  httputils.ErrorResponse
+// @Router       /customers/users [post]
 func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 
 	const op = "controller.customer.createUser"
@@ -37,7 +47,7 @@ func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 			l.Error(err.Error())
 		}
 
-		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
 		return
 	}
 

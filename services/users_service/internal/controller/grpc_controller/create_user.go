@@ -10,7 +10,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
-func (c *grpcController) CreateUser(ctx context.Context, req *userspb.CreateUserRequest) (*userspb.CreateUserResponse, error) {
+func (c *controller) CreateUser(ctx context.Context, req *userspb.CreateUserRequest) (*userspb.CreateUserResponse, error) {
 
 	const op = "controller.grpc.CreateUser"
 
@@ -31,7 +31,7 @@ func (c *grpcController) CreateUser(ctx context.Context, req *userspb.CreateUser
 	userId, err := c.usecases.CreateUser(ctx, createUserInput, locale)
 
 	if err != nil {
-		return nil, handleError(l, locale, keys.CreateUserInternal, err)
+		return nil, c.handleError(l, locale, keys.CreateUserInternal, err)
 	}
 
 	return &userspb.CreateUserResponse{

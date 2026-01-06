@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (c *grpcController) UpdateUserProfile(ctx context.Context, req *userspb.UpdateUserProfileRequest) (*emptypb.Empty, error) {
+func (c *controller) UpdateUserProfile(ctx context.Context, req *userspb.UpdateUserProfileRequest) (*emptypb.Empty, error) {
 
 	const op = "controller.grpc.UpdateUserProfile"
 
@@ -32,7 +32,7 @@ func (c *grpcController) UpdateUserProfile(ctx context.Context, req *userspb.Upd
 	err = c.usecases.UpdateUserProfile(ctx, updateUserProfileInput, locale)
 
 	if err != nil {
-		return nil, handleError(l, locale, keys.UpdateUserProfileInternal, err)
+		return nil, c.handleError(l, locale, keys.UpdateUserProfileInternal, err)
 	}
 
 	return &emptypb.Empty{}, nil

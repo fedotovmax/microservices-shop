@@ -28,6 +28,11 @@ func setupLooger(env string) (*slog.Logger, error) {
 	}
 }
 
+// @title Swagger Documentation for microservices shop API Gateway
+// @version 1.0
+// @description Swagger Documentation for API Gateway of microservices shop project
+// @contact.name Fedotv Maxim (developer)
+// @contact.email f3d0t0tvmax@yandex.ru
 func main() {
 
 	cfg, err := config.LoadAppConfig()

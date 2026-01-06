@@ -10,7 +10,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
-func (c *grpcController) FindUserByID(ctx context.Context, req *userspb.FindUserByIDRequest) (*userspb.User, error) {
+func (c *controller) FindUserByID(ctx context.Context, req *userspb.FindUserByIDRequest) (*userspb.User, error) {
 
 	const op = "controller.grpc.FindUserByID"
 
@@ -30,7 +30,7 @@ func (c *grpcController) FindUserByID(ctx context.Context, req *userspb.FindUser
 	user, err := c.usecases.FindUserByID(ctx, req.GetId())
 
 	if err != nil {
-		return nil, handleError(l, locale, keys.GetUserInternal, err)
+		return nil, c.handleError(l, locale, keys.GetUserInternal, err)
 	}
 
 	return user.ToProto(), nil

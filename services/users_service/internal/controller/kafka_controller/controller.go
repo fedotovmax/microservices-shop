@@ -1,35 +1,35 @@
 package kafkacontroller
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
+var ErrInvalidPayloadForEventType = errors.New("invalid payload for current event type")
 
 // TODO: real methods
 type Usecases interface {
-	Test(ctx context.Context, payload any)
 }
 
-type kafkaController struct {
+type controller struct {
 	log      *slog.Logger
 	usecases Usecases
 }
 
-func NewKafkaController(log *slog.Logger, usecases Usecases) *kafkaController {
-	return &kafkaController{
+func New(log *slog.Logger, usecases Usecases) *controller {
+	return &controller{
 		log:      log,
 		usecases: usecases,
 	}
 }
 
-func (k *kafkaController) Setup(s sarama.ConsumerGroupSession) error {
+func (k *controller) Setup(s sarama.ConsumerGroupSession) error {
 
 	const op = "controller.kafka_consumer.Setup"
 
@@ -52,7 +52,7 @@ func (k *kafkaController) Setup(s sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (k *kafkaController) Cleanup(s sarama.ConsumerGroupSession) error {
+func (k *controller) Cleanup(s sarama.ConsumerGroupSession) error {
 
 	const op = "controller.kafka_consumer.Cleanup"
 
@@ -75,20 +75,26 @@ func (k *kafkaController) Cleanup(s sarama.ConsumerGroupSession) error {
 
 }
 
-func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.ConsumerGroupClaim) error {
+func (k *controller) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.ConsumerGroupClaim) error {
 
 	const op = "controller.kafka_consumer.ConsumeClaim"
 
 	l := k.log.With(slog.String("op", op))
 
+	ctx := s.Context()
+
 	for {
 		select {
-		case <-s.Context().Done():
-			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, s.Context().Err())
+		case <-ctx.Done():
+			return fmt.Errorf("%s: %w: %v", op, kafka.ErrConsumerHandlerClosedByCtx, ctx.Err())
 		case message, ok := <-c.Messages():
 
 			if !ok {
 				return fmt.Errorf("%s: %w", op, ErrKafkaMessagesChannelClosed)
+			}
+
+			commit := func() {
+				s.MarkMessage(message, "")
 			}
 
 			var eventID string
@@ -106,28 +112,48 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 
 			if eventID == "" {
 				l.Error("empty event ID")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			if eventType == "" {
 				l.Error("empty event type")
-				s.MarkMessage(message, "")
+				commit()
 				continue
 			}
 
 			payload := message.Value
 
+			l.Info("new event", slog.String("event_type", eventType), slog.String("event_id", eventID))
+
 			switch eventType {
-			//TODO:
-			case "--------":
 
-				_ = payload
-
+			case "_______________":
+				//TODO:
+				var err error
+				l.Info("catch event, parse payload", slog.Any("payload", payload))
+				if err != nil {
+					k.handleErrors(err, commit, l)
+					continue
+				}
+				commit()
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))
-				s.MarkMessage(message, "")
+				commit()
 			}
 		}
+	}
+}
+
+func (k *controller) handleErrors(err error, commit func(), l *slog.Logger) {
+
+	switch {
+	case errors.Is(err, ErrInvalidPayloadForEventType):
+		l.Error("invalid payload", logger.Err(err))
+		commit()
+		return
+	default:
+		commit()
+		return
 	}
 }

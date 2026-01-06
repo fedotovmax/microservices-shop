@@ -24,20 +24,20 @@ type Usecases interface {
 	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserSessionActionResponse, error)
 }
 
-type grpcController struct {
+type controller struct {
 	userspb.UnimplementedUserServiceServer
 	log      *slog.Logger
 	usecases Usecases
 }
 
-func NewGRPCController(log *slog.Logger, u Usecases) *grpcController {
-	return &grpcController{
+func New(log *slog.Logger, u Usecases) *controller {
+	return &controller{
 		log:      log,
 		usecases: u,
 	}
 }
 
-func handleError(l *slog.Logger, locale string, fallback string, err error) error {
+func (c *controller) handleError(l *slog.Logger, locale string, fallback string, err error) error {
 	var (
 		code   codes.Code
 		msgKey string

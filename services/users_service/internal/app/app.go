@@ -35,9 +35,6 @@ type App struct {
 // TODO: remove fake usecase
 type ku struct{}
 
-// TODO: remove fake usecase
-func (u *ku) Test(ctx context.Context, payload any) {}
-
 func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	const op = "app.New"
@@ -92,9 +89,9 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	grpcController := grpccontroller.NewGRPCController(log, usecases)
+	grpcController := grpccontroller.New(log, usecases)
 
-	kafkaConsumerController := kafkacontroller.NewKafkaController(log, &ku{})
+	kafkaConsumerController := kafkacontroller.New(log, &ku{})
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
 		Brokers: c.KafkaBrokers,

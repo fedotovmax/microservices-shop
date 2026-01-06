@@ -10,7 +10,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
-func (c *grpcController) UserSessionAction(ctx context.Context, req *userspb.UserSessionActionRequest) (*userspb.UserSessionActionResponse, error) {
+func (c *controller) UserSessionAction(ctx context.Context, req *userspb.UserSessionActionRequest) (*userspb.UserSessionActionResponse, error) {
 
 	const op = "controller.grpc.UserSessionAction"
 
@@ -31,7 +31,7 @@ func (c *grpcController) UserSessionAction(ctx context.Context, req *userspb.Use
 	sessionActionResponse, err := c.usecases.UserSessionAction(ctx, userSessionActionInput)
 
 	if err != nil {
-		return nil, handleError(l, locale, keys.CreateUserInternal, err)
+		return nil, c.handleError(l, locale, keys.CreateUserInternal, err)
 	}
 
 	return sessionActionResponse.ToProto(), nil

@@ -7,7 +7,6 @@ import (
 	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
@@ -32,7 +31,7 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
 		return
 	}
 
@@ -48,7 +47,7 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 			l.Error(err.Error())
 		}
 
-		httputils.WriteJSON(w, http.StatusBadRequest, domain.NewError(msg))
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
 		return
 	}
 
@@ -70,5 +69,5 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputils.WriteJSON(w, http.StatusOK, domain.OK())
+	httputils.WriteJSON(w, http.StatusOK, httputils.OK())
 }
