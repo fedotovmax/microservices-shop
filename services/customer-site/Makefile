@@ -15,3 +15,10 @@ dev:
 
 esbuild:
 	node esbuild.config.js
+
+
+.PHONY: openapi
+openapi:
+	curl -sSL https://raw.githubusercontent.com/fedotovmax/microservices-shop/main/services/api-gateway/docs/swagger.yaml -o openapi/swagger.yaml
+
+	swagger generate client -f openapi/swagger.yaml -A api -t ./internal

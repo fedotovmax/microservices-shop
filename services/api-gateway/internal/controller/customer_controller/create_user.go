@@ -18,7 +18,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param dto body userspb.CreateUserRequest true "Create user account with body dto"
-// @Success      200  {object}  userspb.CreateUserResponse
+// @Success      201  {object}  userspb.CreateUserResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      403  {object}  httputils.ErrorResponse
 // @Failure      500  {object}  httputils.ErrorResponse
@@ -26,6 +26,10 @@ import (
 func (c *controller) createUser(w http.ResponseWriter, r *http.Request) {
 
 	const op = "controller.customer.createUser"
+
+	//todo:remove test
+	httputils.WriteJSON(w, http.StatusCreated, userspb.CreateUserResponse{Id: "test-123"})
+	return
 
 	l := c.log.With(slog.String("op", op))
 
