@@ -56,7 +56,7 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	PostCustomersUsers(params *PostCustomersUsersParams, opts ...ClientOption) (*PostCustomersUsersOK, error)
+	PostCustomersUsers(params *PostCustomersUsersParams, opts ...ClientOption) (*PostCustomersUsersCreated, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -66,7 +66,7 @@ PostCustomersUsers creates user account
 
 Create new user account
 */
-func (a *Client) PostCustomersUsers(params *PostCustomersUsersParams, opts ...ClientOption) (*PostCustomersUsersOK, error) {
+func (a *Client) PostCustomersUsers(params *PostCustomersUsersParams, opts ...ClientOption) (*PostCustomersUsersCreated, error) {
 	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostCustomersUsersParams()
@@ -92,7 +92,7 @@ func (a *Client) PostCustomersUsers(params *PostCustomersUsersParams, opts ...Cl
 	}
 
 	// only one success response has to be checked
-	success, ok := result.(*PostCustomersUsersOK)
+	success, ok := result.(*PostCustomersUsersCreated)
 	if ok {
 		return success, nil
 	}

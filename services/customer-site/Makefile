@@ -1,20 +1,25 @@
 css: #--watch
 	npx @tailwindcss/cli -i ./web/dev/tailwind/styles.css -o ./web/public/css/styles.css --minify
 
-templ: 
+templ-gen: 
 	templ generate
 
 build:
 	go build -o bin/app ./cmd/site/main.go
 
-run:
+prod:
 	./bin/app
 
-dev:
+run:
 	go run ./cmd/site/main.go
 
 esbuild:
 	node esbuild.config.js
+
+resources:
+	node generate-resources-paths.js
+
+dev: templ-gen css esbuild resources run
 
 
 .PHONY: openapi

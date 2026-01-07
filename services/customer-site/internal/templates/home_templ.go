@@ -8,6 +8,10 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/modal"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
+
 func Homepage(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,20 +33,57 @@ func Homepage(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"htmx-config\" content='{\"methodsThatUseUrlParams\":[\"get\"], \"refreshOnHistoryMiss\": \"true\"}'><link rel=\"stylesheet\" href=\"/public/css/styles.css\"><title>Document</title></head><body><h1 class=\"text-pink-700 text-4xl font-bold\">Hello, ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"theme-color\" content=\"#ffffff\"><meta name=\"htmx-config\" content='{\"methodsThatUseUrlParams\":[\"get\"], \"refreshOnHistoryMiss\": \"true\"}'><link rel=\"stylesheet\" href=\"/public/css/styles.css\"><script src=\"/public/js/theme.js\"></script><title>Document</title></head><body><h1 class=\"text-pink-700 text-4xl font-bold\">Hello, ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/home.templ`, Line: 14, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/home.templ`, Line: 20, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h1><div x-data=\"{value: 0}\" class=\"mb-5\"><h2 class=\"text-2xl\">Alpine</h2><button @click=\"value = value + 1\">кнопка 1</button> <span x-text=\"value\"></span></div><div><h2 class=\"text-2xl\">HTMX</h2><button class=\"text-orange-600 font-medium\" hx-get=\"/htmx\">click me</button><div id=\"result\"></div></div><script type=\"module\" src=\"/public/js/home.js\"></script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h1><div x-data=\"{value: 0}\" class=\"mb-5\"><h2 class=\"text-2xl\">Alpine</h2><button @click=\"value = value + 1\">кнопка 1</button> <span x-text=\"value\"></span></div><div><h2 class=\"text-2xl\">HTMX</h2><button class=\"text-orange-600 font-medium\" hx-get=\"/htmx\">click me</button><div id=\"result\" class=\"mb-5\"></div><div class=\"p-3\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = modal.Modal("Modal 1").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"p-3\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = modal.Modal("Modal 2").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div><div class=\"mb-3\"><button onclick=\"__GLOBAL_SET_THEME('dark')\">change theme: dark</button></div><div><button onclick=\"__GLOBAL_SET_THEME('light')\">change theme: light</button></div></div></div><button hx-get=\"/notify\" type=\"button\" class=\"whitespace-nowrap rounded-radius bg-success border border-success px-4 py-2 text-sm font-medium tracking-wide text-onSuccess transition hover:opacity-75 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-success active:opacity-100 active:outline-offset-0 disabled:opacity-75 disabled:cursor-not-allowed dark:bg-success dark:border-success dark:text-onSuccess dark:focus-visible:outline-success\">Success</button><div id=\"teleport-block\"></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = toast.Toast().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<script type=\"module\" src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(resources.HomeScriptJSPath)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/home.templ`, Line: 52, Col: 57}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"></script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

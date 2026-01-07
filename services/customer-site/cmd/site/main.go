@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/client"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/client/users"
@@ -19,6 +21,18 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 )
+
+type Sender struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
+type Notify struct {
+	Variant *string `json:"variant"`
+	Title   *string `json:"title"`
+	Message *string `json:"message"`
+	Sender  *Sender `json:"sender"`
+}
 
 func Static(dir string) http.Handler {
 	return http.StripPrefix("/public/", http.FileServer(http.Dir(dir)))
@@ -70,22 +84,47 @@ func main() {
 			response, err := apiclient.Users.PostCustomersUsers(params)
 
 			if err != nil {
-
 				log.Error(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
 			log.Info("test request with apiclient is ok!", slog.Any("response", response))
 
-			htmx.NewResponse().Retarget("#result").Reswap(htmx.SwapInnerHTML).MustRenderTempl(r.Context(), w, components.Test("htmx endpoint working!"))
-			return
+			if err := htmx.NewResponse().Retarget("#result").Reswap(htmx.SwapInnerHTML).RenderTempl(r.Context(), w, components.Test("htmx endpoint working!")); err != nil {
+				log.Error(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 	})
 
+	r.Get("/notify", func(w http.ResponseWriter, r *http.Request) {
+		if htmx.IsHTMX(r) {
+			time.Sleep(time.Second * 2)
+			variant := "message"
+			title := "Hello, all is working!"
+			message := "Event sending from server!"
+			sender := Sender{Name: "Fedotov Max", Avatar: "/public/images/gopher.jpg"}
+
+			notify := Notify{Variant: &variant, Title: &title, Message: &message, Sender: &sender}
+
+			if err := htmx.NewResponse().Reswap(htmx.SwapNone).AddTrigger(htmx.TriggerObject("notify", notify)).Write(w); err != nil {
+				log.Error(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	})
+
+	port := ":3000"
+
 	s := &http.Server{
-		Addr:    ":3000",
+		Addr:    port,
 		Handler: r,
 	}
+
+	log.Info(fmt.Sprintf("🚀 Server starting at %s%s", "http://localhost", port))
 
 	err = s.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {

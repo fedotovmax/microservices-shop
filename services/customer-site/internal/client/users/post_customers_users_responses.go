@@ -25,8 +25,8 @@ type PostCustomersUsersReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PostCustomersUsersReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
-	case 200:
-		result := NewPostCustomersUsersOK()
+	case 201:
+		result := NewPostCustomersUsersCreated()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -54,65 +54,65 @@ func (o *PostCustomersUsersReader) ReadResponse(response runtime.ClientResponse,
 	}
 }
 
-// NewPostCustomersUsersOK creates a PostCustomersUsersOK with default headers values
-func NewPostCustomersUsersOK() *PostCustomersUsersOK {
-	return &PostCustomersUsersOK{}
+// NewPostCustomersUsersCreated creates a PostCustomersUsersCreated with default headers values
+func NewPostCustomersUsersCreated() *PostCustomersUsersCreated {
+	return &PostCustomersUsersCreated{}
 }
 
 /*
-PostCustomersUsersOK describes a response with status code 200, with default header values.
+PostCustomersUsersCreated describes a response with status code 201, with default header values.
 
-OK
+Created
 */
-type PostCustomersUsersOK struct {
+type PostCustomersUsersCreated struct {
 	Payload *models.UserspbCreateUserResponse
 }
 
-// IsSuccess returns true when this post customers users o k response has a 2xx status code
-func (o *PostCustomersUsersOK) IsSuccess() bool {
+// IsSuccess returns true when this post customers users created response has a 2xx status code
+func (o *PostCustomersUsersCreated) IsSuccess() bool {
 	return true
 }
 
-// IsRedirect returns true when this post customers users o k response has a 3xx status code
-func (o *PostCustomersUsersOK) IsRedirect() bool {
+// IsRedirect returns true when this post customers users created response has a 3xx status code
+func (o *PostCustomersUsersCreated) IsRedirect() bool {
 	return false
 }
 
-// IsClientError returns true when this post customers users o k response has a 4xx status code
-func (o *PostCustomersUsersOK) IsClientError() bool {
+// IsClientError returns true when this post customers users created response has a 4xx status code
+func (o *PostCustomersUsersCreated) IsClientError() bool {
 	return false
 }
 
-// IsServerError returns true when this post customers users o k response has a 5xx status code
-func (o *PostCustomersUsersOK) IsServerError() bool {
+// IsServerError returns true when this post customers users created response has a 5xx status code
+func (o *PostCustomersUsersCreated) IsServerError() bool {
 	return false
 }
 
-// IsCode returns true when this post customers users o k response a status code equal to that given
-func (o *PostCustomersUsersOK) IsCode(code int) bool {
-	return code == 200
+// IsCode returns true when this post customers users created response a status code equal to that given
+func (o *PostCustomersUsersCreated) IsCode(code int) bool {
+	return code == 201
 }
 
-// Code gets the status code for the post customers users o k response
-func (o *PostCustomersUsersOK) Code() int {
-	return 200
+// Code gets the status code for the post customers users created response
+func (o *PostCustomersUsersCreated) Code() int {
+	return 201
 }
 
-func (o *PostCustomersUsersOK) Error() string {
+func (o *PostCustomersUsersCreated) Error() string {
 	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[POST /customers/users][%d] postCustomersUsersOK %s", 200, payload)
+	return fmt.Sprintf("[POST /customers/users][%d] postCustomersUsersCreated %s", 201, payload)
 }
 
-func (o *PostCustomersUsersOK) String() string {
+func (o *PostCustomersUsersCreated) String() string {
 	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[POST /customers/users][%d] postCustomersUsersOK %s", 200, payload)
+	return fmt.Sprintf("[POST /customers/users][%d] postCustomersUsersCreated %s", 201, payload)
 }
 
-func (o *PostCustomersUsersOK) GetPayload() *models.UserspbCreateUserResponse {
+func (o *PostCustomersUsersCreated) GetPayload() *models.UserspbCreateUserResponse {
 	return o.Payload
 }
 
-func (o *PostCustomersUsersOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *PostCustomersUsersCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.UserspbCreateUserResponse)
 

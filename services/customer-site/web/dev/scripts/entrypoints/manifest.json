@@ -1,0 +1,27 @@
+{
+  "web/public/js/entrypoints/home-OQ3TUZHK.js": {
+    "imports": [],
+    "exports": [
+      "default"
+    ],
+    "entryPoint": "web/dev/scripts/entrypoints/home.ts",
+    "inputs": {
+      "node_modules/alpinejs/dist/module.esm.js": {
+        "bytesInOutput": 45877
+      },
+      "node_modules/@alpinejs/focus/dist/module.esm.js": {
+        "bytesInOutput": 14793
+      },
+      "node_modules/htmx.org/dist/htmx.esm.js": {
+        "bytesInOutput": 60204
+      },
+      "web/dev/scripts/shared/keys.ts": {
+        "bytesInOutput": 18
+      },
+      "web/dev/scripts/entrypoints/home.ts": {
+        "bytesInOutput": 634
+      }
+    },
+    "bytes": 122066
+  }
+}
