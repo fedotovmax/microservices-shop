@@ -1,0 +1,20 @@
+package modal
+
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
+
+type ModalTriggerProps struct {
+	Class string
+}
+
+templ ModalTrigger(props *ModalTriggerProps) {
+	@btn.Btn(&btn.Props{
+		Class:      "",
+		Appearance: btn.NewSolidBtn(btn.SolidVariantPrimary, btn.SizeMd),
+		Attrs: templ.Attributes{
+			"@click": "isOpen = true",
+			"type":   "button",
+		},
+	}) {
+		{ children... }
+	}
+}

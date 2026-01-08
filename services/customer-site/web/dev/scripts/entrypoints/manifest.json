@@ -1,5 +1,5 @@
 {
-  "web/public/js/entrypoints/home-OQ3TUZHK.js": {
+  "web/public/js/entrypoints/home-PJG773ET.js": {
     "imports": [],
     "exports": [
       "default"
@@ -7,21 +7,24 @@
     "entryPoint": "web/dev/scripts/entrypoints/home.ts",
     "inputs": {
       "node_modules/alpinejs/dist/module.esm.js": {
-        "bytesInOutput": 45877
+        "bytesInOutput": 45890
       },
       "node_modules/@alpinejs/focus/dist/module.esm.js": {
-        "bytesInOutput": 14793
+        "bytesInOutput": 14806
       },
       "node_modules/htmx.org/dist/htmx.esm.js": {
-        "bytesInOutput": 60204
+        "bytesInOutput": 60217
       },
       "web/dev/scripts/shared/keys.ts": {
-        "bytesInOutput": 18
+        "bytesInOutput": 30
+      },
+      "web/dev/scripts/components/modal/modal.ts": {
+        "bytesInOutput": 76
       },
       "web/dev/scripts/entrypoints/home.ts": {
-        "bytesInOutput": 634
+        "bytesInOutput": 623
       }
     },
-    "bytes": 122066
+    "bytes": 122182
   }
 }

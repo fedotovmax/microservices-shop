@@ -42,3 +42,7 @@
 	/* border radius */
 	--radius-radius: var(--radius-sm);
 }
+
+[x-cloak] {
+	display: none !important;
+}

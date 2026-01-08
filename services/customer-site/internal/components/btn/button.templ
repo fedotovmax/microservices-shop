@@ -1,0 +1,9 @@
+package btn
+
+import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+
+templ Btn(props *Props) {
+	<button class={ utils.Cn(baseStyle, props.Appearance.GetBase(), props.Appearance.GetType(), props.Appearance.GetSize(), props.Class) } { props.Attrs... }>
+		{ children... }
+	</button>
+}

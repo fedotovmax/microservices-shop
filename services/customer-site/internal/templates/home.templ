@@ -3,6 +3,8 @@ package templates
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/modal"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/theme"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
 
 templ Homepage(title string) {
 	<!DOCTYPE html>
@@ -28,25 +30,35 @@ templ Homepage(title string) {
 				<button class="text-orange-600 font-medium" hx-get="/htmx">click me</button>
 				<div id="result" class="mb-5"></div>
 				<div class="p-3">
-					@modal.Modal("Modal 1")
+					@modal.Modal(&modal.ModalProps{InitialOpen: true}) {
+						@modal.ModalTrigger(&modal.ModalTriggerProps{Class: ""}) {
+							Открыть модальное окно
+						}
+						@modal.ModalContent(&modal.ModalContentProps{Class: "max-w-3xl"}) {
+							@modal.ModalHeader(&modal.ModalHeaderProps{Class: ""}) {
+								<h3>Модальное окно 1</h3>
+								@modal.ModalClose(&modal.ModalCloseProps{Class: ""})
+							}
+							@modal.ModalBody(&modal.ModalBodyProps{Class: ""}) {
+								<p>Далеко-далеко за словесными горами в стране гласных и согласных, живут рыбные тексты.</p>
+							}
+							@modal.ModalFooter(&modal.ModalFooterProps{Class: ""}) {
+								<button x-on:click="isOpen = false" type="button" class="whitespace-nowrap rounded-radius px-4 py-2 text-center text-sm font-medium tracking-wide text-on-surface transition hover:opacity-75 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 dark:text-on-surface-dark dark:focus-visible:outline-primary-dark">ОК</button>
+							}
+						}
+					}
 				</div>
-				<div class="p-3">
-					@modal.Modal("Modal 2")
-				</div>
-				<div>
-					<div class="mb-3">
-						<button onclick="__GLOBAL_SET_THEME('dark')">
-							change theme: dark
-						</button>
-					</div>
-					<div>
-						<button onclick="__GLOBAL_SET_THEME('light')">
-							change theme: light
-						</button>
-					</div>
-				</div>
+				@theme.ThemeTrigger()
 			</div>
-			<button hx-get="/notify" type="button" class="whitespace-nowrap rounded-radius bg-success border border-success px-4 py-2 text-sm font-medium tracking-wide text-onSuccess transition hover:opacity-75 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-success active:opacity-100 active:outline-offset-0 disabled:opacity-75 disabled:cursor-not-allowed dark:bg-success dark:border-success dark:text-onSuccess dark:focus-visible:outline-success">Success</button>
+			@HTMXAlpineExample()
+			<div class="mt-4">
+				@btn.Btn(&btn.Props{
+					Class:      "",
+					Appearance: btn.NewOutlineBtn(btn.OutlineVariantSuccess, btn.SizeLg),
+				}) {
+					outline btn
+				}
+			</div>
 			<div id="teleport-block"></div>
 			@toast.Toast()
 			<script type="module" src={ resources.HomeScriptJSPath }></script>

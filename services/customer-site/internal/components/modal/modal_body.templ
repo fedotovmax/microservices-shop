@@ -1,0 +1,13 @@
+package modal
+
+import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+
+type ModalBodyProps struct {
+	Class string
+}
+
+templ ModalBody(props *ModalBodyProps) {
+	<div class={ utils.Cn("px-4 py-8", props.Class) }>
+		{ children... }
+	</div>
+}

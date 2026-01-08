@@ -1,0 +1,18 @@
+package theme 
+
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+
+templ ThemeTrigger() {
+	<div>
+		<div class="mb-3">
+			<button onclick={ templ.JSFuncCall(dom.SetTheme, dom.DarkThemeValue) }>
+				change theme: dark
+			</button>
+		</div>
+		<div>
+			<button onclick={ templ.JSFuncCall(dom.SetTheme, dom.LightThemeValue) }>
+				change theme: light
+			</button>
+		</div>
+	</div>
+}

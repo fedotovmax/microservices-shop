@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"lib": ["ES2020", "DOM"],
+
+		"strict": true,
+
+		"noEmit": true,
+
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./web/dev/scripts/*"]
+		},
+
+		"types": ["alpinejs"],
+
+		"skipLibCheck": true
+	},
+	"include": ["./web/dev/scripts/**/*.ts"]
+}

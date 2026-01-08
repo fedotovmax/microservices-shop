@@ -8,7 +8,15 @@ package modal
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Modal(text string) templ.Component {
+import "fmt"
+
+type ModalProps struct {
+	InitialOpen bool
+}
+
+const ModalComponentData = "modal"
+
+func Modal(props *ModalProps) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,20 +37,28 @@ func Modal(text string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"{modalIsOpen: false}\"><button x-on:click=\"modalIsOpen = true\" type=\"button\" class=\"whitespace-nowrap rounded-radius border border-primary dark:border-primary-dark bg-primary px-4 py-2 text-center text-sm font-medium tracking-wide text-on-primary transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 dark:bg-primary-dark dark:text-on-primary-dark dark:focus-visible:outline-primary-dark\">Open Modal</button><template x-teleport=\"#teleport-block\"><div x-cloak x-show=\"modalIsOpen\" x-transition.opacity.duration.200ms x-trap.inert.noscroll=\"modalIsOpen\" x-on:keydown.esc.window=\"modalIsOpen = false\" x-on:click.self=\"modalIsOpen = false\" class=\"fixed inset-0 z-30 flex items-end justify-center bg-black/20 p-4 pb-8 backdrop-blur-md sm:items-center lg:p-8\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"defaultModalTitle\"><!-- Modal Dialog --><div x-show=\"modalIsOpen\" x-transition:enter=\"transition ease-out duration-200 delay-100 motion-reduce:transition-opacity\" x-transition:enter-start=\"opacity-0 scale-50\" x-transition:enter-end=\"opacity-100 scale-100\" class=\"flex max-w-lg flex-col gap-4 overflow-hidden rounded-radius border border-outline bg-surface text-on-surface dark:border-outline-dark dark:bg-surface-dark-alt dark:text-on-surface-dark\"><!-- Dialog Header --><div class=\"flex items-center justify-between border-b border-outline bg-surface-alt/60 p-4 dark:border-outline-dark dark:bg-surface-dark/20\"><h3 id=\"defaultModalTitle\" class=\"font-semibold tracking-wide text-on-surface-strong dark:text-on-surface-dark-strong\">Special Offer</h3><button x-on:click=\"modalIsOpen = false\" aria-label=\"close modal\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"1.4\" class=\"w-5 h-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Dialog Body --><div class=\"px-4 py-8\"><p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(text)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s(%t)", ModalComponentData, props.InitialOpen))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/modal/modal.templ`, Line: 21, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/modal/modal.templ`, Line: 12, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</p></div><!-- Dialog Footer --><div class=\"flex flex-col-reverse justify-between gap-2 border-t border-outline bg-surface-alt/60 p-4 dark:border-outline-dark dark:bg-surface-dark/20 sm:flex-row sm:items-center md:justify-end\"><button x-on:click=\"modalIsOpen = false\" type=\"button\" class=\"whitespace-nowrap rounded-radius px-4 py-2 text-center text-sm font-medium tracking-wide text-on-surface transition hover:opacity-75 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 dark:text-on-surface-dark dark:focus-visible:outline-primary-dark\">Remind me later</button> <button x-on:click=\"modalIsOpen = false\" type=\"button\" class=\"whitespace-nowrap rounded-radius bg-primary border border-primary dark:border-primary-dark px-4 py-2 text-center text-sm font-medium tracking-wide text-on-primary transition hover:opacity-75 focus-visible:outlinefocus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 dark:bg-primary-dark dark:text-on-primary-dark dark:focus-visible:outline-primary-dark\">Upgrade Now</button></div></div></div></template></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ_7745c5c3_Var1.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

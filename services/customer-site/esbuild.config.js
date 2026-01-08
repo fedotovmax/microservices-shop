@@ -40,6 +40,7 @@ esbuild
 		entryNames: '[name]-[hash]',
 		chunkNames: 'chunks/[name]-[hash]',
 		metafile: true,
+		tsconfig: './tsconfig.json',
 
 		loader: {
 			'.ts': 'ts',

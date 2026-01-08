@@ -4,6 +4,7 @@ import focus from '@alpinejs/focus';
 import 'htmx.org';
 
 import { A } from '../shared/keys';
+import { Modal, MODAL_COMPONENT_DATA } from '@/components/modal/modal';
 
 type NotificationInput = {
 	variant: string;
@@ -40,8 +41,6 @@ document.addEventListener('alpine:init', () => {
 		notifications: [],
 		displayDuration: 4000,
 		addNotification(input: NotificationInput) {
-			console.log('call add notification');
-
 			const {
 				variant = 'info',
 				sender = null,
@@ -63,6 +62,10 @@ document.addEventListener('alpine:init', () => {
 			}, 400);
 		},
 	}));
+
+	Alpine.data(MODAL_COMPONENT_DATA, (initialOpen: boolean) => {
+		return Modal(initialOpen);
+	});
 });
 
 Alpine.start();
