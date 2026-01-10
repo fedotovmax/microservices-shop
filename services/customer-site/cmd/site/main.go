@@ -50,9 +50,16 @@ func main() {
 
 	transport := httptransport.New("localhost:8081", "", nil)
 
-	apiclient := client.New(transport, strfmt.Default)
+	customersApi := client.New(transport, strfmt.Default).Customers
 	//TODO: use for query to api gateway
-	_ = apiclient
+
+	// params := customers.NewGetCustomersUsersIDParamsWithContext(context.Background())
+	// locale := "ru"
+	// params.SetXRequestLocale(&locale)
+	// params.SetID("123")
+
+	// customersApi.GetCustomersUsersID(params)
+	_ = customersApi
 
 	r := chi.NewRouter()
 

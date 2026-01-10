@@ -10,7 +10,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/client/users"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/client/customers"
 )
 
 // Default API HTTP client.
@@ -55,7 +55,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *API {
 
 	cli := new(API)
 	cli.Transport = transport
-	cli.Users = users.New(transport, formats)
+	cli.Customers = customers.New(transport, formats)
 	return cli
 }
 
@@ -100,7 +100,7 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // API is a client for API
 type API struct {
-	Users users.ClientService
+	Customers customers.ClientService
 
 	Transport runtime.ClientTransport
 }
@@ -108,5 +108,5 @@ type API struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *API) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
-	c.Users.SetTransport(transport)
+	c.Customers.SetTransport(transport)
 }

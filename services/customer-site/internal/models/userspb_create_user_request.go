@@ -8,8 +8,10 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // UserspbCreateUserRequest userspb create user request
@@ -18,14 +20,53 @@ import (
 type UserspbCreateUserRequest struct {
 
 	// email
-	Email string `json:"email,omitempty"`
+	// Example: makc-dgek@mail.ru
+	// Required: true
+	// Format: email
+	Email *strfmt.Email `json:"email"`
 
 	// password
-	Password string `json:"password,omitempty"`
+	// Required: true
+	Password *string `json:"password"`
 }
 
 // Validate validates this userspb create user request
 func (m *UserspbCreateUserRequest) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateEmail(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePassword(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *UserspbCreateUserRequest) validateEmail(formats strfmt.Registry) error {
+
+	if err := validate.Required("email", "body", m.Email); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("email", "body", "email", m.Email.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *UserspbCreateUserRequest) validatePassword(formats strfmt.Registry) error {
+
+	if err := validate.Required("password", "body", m.Password); err != nil {
+		return err
+	}
+
 	return nil
 }
 

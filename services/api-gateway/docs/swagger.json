@@ -10,6 +10,76 @@
         "version": "1.0"
     },
     "paths": {
+        "/customers/session/login": {
+            "post": {
+                "description": "Login in account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Login in account",
+                "parameters": [
+                    {
+                        "description": "Dto for login in account",
+                        "name": "dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userspb.UserSessionActionRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.CreateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.UserSessionActionResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/users": {
             "post": {
                 "description": "Create new user account",
@@ -308,8 +378,7 @@
             "properties": {
                 "avatar_url": {
                     "type": "string",
-                    "format": "url",
-                    "example": "https://example.com/photo.jpg"
+                    "example": "/avatars/photo.jpg"
                 },
                 "birth_date": {
                     "type": "string",
@@ -320,6 +389,7 @@
                     "example": "Ivan"
                 },
                 "gender": {
+                    "description": "GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value\nGENDER_UNSELECTED = 1 User has not selected a gender\nGENDER_MALE = 2 Represents male gender\nGENDER_FEMALE = 3 Represents female gender",
                     "allOf": [
                         {
                             "$ref": "#/definitions/userspb.GenderValue"
@@ -345,8 +415,7 @@
             "properties": {
                 "avatar_url": {
                     "type": "string",
-                    "format": "url",
-                    "example": "https://example.com/photo.jpg"
+                    "example": "/avatars/photo.jpg"
                 },
                 "birth_date": {
                     "type": "string",
@@ -357,6 +426,7 @@
                     "example": "Ivan"
                 },
                 "gender_value": {
+                    "description": "GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value\nGENDER_UNSELECTED = 1 User has not selected a gender\nGENDER_MALE = 2 Represents male gender\nGENDER_FEMALE = 3 Represents female gender",
                     "allOf": [
                         {
                             "$ref": "#/definitions/userspb.GenderValue"
@@ -380,6 +450,7 @@
                 "created_at",
                 "email",
                 "id",
+                "profile",
                 "updated_at"
             ],
             "properties": {
@@ -406,6 +477,60 @@
                     "$ref": "#/definitions/timestamppb.Timestamp"
                 }
             }
+        },
+        "userspb.UserSessionActionRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "makc-dgek@mail.ru"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "userspb.UserSessionActionResponse": {
+            "type": "object",
+            "required": [
+                "user_session_action_status"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "user_session_action_status": {
+                    "$ref": "#/definitions/userspb.UserSessionActionStatus"
+                }
+            }
+        },
+        "userspb.UserSessionActionStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED",
+                "UserSessionActionStatus_SESSION_STATUS_DELETED",
+                "UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED",
+                "UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS",
+                "UserSessionActionStatus_SESSION_STATUS_OK"
+            ]
         }
     }
 }

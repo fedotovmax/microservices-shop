@@ -22,6 +22,20 @@ type handleSessionStatusParams struct {
 	Response  *userspb.UserSessionActionResponse
 }
 
+// @Summary      Login in account
+// @Description  Login in account
+// @Router       /customers/session/login [post]
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Param dto body userspb.UserSessionActionRequest true "Dto for login in account"
+// @Param X-Request-Locale header string false "Locale"
+// @Success      201  {object}  userspb.CreateUserResponse
+// @Failure      400  {object}  errdetails.BadRequest
+// @Failure      401  {object}  httputils.ErrorResponse
+// @Failure      403  {object}  userspb.UserSessionActionResponse
+// @Failure      404  {object}  httputils.ErrorResponse
+// @Failure      500  {object}  httputils.ErrorResponse
 func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 	const op = "controller.customer.sessionLogin"
 
@@ -84,7 +98,7 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 	switch params.Response.UserSessionActionStatus {
 	case userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS:
 		msg, _ := i18n.Local.Get(params.Locale, keys.BadCredentials)
-		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
+		httputils.WriteJSON(w, http.StatusUnauthorized, httputils.NewError(msg))
 		return
 	case userspb.UserSessionActionStatus_SESSION_STATUS_DELETED, userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED:
 		httputils.WriteJSON(w, http.StatusForbidden, params.Response)
@@ -106,7 +120,7 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 			return
 		}
 		c.log.Error("unexpected grpc response from users client")
-		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError("unexpected grpc response"))
+		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError("unexpected grpc response when get user information for prepare session"))
 		return
 	default:
 		c.log.Error("unexpected session status")

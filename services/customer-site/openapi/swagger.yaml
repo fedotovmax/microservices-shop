@@ -210,7 +210,6 @@ paths:
         schema:
           $ref: '#/definitions/userspb.CreateUserRequest'
       - description: Locale
-        example: '"ru;en. If not provided - ru by default"'
         in: header
         name: X-Request-Locale
         type: string
@@ -248,7 +247,6 @@ paths:
         required: true
         type: string
       - description: Locale
-        example: '"ru;en. If not provided - ru by default"'
         in: header
         name: X-Request-Locale
         type: string
@@ -291,7 +289,6 @@ paths:
         schema:
           $ref: '#/definitions/userspb.UpdateUserProfileData'
       - description: Locale
-        example: '"ru;en. If not provided - ru by default"'
         in: header
         name: X-Request-Locale
         type: string

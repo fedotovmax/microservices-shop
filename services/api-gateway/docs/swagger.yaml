@@ -117,8 +117,7 @@ definitions:
   userspb.Profile:
     properties:
       avatar_url:
-        example: https://example.com/photo.jpg
-        format: url
+        example: /avatars/photo.jpg
         type: string
       birth_date:
         example: "2001-11-23"
@@ -129,6 +128,11 @@ definitions:
       gender:
         allOf:
         - $ref: '#/definitions/userspb.GenderValue'
+        description: |-
+          GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+          GENDER_UNSELECTED = 1 User has not selected a gender
+          GENDER_MALE = 2 Represents male gender
+          GENDER_FEMALE = 3 Represents female gender
         example: 1
       last_name:
         example: Ivanov
@@ -145,8 +149,7 @@ definitions:
   userspb.UpdateUserProfileData:
     properties:
       avatar_url:
-        example: https://example.com/photo.jpg
-        format: url
+        example: /avatars/photo.jpg
         type: string
       birth_date:
         example: "2001-11-23"
@@ -157,6 +160,11 @@ definitions:
       gender_value:
         allOf:
         - $ref: '#/definitions/userspb.GenderValue'
+        description: |-
+          GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+          GENDER_UNSELECTED = 1 User has not selected a gender
+          GENDER_MALE = 2 Represents male gender
+          GENDER_FEMALE = 3 Represents female gender
         example: 1
       last_name:
         example: Ivanov
@@ -187,8 +195,49 @@ definitions:
     - created_at
     - email
     - id
+    - profile
     - updated_at
     type: object
+  userspb.UserSessionActionRequest:
+    properties:
+      email:
+        example: makc-dgek@mail.ru
+        format: email
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  userspb.UserSessionActionResponse:
+    properties:
+      email:
+        format: email
+        type: string
+      user_id:
+        format: uuid
+        type: string
+      user_session_action_status:
+        $ref: '#/definitions/userspb.UserSessionActionStatus'
+    required:
+    - user_session_action_status
+    type: object
+  userspb.UserSessionActionStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
+    - UserSessionActionStatus_SESSION_STATUS_DELETED
+    - UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED
+    - UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS
+    - UserSessionActionStatus_SESSION_STATUS_OK
 info:
   contact:
     email: f3d0t0tvmax@yandex.ru
@@ -197,6 +246,52 @@ info:
   title: Swagger Documentation for microservices shop API Gateway
   version: "1.0"
 paths:
+  /customers/session/login:
+    post:
+      consumes:
+      - application/json
+      description: Login in account
+      parameters:
+      - description: Dto for login in account
+        in: body
+        name: dto
+        required: true
+        schema:
+          $ref: '#/definitions/userspb.UserSessionActionRequest'
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/userspb.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/userspb.UserSessionActionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Login in account
+      tags:
+      - customers
   /customers/users:
     post:
       consumes:
