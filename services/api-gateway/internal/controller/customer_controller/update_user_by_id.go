@@ -19,7 +19,7 @@ import (
 // @Produce      json
 // @Param id path string true "User id parameter"
 // @Param dto body userspb.UpdateUserProfileData true "Update user profile with body dto"
-// @Param X-Request-Locale header string false "Locale" example("ru;en. If not provided - ru by default")
+// @Param X-Request-Locale header string false "Locale"
 // @Success      200  {object}  httputils.ErrorResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      500  {object}  httputils.ErrorResponse

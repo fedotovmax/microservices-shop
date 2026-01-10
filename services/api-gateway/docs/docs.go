@@ -43,7 +43,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"ru;en. If not provided - ru by default\"",
                         "description": "Locale",
                         "name": "X-Request-Locale",
                         "in": "header"
@@ -100,7 +99,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"ru;en. If not provided - ru by default\"",
                         "description": "Locale",
                         "name": "X-Request-Locale",
                         "in": "header"
@@ -164,7 +162,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"ru;en. If not provided - ru by default\"",
                         "description": "Locale",
                         "name": "X-Request-Locale",
                         "in": "header"

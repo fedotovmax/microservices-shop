@@ -19,7 +19,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param dto body userspb.CreateUserRequest true "Create user account with body dto"
-// @Param X-Request-Locale header string false "Locale" example("ru;en. If not provided - ru by default")
+// @Param X-Request-Locale header string false "Locale"
 // @Success      201  {object}  userspb.CreateUserResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      403  {object}  httputils.ErrorResponse
