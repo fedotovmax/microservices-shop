@@ -1,0 +1,50 @@
+package title
+
+type Level int
+
+const (
+	Level1 Level = iota + 1
+	Level2
+	Level3
+	Level4
+	Level5
+	Level6
+)
+
+type Props struct {
+	Class string
+	Level Level
+}
+
+templ Title(props *Props) {
+	switch props.Level {
+		case Level1:
+			<h1>
+				{ children... }
+			</h1>
+		case Level2:
+			<h2>
+				{ children... }
+			</h2>
+		case Level3:
+			<h3>
+				{ children... }
+			</h3>
+		case Level4:
+			<h4>
+				{ children... }
+			</h4>
+		case Level5:
+			<h5>
+				{ children... }
+			</h5>
+		case Level6:
+			<h6>
+				{ children... }
+			</h6>
+		default:
+			<h2>
+				{ children... }
+			</h2>
+	}
+}

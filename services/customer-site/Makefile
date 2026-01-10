@@ -19,7 +19,10 @@ esbuild:
 resources:
 	node generate-resources-paths.js
 
-dev: templ-gen css esbuild resources run
+sprite:
+	node generate-svg-sprite.js
+
+dev: templ-gen css esbuild resources sprite run
 
 
 .PHONY: openapi

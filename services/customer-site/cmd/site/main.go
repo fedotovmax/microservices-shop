@@ -10,10 +10,7 @@ import (
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/client"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/client/users"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/components"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/models"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/htmx"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
@@ -54,6 +51,8 @@ func main() {
 	transport := httptransport.New("localhost:8081", "", nil)
 
 	apiclient := client.New(transport, strfmt.Default)
+	//TODO: use for query to api gateway
+	_ = apiclient
 
 	r := chi.NewRouter()
 
@@ -66,36 +65,6 @@ func main() {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-	})
-
-	r.Get("/htmx", func(w http.ResponseWriter, r *http.Request) {
-		log.Info("request to /htmx")
-		if htmx.IsHTMX(r) {
-
-			dto := &models.UserspbCreateUserRequest{
-				Email:    "makc",
-				Password: "123456",
-			}
-			params := users.NewPostCustomersUsersParams()
-			params.SetDto(dto)
-			params.SetContext(r.Context())
-
-			response, err := apiclient.Users.PostCustomersUsers(params)
-
-			if err != nil {
-				log.Error(err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			log.Info("test request with apiclient is ok!", slog.Any("response", response))
-
-			if err := htmx.NewResponse().Retarget("#result").Reswap(htmx.SwapInnerHTML).RenderTempl(r.Context(), w, components.Test("htmx endpoint working!")); err != nil {
-				log.Error(err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
 		}
 	})
 

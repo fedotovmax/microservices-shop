@@ -1,0 +1,76 @@
+package input
+
+import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
+
+type Type string
+
+const (
+	TypeText     Type = "text"
+	TypePassword Type = "password"
+	TypeEmail    Type = "email"
+	TypeNumber   Type = "number"
+	TypeTel      Type = "tel"
+	TypeURL      Type = "url"
+	TypeSearch   Type = "search"
+	TypeDate     Type = "date"
+	TypeDateTime Type = "datetime-local"
+	TypeTime     Type = "time"
+	TypeFile     Type = "file"
+	TypeColor    Type = "color"
+	TypeWeek     Type = "week"
+	TypeMonth    Type = "month"
+)
+
+type Props struct {
+	Type  Type
+	Class string
+	Attrs templ.Attributes
+}
+
+templ Input(props *Props) {
+	{{ inputType := props.Type }}
+	if inputType == "" {
+		{{ inputType = TypeText }}
+	}
+	<div
+		class="relative w-full"
+		if inputType == TypePassword {
+			x-data="{isShow:false}"
+		}
+	>
+		<input
+			class={ utils.TwMerge(
+					"flex w-full rounded-radius border border-outline bg-surface-alt px-2 py-2 text-sm", "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" ,"disabled:cursor-not-allowed disabled:opacity-40 dark:border-outline-dark" ,"dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark",
+					"data-[has-error=true]:border-danger data-[has-error=true]:focus-visible:outline-danger",
+					utils.If(inputType == TypePassword, "pr-8"),
+					props.Class,
+			) }
+			if inputType == TypePassword {
+				:type="isShow ? 'text' : 'password'"
+			} else {
+				type={ string(inputType) }
+			}
+			{ props.Attrs... }
+		/>
+		if inputType == TypePassword {
+			@btn.Btn(&btn.Props{
+				Appearance: btn.NewGhostBtn(btn.GhostVariantPrimary, btn.SizeIcon),
+				Class:      "absolute right-2 top-1/2 -translate-y-1/2 opacity-50",
+				Attrs: templ.Attributes{
+					"@click": "isShow = !isShow",
+				},
+			}) {
+				@icon.Icon(&icon.Props{Icon: icon.IconHideOutline24, Attrs: templ.Attributes{
+					"x-show":  "isShow",
+					"x-cloak": "",
+				}})
+				@icon.Icon(&icon.Props{Icon: icon.IconViewOutline24, Attrs: templ.Attributes{
+					"x-show":  "!isShow",
+					"x-cloak": "",
+				}})
+			}
+		}
+	</div>
+}

@@ -13,10 +13,11 @@ const ghostBaseStyle = "bg-transparent"
 type sizeType string
 
 const (
-	SizeSm sizeType = "px-4 py-2 text-xs"
-	SizeMd sizeType = "px-4 py-2 text-sm"
-	SizeLg sizeType = "px-4 py-2 text-base"
-	SizeXl sizeType = "px-4 py-2 text-lg"
+	SizeIcon sizeType = "p-0 p-y text-xs"
+	SizeSm   sizeType = "px-4 py-2 text-xs"
+	SizeMd   sizeType = "px-4 py-2 text-sm"
+	SizeLg   sizeType = "px-4 py-2 text-base"
+	SizeXl   sizeType = "px-4 py-2 text-lg"
 )
 
 type Appearance interface {
@@ -50,6 +51,8 @@ func NewSolidBtn(t solidVariantType, size sizeType) Appearance {
 		base:    solidBaseStyle,
 	}
 }
+
+var DefaultBtn = NewSolidBtn(SolidVariantPrimary, SizeMd)
 
 type outline struct {
 	vartype outlineVariantType

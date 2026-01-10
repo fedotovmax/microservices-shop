@@ -7,7 +7,7 @@ type ModalBodyProps struct {
 }
 
 templ ModalBody(props *ModalBodyProps) {
-	<div class={ utils.Cn("px-4 py-8", props.Class) }>
+	<div class={ utils.TwMerge("px-4 py-8", props.Class) }>
 		{ children... }
 	</div>
 }

@@ -3,71 +3,44 @@ import focus from '@alpinejs/focus';
 
 import 'htmx.org';
 
-import { A } from '../shared/keys';
-import { Modal, MODAL_COMPONENT_DATA } from '@/components/modal/modal';
+import { initToastComponent } from '@/components/toast';
+import { initModalComponent } from '@/components/modal';
+import { PAGE_PROPS } from '@/shared/selectors';
+import { htmxRequest } from '@/shared/htmx';
 
-type NotificationInput = {
-	variant: string;
-	sender?: string;
-	title?: string;
-	message?: string;
-};
+document.addEventListener('DOMContentLoaded', () => {
+	const pageData = document.getElementById(PAGE_PROPS);
 
-type Notification = {
-	id: number;
-	variant: string;
-	sender?: string | null;
-	title?: string | null;
-	message?: string | null;
-};
-
-type ToastData = {
-	notifications: Notification[];
-	displayDuration: number;
-	addNotification: (input: NotificationInput) => void;
-	removeNotification: (id: number) => void;
-};
-
-type ToastDataInitialArgs = any[];
-
-function Hello() {
-	console.log(`Variable from other file: ${A}`);
-}
+	if (pageData) {
+		try {
+			const data = JSON.parse(pageData.textContent);
+			console.log(data);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+});
 
 Alpine.plugin(focus);
 
 document.addEventListener('alpine:init', () => {
-	Alpine.data<ToastData, ToastDataInitialArgs>('toast', () => ({
-		notifications: [],
-		displayDuration: 4000,
-		addNotification(input: NotificationInput) {
-			const {
-				variant = 'info',
-				sender = null,
-				title = null,
-				message = null,
-			} = input;
-			const id = Date.now();
-			const notification = { id, variant, sender, title, message };
-			if (this.notifications.length >= 20) {
-				this.notifications.splice(0, this.notifications.length - 19);
+	initToastComponent();
+	initModalComponent();
+
+	Alpine.data('htmxnotify', () => ({
+		isLoading: false,
+
+		async notify() {
+			try {
+				this.isLoading = true;
+				await htmxRequest('/notify', 'get');
+			} catch (error) {
+				console.error(error);
+			} finally {
+				this.isLoading = false;
 			}
-			this.notifications.push(notification);
-		},
-		removeNotification(id) {
-			setTimeout(() => {
-				this.notifications = this.notifications.filter(
-					notification => notification.id !== id
-				);
-			}, 400);
 		},
 	}));
-
-	Alpine.data(MODAL_COMPONENT_DATA, (initialOpen: boolean) => {
-		return Modal(initialOpen);
-	});
 });
 
 Alpine.start();
-
-Hello();
