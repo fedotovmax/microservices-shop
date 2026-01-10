@@ -11,6 +11,18 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// @Summary      Get user base info by id
+// @Description  Get user base info by id
+// @Router       /customers/users/{id} [get]
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Param id path string true "User id parameter"
+// @Param X-Request-Locale header string false "Locale" example("ru;en. If not provided - ru by default")
+// @Success      200  {object}  userspb.User
+// @Failure      400  {object}  errdetails.BadRequest
+// @Failure      404  {object}  httputils.ErrorResponse
+// @Failure      500  {object}  httputils.ErrorResponse
 func (c *controller) findUserByID(w http.ResponseWriter, r *http.Request) {
 
 	const op = "controller.customer.findUserByID"

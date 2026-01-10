@@ -64,17 +64,130 @@ definitions:
       message:
         type: string
     type: object
+  timestamppb.Timestamp:
+    properties:
+      nanos:
+        description: |-
+          Non-negative fractions of a second at nanosecond resolution. This field is
+          the nanosecond portion of the duration, not an alternative to seconds.
+          Negative second values with fractions must still have non-negative nanos
+          values that count forward in time. Must be between 0 and 999,999,999
+          inclusive.
+        type: integer
+      seconds:
+        description: |-
+          Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must
+          be between -315576000000 and 315576000000 inclusive (which corresponds to
+          0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z).
+        type: integer
+    type: object
   userspb.CreateUserRequest:
     properties:
       email:
+        example: makc-dgek@mail.ru
+        format: email
         type: string
       password:
         type: string
+    required:
+    - email
+    - password
     type: object
   userspb.CreateUserResponse:
     properties:
       id:
+        format: uuid
         type: string
+    required:
+    - id
+    type: object
+  userspb.GenderValue:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - GenderValue_GENDER_UNSPECIFIED
+    - GenderValue_GENDER_UNSELECTED
+    - GenderValue_GENDER_MALE
+    - GenderValue_GENDER_FEMALE
+  userspb.Profile:
+    properties:
+      avatar_url:
+        example: https://example.com/photo.jpg
+        format: url
+        type: string
+      birth_date:
+        example: "2001-11-23"
+        type: string
+      first_name:
+        example: Ivan
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/userspb.GenderValue'
+        example: 1
+      last_name:
+        example: Ivanov
+        type: string
+      middle_name:
+        example: Olegovich
+        type: string
+      updated_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+    required:
+    - gender
+    - updated_at
+    type: object
+  userspb.UpdateUserProfileData:
+    properties:
+      avatar_url:
+        example: https://example.com/photo.jpg
+        format: url
+        type: string
+      birth_date:
+        example: "2001-11-23"
+        type: string
+      first_name:
+        example: Ivan
+        type: string
+      gender_value:
+        allOf:
+        - $ref: '#/definitions/userspb.GenderValue'
+        example: 1
+      last_name:
+        example: Ivanov
+        type: string
+      middle_name:
+        example: Olegovich
+        type: string
+    type: object
+  userspb.User:
+    properties:
+      created_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      email:
+        example: makc-dgek@mail.ru
+        format: email
+        type: string
+      id:
+        format: uuid
+        type: string
+      phone:
+        example: "+79517735133"
+        type: string
+      profile:
+        $ref: '#/definitions/userspb.Profile'
+      updated_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+    required:
+    - created_at
+    - email
+    - id
+    - updated_at
     type: object
 info:
   contact:
@@ -96,6 +209,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/userspb.CreateUserRequest'
+      - description: Locale
+        example: '"ru;en. If not provided - ru by default"'
+        in: header
+        name: X-Request-Locale
+        type: string
       produces:
       - application/json
       responses:
@@ -117,5 +235,82 @@ paths:
             $ref: '#/definitions/httputils.ErrorResponse'
       summary: Create user account
       tags:
-      - /customers/users
+      - customers
+  /customers/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user base info by id
+      parameters:
+      - description: User id parameter
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Locale
+        example: '"ru;en. If not provided - ru by default"'
+        in: header
+        name: X-Request-Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userspb.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Get user base info by id
+      tags:
+      - customers
+    patch:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: User id parameter
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update user profile with body dto
+        in: body
+        name: dto
+        required: true
+        schema:
+          $ref: '#/definitions/userspb.UpdateUserProfileData'
+      - description: Locale
+        example: '"ru;en. If not provided - ru by default"'
+        in: header
+        name: X-Request-Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Update user profile
+      tags:
+      - customers
 swagger: "2.0"

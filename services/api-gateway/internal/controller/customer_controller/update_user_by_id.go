@@ -11,6 +11,18 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// @Summary      Update user profile
+// @Description  Update user profile
+// @Router       /customers/users/{id} [patch]
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Param id path string true "User id parameter"
+// @Param dto body userspb.UpdateUserProfileData true "Update user profile with body dto"
+// @Param X-Request-Locale header string false "Locale" example("ru;en. If not provided - ru by default")
+// @Success      200  {object}  httputils.ErrorResponse
+// @Failure      400  {object}  errdetails.BadRequest
+// @Failure      500  {object}  httputils.ErrorResponse
 func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 
 	const op = "controller.customer.updateUserByID"

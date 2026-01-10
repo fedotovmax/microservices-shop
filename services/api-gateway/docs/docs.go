@@ -28,7 +28,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/customers/users"
+                    "customers"
                 ],
                 "summary": "Create user account",
                 "parameters": [
@@ -40,6 +40,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/userspb.CreateUserRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"ru;en. If not provided - ru by default\"",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -59,6 +66,121 @@ const docTemplate = `{
                         "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/users/{id}": {
+            "get": {
+                "description": "Get user base info by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Get user base info by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id parameter",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"ru;en. If not provided - ru by default\"",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id parameter",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update user profile with body dto",
+                        "name": "dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userspb.UpdateUserProfileData"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"ru;en. If not provided - ru by default\"",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errdetails.BadRequest"
                         }
                     },
                     "500": {
@@ -130,11 +252,30 @@ const docTemplate = `{
                 }
             }
         },
-        "userspb.CreateUserRequest": {
+        "timestamppb.Timestamp": {
             "type": "object",
             "properties": {
+                "nanos": {
+                    "description": "Non-negative fractions of a second at nanosecond resolution. This field is\nthe nanosecond portion of the duration, not an alternative to seconds.\nNegative second values with fractions must still have non-negative nanos\nvalues that count forward in time. Must be between 0 and 999,999,999\ninclusive.",
+                    "type": "integer"
+                },
+                "seconds": {
+                    "description": "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must\nbe between -315576000000 and 315576000000 inclusive (which corresponds to\n0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z).",
+                    "type": "integer"
+                }
+            }
+        },
+        "userspb.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email",
+                    "example": "makc-dgek@mail.ru"
                 },
                 "password": {
                     "type": "string"
@@ -143,9 +284,137 @@ const docTemplate = `{
         },
         "userspb.CreateUserResponse": {
             "type": "object",
+            "required": [
+                "id"
+            ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
+                }
+            }
+        },
+        "userspb.GenderValue": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "GenderValue_GENDER_UNSPECIFIED",
+                "GenderValue_GENDER_UNSELECTED",
+                "GenderValue_GENDER_MALE",
+                "GenderValue_GENDER_FEMALE"
+            ]
+        },
+        "userspb.Profile": {
+            "type": "object",
+            "required": [
+                "gender",
+                "updated_at"
+            ],
+            "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "format": "url",
+                    "example": "https://example.com/photo.jpg"
+                },
+                "birth_date": {
+                    "type": "string",
+                    "example": "2001-11-23"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "Ivan"
+                },
+                "gender": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userspb.GenderValue"
+                        }
+                    ],
+                    "example": 1
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Ivanov"
+                },
+                "middle_name": {
+                    "type": "string",
+                    "example": "Olegovich"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                }
+            }
+        },
+        "userspb.UpdateUserProfileData": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "format": "url",
+                    "example": "https://example.com/photo.jpg"
+                },
+                "birth_date": {
+                    "type": "string",
+                    "example": "2001-11-23"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "Ivan"
+                },
+                "gender_value": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userspb.GenderValue"
+                        }
+                    ],
+                    "example": 1
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Ivanov"
+                },
+                "middle_name": {
+                    "type": "string",
+                    "example": "Olegovich"
+                }
+            }
+        },
+        "userspb.User": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "email",
+                "id",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "makc-dgek@mail.ru"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "+79517735133"
+                },
+                "profile": {
+                    "$ref": "#/definitions/userspb.Profile"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
                 }
             }
         }

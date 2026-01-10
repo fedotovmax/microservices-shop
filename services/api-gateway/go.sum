@@ -13,6 +13,8 @@ github.com/fedotovmax/microservices-shop-protos v1.0.25 h1:wIZGEZJuNejgqGWgMp8gL
 github.com/fedotovmax/microservices-shop-protos v1.0.25/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/microservices-shop-protos v1.0.30 h1:z9O9y24NrhGWDt7YHfamQtQ41uNkURp1JzgCLB4YbUM=
 github.com/fedotovmax/microservices-shop-protos v1.0.30/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
+github.com/fedotovmax/microservices-shop-protos v1.0.31 h1:/OzSSXgqkZoQWiMH328gZHwJAqwSdrw4Oafm1sK8EY0=
+github.com/fedotovmax/microservices-shop-protos v1.0.31/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
 github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=

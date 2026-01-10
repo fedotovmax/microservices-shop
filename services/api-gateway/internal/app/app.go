@@ -68,7 +68,8 @@ func (a *App) Run(cancel context.CancelFunc) {
 
 	log := a.log.With(slog.String("op", op))
 
-	log.Info("Try to start HTTP server", slog.String("port", fmt.Sprintf("%d", a.c.Port)))
+	log.Info("Try to start HTTP server on",
+		slog.String("addr", fmt.Sprintf("http://localhost:%d", a.c.Port)))
 
 	go func() {
 		if err := a.http.Start(); err != nil {

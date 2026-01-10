@@ -16,7 +16,6 @@ import (
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
 var ErrInvalidPayloadForEventType = errors.New("invalid payload for current event type")
 
-// TODO: real methods
 type Usecases interface {
 	CreateUser(ctx context.Context, uid string, email string) error
 }
