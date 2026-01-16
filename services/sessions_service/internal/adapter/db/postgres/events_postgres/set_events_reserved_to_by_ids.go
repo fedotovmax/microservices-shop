@@ -14,7 +14,7 @@ func (p *postgres) SetEventsReservedToByIDs(ctx context.Context, ids []string, d
 
 	const op = "adapter.db.postgres.SetEventsReservedToByIDs"
 
-	reservedTo := time.Now().Add(dur)
+	reservedTo := time.Now().Add(dur).UTC()
 
 	tx := p.ex.ExtractTx(ctx)
 

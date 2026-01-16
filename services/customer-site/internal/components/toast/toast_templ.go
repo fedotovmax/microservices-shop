@@ -8,7 +8,46 @@ package toast
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Toast() templ.Component {
+import "strconv"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
+import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+
+type Variant string
+type Position string
+
+const (
+	VariantDefault Variant = "default"
+	VariantSuccess Variant = "success"
+	VariantError   Variant = "error"
+	VariantWarning Variant = "warning"
+	VariantInfo    Variant = "info"
+)
+
+// const (
+// 	PositionTopRight     Position = "top-right"
+// 	PositionTopLeft      Position = "top-left"
+// 	PositionTopCenter    Position = "top-center"
+// 	PositionBottomRight  Position = "bottom-right"
+// 	PositionBottomLeft   Position = "bottom-left"
+// 	PositionBottomCenter Position = "bottom-center"
+// )
+
+type Props struct {
+	ID          string
+	Class       string
+	Attributes  templ.Attributes
+	Title       string
+	Description string
+	Variant     Variant
+	// Position      Position
+	Duration      int
+	Dismissible   bool
+	ShowIndicator bool
+	Icon          bool
+}
+
+func Toast(props *Props) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +68,291 @@ func Toast() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"toast\" x-on:notify.window=\"addNotification($event.detail)\"><div x-on:mouseenter=\"$dispatch('pause-auto-dismiss')\" x-on:mouseleave=\"$dispatch('resume-auto-dismiss')\" class=\"group pointer-events-none fixed inset-x-8 top-0 z-99 flex max-w-full flex-col gap-2 bg-transparent px-6 py-6 md:bottom-0 md:left-[unset] md:right-0 md:top-[unset] md:max-w-sm\"><template x-for=\"(notification, index) in notifications\" x-bind:key=\"notification.id\"><div><template x-if=\"notification.variant === 'info'\"><div x-data=\"{ isVisible: false, timeout: null }\" x-cloak x-show=\"isVisible\" class=\"pointer-events-auto relative rounded-radius border border-info bg-surface text-on-surface dark:bg-surface-dark dark:text-on-surface-dark\" role=\"alert\" x-on:pause-auto-dismiss.window=\"clearTimeout(timeout)\" x-on:resume-auto-dismiss.window=\"timeout = setTimeout(() => {(isVisible = false), removeNotification(notification.id) }, displayDuration)\" x-init=\"$nextTick(() => { isVisible = true }), (timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id)}, displayDuration))\" x-transition:enter=\"transition duration-300 ease-out\" x-transition:enter-end=\"translate-y-0\" x-transition:enter-start=\"translate-y-8\" x-transition:leave=\"transition duration-300 ease-in\" x-transition:leave-end=\"-translate-x-24 opacity-0 md:translate-x-24\" x-transition:leave-start=\"translate-x-0 opacity-100\"><div class=\"flex w-full items-center gap-2.5 bg-info/10 rounded-radius p-4 transition-all duration-300\"><div class=\"rounded-full bg-info/15 p-0.5 text-info\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\" class=\"size-5\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z\" clip-rule=\"evenodd\"></path></svg></div><div class=\"flex flex-col gap-2\"><h3 x-cloak x-show=\"notification.title\" class=\"text-sm font-semibold text-info\" x-text=\"notification.title\"></h3><p x-cloak x-show=\"notification.message\" class=\"text-pretty text-sm\" x-text=\"notification.message\"></p></div><button type=\"button\" class=\"ml-auto\" aria-label=\"dismiss notification\" x-on:click=\"(isVisible = false), removeNotification(notification.id)\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2\" class=\"size-5 shrink-0\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div></div></template><template x-if=\"notification.variant === 'success'\"><div x-data=\"{ isVisible: false, timeout: null }\" x-cloak x-show=\"isVisible\" class=\"pointer-events-auto relative rounded-radius border border-success bg-surface text-on-surface dark:bg-surface-dark dark:text-on-surface-dark\" role=\"alert\" x-on:pause-auto-dismiss.window=\"clearTimeout(timeout)\" x-on:resume-auto-dismiss.window=\" timeout = setTimeout(() => {(isVisible = false), removeNotification(notification.id) }, displayDuration)\" x-init=\"$nextTick(() => { isVisible = true }), (timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id)}, displayDuration))\" x-transition:enter=\"transition duration-300 ease-out\" x-transition:enter-end=\"translate-y-0\" x-transition:enter-start=\"translate-y-8\" x-transition:leave=\"transition duration-300 ease-in\" x-transition:leave-end=\"-translate-x-24 opacity-0 md:translate-x-24\" x-transition:leave-start=\"translate-x-0 opacity-100\"><div class=\"flex w-full items-center gap-2.5 bg-success/10 rounded-radius p-4 transition-all duration-300\"><div class=\"rounded-full bg-success/15 p-0.5 text-success\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\" class=\"size-5\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z\" clip-rule=\"evenodd\"></path></svg></div><div class=\"flex flex-col gap-2\"><h3 x-cloak x-show=\"notification.title\" class=\"text-sm font-semibold text-success\" x-text=\"notification.title\"></h3><p x-cloak x-show=\"notification.message\" class=\"text-pretty text-sm\" x-text=\"notification.message\"></p></div><button type=\"button\" class=\"ml-auto\" aria-label=\"dismiss notification\" x-on:click=\"(isVisible = false), removeNotification(notification.id)\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2\" class=\"size-5 shrink-0\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div></div></template><template x-if=\"notification.variant === 'warning'\"><div x-data=\"{ isVisible: false, timeout: null }\" x-cloak x-show=\"isVisible\" class=\"pointer-events-auto relative rounded-radius border border-warning bg-surface text-on-surface dark:bg-surface-dark dark:text-on-surface-dark\" role=\"alert\" x-on:pause-auto-dismiss.window=\"clearTimeout(timeout)\" x-on:resume-auto-dismiss.window=\" timeout = setTimeout(() => {(isVisible = false), removeNotification(notification.id) }, displayDuration)\" x-init=\"$nextTick(() => { isVisible = true }), (timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id)}, displayDuration))\" x-transition:enter=\"transition duration-300 ease-out\" x-transition:enter-end=\"translate-y-0\" x-transition:enter-start=\"translate-y-8\" x-transition:leave=\"transition duration-300 ease-in\" x-transition:leave-end=\"-translate-x-24 opacity-0 md:translate-x-24\" x-transition:leave-start=\"translate-x-0 opacity-100\"><div class=\"flex w-full items-center gap-2.5 bg-warning/10 rounded-radius p-4 transition-all duration-300\"><div class=\"rounded-full bg-warning/15 p-0.5 text-warning\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\" class=\"size-5\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z\" clip-rule=\"evenodd\"></path></svg></div><div class=\"flex flex-col gap-2\"><h3 x-cloak x-show=\"notification.title\" class=\"text-sm font-semibold text-warning\" x-text=\"notification.title\"></h3><p x-cloak x-show=\"notification.message\" class=\"text-pretty text-sm\" x-text=\"notification.message\"></p></div><button type=\"button\" class=\"ml-auto\" aria-label=\"dismiss notification\" x-on:click=\"(isVisible = false), removeNotification(notification.id)\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2\" class=\"size-5 shrink-0\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div></div></template><template x-if=\"notification.variant === 'danger'\"><div x-data=\"{ isVisible: false, timeout: null }\" x-cloak x-show=\"isVisible\" class=\"pointer-events-auto relative rounded-radius border border-danger bg-surface text-on-surface dark:bg-surface-dark dark:text-on-surface-dark\" role=\"alert\" x-on:pause-auto-dismiss.window=\"clearTimeout(timeout)\" x-on:resume-auto-dismiss.window=\" timeout = setTimeout(() => {(isVisible = false), removeNotification(notification.id) }, displayDuration)\" x-init=\"$nextTick(() => { isVisible = true }), (timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id)}, displayDuration))\" x-transition:enter=\"transition duration-300 ease-out\" x-transition:enter-end=\"translate-y-0\" x-transition:enter-start=\"translate-y-8\" x-transition:leave=\"transition duration-300 ease-in\" x-transition:leave-end=\"-translate-x-24 opacity-0 md:translate-x-24\" x-transition:leave-start=\"translate-x-0 opacity-100\"><div class=\"flex w-full items-center gap-2.5 bg-danger/10 rounded-radius p-4 transition-all duration-300\"><div class=\"rounded-full bg-danger/15 p-0.5 text-danger\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\" class=\"size-5\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z\" clip-rule=\"evenodd\"></path></svg></div><div class=\"flex flex-col gap-2\"><h3 x-cloak x-show=\"notification.title\" class=\"text-sm font-semibold text-danger\" x-text=\"notification.title\"></h3><p x-cloak x-show=\"notification.message\" class=\"text-pretty text-sm\" x-text=\"notification.message\"></p></div><button type=\"button\" class=\"ml-auto\" aria-label=\"dismiss notification\" x-on:click=\"(isVisible = false), removeNotification(notification.id)\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2\" class=\"size-5 shrink-0\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div></div></template><template x-if=\"notification.variant === 'message'\"><div x-data=\"{ isVisible: false, timeout: null }\" x-cloak x-show=\"isVisible\" class=\"pointer-events-auto relative rounded-radius border border-outline bg-surface text-on-surface dark:border-outline-dark dark:bg-surface-dark dark:text-on-surface-dark\" role=\"alert\" x-on:pause-auto-dismiss.window=\"clearTimeout(timeout)\" x-on:resume-auto-dismiss.window=\"timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id) }, displayDuration)\" x-init=\"$nextTick(() => { isVisible = true }), (timeout = setTimeout(() => { isVisible = false, removeNotification(notification.id) }, displayDuration))\" x-transition:enter=\"transition duration-300 ease-out\" x-transition:enter-end=\"translate-y-0\" x-transition:enter-start=\"translate-y-8\" x-transition:leave=\"transition duration-300 ease-in\" x-transition:leave-end=\"-translate-x-24 opacity-0 md:translate-x-24\" x-transition:leave-start=\"translate-x-0 opacity-100\"><div class=\"flex w-full rounded-radius items-center gap-2.5 bg-surface-alt p-4 transition-all duration-300 dark:bg-surface-dark-alt\"><div class=\"flex w-full items-center gap-2.5\"><img x-cloak x-show=\"notification.sender.avatar\" class=\"mr-2 size-12 rounded-full\" alt=\"avatar\" aria-hidden=\"true\" x-bind:src=\"notification.sender.avatar\"><div class=\"flex flex-col items-start gap-2\"><h3 x-cloak x-show=\"notification.sender.name\" class=\"text-sm font-semibold text-on-surface-strong dark:text-on-surface-dark-strong\" x-text=\"notification.sender.name\"></h3><p x-cloak x-show=\"notification.message\" class=\"text-pretty text-sm\" x-text=\"notification.message\"></p><div class=\"flex items-center gap-4\"><button type=\"button\" class=\"whitespace-nowrap bg-transparent text-center text-sm font-bold tracking-wide text-primary transition hover:opacity-75 active:opacity-100 dark:text-primary-dark\">Reply</button> <button type=\"button\" class=\"whitespace-nowrap bg-transparent text-center text-sm font-bold tracking-wide text-on-surface transition hover:opacity-75 active:opacity-100 dark:text-on-surface-dark\" x-on:click=\" (isVisible = false), setTimeout(() => { removeNotification(notification.id) }, 400)\">Dismiss</button></div></div></div><button type=\"button\" class=\"ml-auto\" aria-label=\"dismiss notification\" x-on:click=\"(isVisible = false), removeNotification(notification.id)\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2\" class=\"size-5 shrink-0\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div></div></template></div></template></div></div>")
+		var p *Props
+		if props != nil {
+			p = props
+		} else {
+			p = &Props{}
+		}
+		if p.ID == "" {
+			p.ID = utils.RandomID()
+		}
+		if p.Variant == "" {
+			p.Variant = VariantDefault
+		}
+		if p.Duration == 0 {
+			p.Duration = 3000
+		}
+		var templ_7745c5c3_Var2 = []any{utils.TwMerge(
+			// Base styles
+			"w-full md:max-w-[420px] relative pointer-events-auto",
+			// Animation
+			"animate-in fade-in slide-in-from-bottom-4 duration-300",
+			// Position-based styles using data attributes
+
+			p.Class,
+		)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(p.ID)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 73, Col: 11}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" data-tui-toast data-tui-toast-duration=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(p.Duration))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 75, Col: 52}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" data-variant=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(string(p.Variant))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 76, Col: 34}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var2).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, p.Attributes)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"w-full bg-popover text-popover-foreground rounded-lg shadow-xs border p-4 flex items-center justify-center overflow-hidden group pointer-events-auto\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if p.ShowIndicator && p.Duration > 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"absolute top-0 left-0 right-0 h-1 overflow-hidden\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 = []any{utils.TwMerge(
+				"toast-progress h-full origin-left transition-transform ease-linear",
+				// Variant colors
+				"data-[variant=default]:bg-gray-500",
+				"data-[variant=success]:bg-green-500",
+				"data-[variant=error]:bg-red-500",
+				"data-[variant=warning]:bg-yellow-500",
+				"data-[variant=info]:bg-blue-500",
+			)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var7...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var7).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" data-variant=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(string(p.Variant))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 102, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" data-duration=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(p.Duration))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 103, Col: 46}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if p.Icon {
+			switch p.Variant {
+			case VariantSuccess:
+				templ_7745c5c3_Err = icon.Icon(&icon.Props{
+					Size:  22,
+					Icon:  icon.IconCheckCircleOutline24,
+					Class: "text-green-500 mr-3 flex-shrink-0",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case VariantError:
+				templ_7745c5c3_Err = icon.Icon(&icon.Props{
+					Size:  22,
+					Icon:  icon.IconErrorCircleOutline24,
+					Class: "text-red-500 mr-3 flex-shrink-0",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case VariantWarning:
+				templ_7745c5c3_Err = icon.Icon(&icon.Props{
+					Size:  22,
+					Icon:  icon.IconWarningTriangleOutline24,
+					Class: "text-yellow-500 mr-3 flex-shrink-0",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case VariantInfo:
+				templ_7745c5c3_Err = icon.Icon(&icon.Props{
+					Size:  22,
+					Icon:  icon.IconInfoCircleOutline24,
+					Class: "text-blue-500 mr-3 flex-shrink-0",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"min-w-0 flex-1\"><div class=\"mb-2\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if p.Title != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<p class=\"text-sm font-semibold truncate\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 140, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if p.Description != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"text-sm opacity-90 mt-1\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(p.Description)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/toast/toast.templ`, Line: 143, Col: 56}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ_7745c5c3_Var1.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if p.Dismissible {
+			templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = icon.Icon(&icon.Props{
+					Size:  18,
+					Icon:  icon.IconCancelOutline24,
+					Class: "opacity-75 hover:opacity-100",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = button.Button(&button.Props{
+				Size:    button.SizeIcon,
+				Variant: button.VariantGhost,
+				Attributes: templ.Attributes{
+					"aria-label":             "Close",
+					"data-tui-toast-dismiss": "",
+					"type":                   "button",
+				},
+			}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

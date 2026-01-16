@@ -20,7 +20,7 @@ func (p *postgres) RevokeSessions(ctx context.Context, sids []string) error {
 
 	tx := p.ex.ExtractTx(ctx)
 
-	_, err := tx.Exec(ctx, revokeSessionQuery, time.Now(), sids)
+	_, err := tx.Exec(ctx, revokeSessionQuery, time.Now().UTC(), sids)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)

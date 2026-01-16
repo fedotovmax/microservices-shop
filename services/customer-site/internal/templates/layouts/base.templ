@@ -1,0 +1,38 @@
+package layouts
+
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/containers"
+
+type BaseLayoutProps struct {
+	Title           string
+	Description     string
+	PageScriptsBody templ.Component
+	PageScriptsHead templ.Component
+}
+
+templ Base(props *BaseLayoutProps) {
+	{{ var p *BaseLayoutProps }}
+	if props != nil {
+		{{ p = props }}
+	} else {
+		{{ p = &BaseLayoutProps{} }}
+	}
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="theme-color" content="#ffffff"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="description" content={ props.Description }/>
+			<link rel="stylesheet" href="/public/css/styles.css"/>
+			<script src="/public/js/theme.js"></script>
+			<title>{ p.Title }</title>
+		</head>
+		<body>
+			{ children... }
+			@containers.ToastContainers()
+			if p.PageScriptsBody != nil {
+				@p.PageScriptsBody
+			}
+		</body>
+	</html>
+}

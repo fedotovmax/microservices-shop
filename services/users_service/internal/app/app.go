@@ -81,7 +81,9 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	storage := usecase.CreateStorage(eventsPostgres, usersPostgres)
 
-	usecases := usecase.NewUsecases(storage, txManager, log)
+	usecases := usecase.NewUsecases(storage, txManager, log, &usecase.Config{
+		EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
+	})
 
 	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
 

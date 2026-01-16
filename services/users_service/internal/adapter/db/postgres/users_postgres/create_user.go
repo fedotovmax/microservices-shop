@@ -19,7 +19,7 @@ func (p *postgres) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (
 
 	tx := p.ex.ExtractTx(ctx)
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	row := tx.QueryRow(ctx, createUserQuery, in.GetEmail(), in.GetPassword(), now, now)
 

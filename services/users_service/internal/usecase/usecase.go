@@ -34,10 +34,15 @@ type Storage struct {
 	events EventsStorage
 }
 
+type Config struct {
+	EmailVerifyLinkExpiresDuration time.Duration
+}
+
 type usecases struct {
 	s   *Storage
 	txm pgxtx.Manager
 	log *slog.Logger
+	cfg *Config
 }
 
 func CreateStorage(events EventsStorage, users UsersStorage) *Storage {
@@ -47,10 +52,11 @@ func CreateStorage(events EventsStorage, users UsersStorage) *Storage {
 	}
 }
 
-func NewUsecases(s *Storage, txm pgxtx.Manager, log *slog.Logger) *usecases {
+func NewUsecases(s *Storage, txm pgxtx.Manager, log *slog.Logger, cfg *Config) *usecases {
 	return &usecases{
 		s:   s,
 		txm: txm,
 		log: log,
+		cfg: cfg,
 	}
 }

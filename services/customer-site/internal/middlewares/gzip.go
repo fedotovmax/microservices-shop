@@ -15,6 +15,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		if strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 

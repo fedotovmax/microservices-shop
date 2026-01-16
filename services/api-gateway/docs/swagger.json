@@ -38,13 +38,19 @@
                         "description": "Locale",
                         "name": "X-Request-Locale",
                         "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "security code from email when user login from new device or ip address",
+                        "name": "bypass_code",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/userspb.CreateUserResponse"
+                            "$ref": "#/definitions/sessionspb.CreateSessionResponse"
                         }
                     },
                     "400": {
@@ -311,6 +317,27 @@
                 }
             }
         },
+        "sessionspb.CreateSessionResponse": {
+            "type": "object",
+            "required": [
+                "access_token",
+                "refresh_token"
+            ],
+            "properties": {
+                "access_exp_time": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_exp_time": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "timestamppb.Timestamp": {
             "type": "object",
             "properties": {
@@ -510,7 +537,13 @@
                     "format": "uuid"
                 },
                 "user_session_action_status": {
-                    "$ref": "#/definitions/userspb.UserSessionActionStatus"
+                    "description": "SESSION_STATUS_UNSPECIFIED = 0 Reserved for Proto, not a valid value\nSESSION_STATUS_DELETED = 1 User account is deleted\nSESSION_STATUS_EMAIL_NOT_VERIFIED = 2 User email address not verfied\nSESSION_STATUS_BAD_CREDENTIALS = 3 Invalid login or password\nSESSION_STATUS_OK = 4 Success value",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userspb.UserSessionActionStatus"
+                        }
+                    ],
+                    "example": 2
                 }
             }
         },

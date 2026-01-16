@@ -20,7 +20,7 @@ func (p *postgres) UpdateSession(ctx context.Context, in *inputs.CreateSessionIn
 
 	tx := p.ex.ExtractTx(ctx)
 
-	_, err := tx.Exec(ctx, updateSessionQuery, in.RefreshHash, in.IP, in.Browser, in.BrowserVersion, in.OS, in.Device, in.ExpiresAt, time.Now(), in.SID)
+	_, err := tx.Exec(ctx, updateSessionQuery, in.RefreshHash, in.IP, in.Browser, in.BrowserVersion, in.OS, in.Device, in.ExpiresAt, time.Now().UTC(), in.SID)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)

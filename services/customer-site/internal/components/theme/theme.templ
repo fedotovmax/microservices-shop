@@ -1,22 +1,21 @@
 package theme 
 
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
 
 templ ThemeTrigger() {
 	<div class="flex items-center">
-		@btn.Btn(&btn.Props{
+		@button.Button(&button.Props{
 			Class: "mr-3",
-			Attrs: templ.Attributes{
+			Attributes: templ.Attributes{
 				"onclick": templ.JSFuncCall(dom.SetTheme, dom.DarkThemeValue),
 			},
 		}) {
 			dark
 		}
-		@btn.Btn(&btn.Props{
-			Appearance: btn.NewSolidBtn(btn.SolidVariantAlternate, btn.SizeMd),
-			Attrs: templ.Attributes{
-				"id":      1,
+		@button.Button(&button.Props{
+			Variant: button.VariantOutline,
+			Attributes: templ.Attributes{
 				"onclick": templ.JSFuncCall(dom.SetTheme, dom.LightThemeValue),
 			},
 		}) {

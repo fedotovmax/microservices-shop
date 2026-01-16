@@ -28,7 +28,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 		return err
 	}
 
-	codeExpiresAt := time.Now().Add(u.cfg.LoginBypassExpDuration)
+	codeExpiresAt := time.Now().Add(u.cfg.LoginBypassExpDuration).UTC()
 
 	bypassInput := &inputs.SecurityInput{
 		UID:           user.Info.UID,

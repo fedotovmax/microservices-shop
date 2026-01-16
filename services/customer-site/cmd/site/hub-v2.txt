@@ -1,0 +1,211 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"html"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/yourorg/datastar" // замените на реальный импорт datastar
+)
+
+//
+// ====== DOMAIN ======
+//
+
+type Event struct {
+	Type string    `json:"type"` // message | joined | left
+	User string    `json:"user"`
+	Text string    `json:"text,omitempty"`
+	Time time.Time `json:"time"`
+}
+
+type Client struct {
+	id   string
+	send chan Event
+}
+
+//
+// ====== HUB ======
+//
+
+type Hub struct {
+	clients    map[*Client]bool
+	register   chan *Client
+	unregister chan *Client
+	broadcast  chan Event
+}
+
+func NewHub() *Hub {
+	return &Hub{
+		clients:    make(map[*Client]bool),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		broadcast:  make(chan Event, 32),
+	}
+}
+
+func (h *Hub) run() {
+	for {
+		select {
+
+		case client := <-h.register:
+			h.clients[client] = true
+			h.broadcast <- Event{
+				Type: "joined",
+				User: client.id,
+				Time: time.Now(),
+			}
+
+		case client := <-h.unregister:
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+				close(client.send)
+			}
+
+		case event := <-h.broadcast:
+			for client := range h.clients {
+				select {
+				case client.send <- event:
+				default:
+					// клиент не читает — отключаем
+					delete(h.clients, client)
+					close(client.send)
+				}
+			}
+		}
+	}
+}
+
+//
+// ====== HTTP HANDLERS ======
+//
+
+func updatesHandler(hub *Hub) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := r.URL.Query().Get("user")
+		if userID == "" {
+			userID = "anon"
+		}
+
+		client := &Client{
+			id:   userID,
+			send: make(chan Event, 8),
+		}
+
+		hub.register <- client
+		defer func() {
+			hub.unregister <- client
+			hub.broadcast <- Event{
+				Type: "left",
+				User: client.id,
+				Time: time.Now(),
+			}
+		}()
+
+		sse := datastar.NewSSE(w, r) // datastar SSE
+
+		for {
+			select {
+			case <-r.Context().Done():
+				return
+
+			case event, ok := <-client.send:
+				if !ok {
+					return
+				}
+
+				// datastar обновление
+				err := sse.PatchElements(
+					renderEvent(event),
+					datastar.WithSelectorID("updates"),
+					datastar.WithModeAppend(),
+				)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+}
+
+type SendMessageRequest struct {
+	Text string `json:"text"`
+}
+
+func sendMessageHandler(hub *Hub) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var req SendMessageRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid json", http.StatusBadRequest)
+			return
+		}
+
+		if strings.TrimSpace(req.Text) == "" {
+			http.Error(w, "empty message", http.StatusBadRequest)
+			return
+		}
+
+		userID := r.URL.Query().Get("user")
+		if userID == "" {
+			userID = "anon"
+		}
+
+		event := Event{
+			Type: "message",
+			User: userID,
+			Text: req.Text,
+			Time: time.Now(),
+		}
+
+		select {
+		case hub.broadcast <- event:
+			w.WriteHeader(http.StatusAccepted)
+		default:
+			http.Error(w, "chat overloaded", http.StatusServiceUnavailable)
+		}
+	}
+}
+
+//
+// ====== RENDER ======
+//
+
+func renderEvent(e Event) string {
+	switch e.Type {
+	case "message":
+		return fmt.Sprintf(
+			`<div><b>%s</b>: %s</div>`,
+			html.EscapeString(e.User),
+			html.EscapeString(e.Text),
+		)
+	case "joined":
+		return fmt.Sprintf(`<div><i>%s joined</i></div>`, e.User)
+	case "left":
+		return fmt.Sprintf(`<div><i>%s left</i></div>`, e.User)
+	default:
+		return ""
+	}
+}
+
+//
+// ====== MAIN ======
+//
+
+func main() {
+	hub := NewHub()
+	go hub.run()
+
+	r := chi.NewRouter()
+	r.Get("/updates", updatesHandler(hub))
+	r.Post("/message", sendMessageHandler(hub))
+
+	log.Println("listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
+}

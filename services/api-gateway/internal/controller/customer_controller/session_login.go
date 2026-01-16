@@ -2,7 +2,6 @@ package customercontroller
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -30,7 +29,8 @@ type handleSessionStatusParams struct {
 // @Produce      json
 // @Param dto body userspb.UserSessionActionRequest true "Dto for login in account"
 // @Param X-Request-Locale header string false "Locale"
-// @Success      201  {object}  userspb.CreateUserResponse
+// @Param        bypass_code  query     string  false  "security code from email when user login from new device or ip address"
+// @Success      201  {object}  sessionspb.CreateSessionResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      401  {object}  httputils.ErrorResponse
 // @Failure      403  {object}  userspb.UserSessionActionResponse
@@ -106,7 +106,7 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 	case userspb.UserSessionActionStatus_SESSION_STATUS_OK:
 		if params.Response.UserId != nil && params.Response.Email != nil {
 			res, err := c.sessions.CreateSession(ctx, &sessionspb.CreateSessionRequest{
-				Issuer:    fmt.Sprintf("%s.customer_controller", keys.APP_NAME),
+				Issuer:    c.issuer,
 				Uid:       *params.Response.UserId,
 				UserAgent: params.UserAgent,
 				Ip:        params.IP,

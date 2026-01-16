@@ -20,7 +20,7 @@ func (p *postgres) CreateSession(ctx context.Context, in *inputs.CreateSessionIn
 
 	tx := p.ex.ExtractTx(ctx)
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	row := tx.QueryRow(ctx, createSessionQuery, in.SID, in.UID, in.RefreshHash, in.IP, in.Browser, in.BrowserVersion, in.OS, in.Device, in.ExpiresAt, now, now)
 

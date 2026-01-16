@@ -1,0 +1,12 @@
+package containers
+
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+
+templ ToastContainers() {
+	<div id={ dom.ToastContainerTopRight } data-position="top-right" class="pointer-events-none fixed top-0 right-0 z-99 flex flex-col gap-2 w-full max-w-sm p-6"></div>
+	<div id={ dom.ToastContainerTopLeft } data-position="top-left" class="pointer-events-none fixed top-0 left-0 z-99 flex flex-col gap-2 w-full max-w-sm p-6"></div>
+	<div id={ dom.ToastContainerTopCenter } data-position="top-center" class="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 z-99 flex flex-col gap-2 w-full max-w-sm p-6"></div>
+	<div id={ dom.ToastContainerBottomRight } data-position="bottom-right" class="pointer-events-none fixed bottom-0 right-0 z-99 flex flex-col-reverse gap-2 w-full max-w-sm p-6"></div>
+	<div id={ dom.ToastContainerBottomLeft } data-position="bottom-left" class="pointer-events-none fixed bottom-0 left-0 z-99 flex flex-col-reverse gap-2 w-full max-w-sm p-6"></div>
+	<div id={ dom.ToastContainerBottomCenter } data-position="bottom-center" class="pointer-events-none fixed bottom-0 left-1/2 -translate-x-1/2 z-99 flex flex-col-reverse gap-2 w-full max-w-sm p-6"></div>
+}

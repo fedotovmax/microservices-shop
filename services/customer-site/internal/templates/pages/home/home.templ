@@ -1,0 +1,151 @@
+package home
+
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/accordion"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/theme"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/input"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/layouts"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
+import "github.com/starfederation/datastar-go/datastar"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/router"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
+
+templ Home() {
+	@layouts.Base(&layouts.BaseLayoutProps{
+		Title:           "Home",
+		Description:     "Home page!",
+		PageScriptsBody: homeScripts(),
+	}) {
+		<h1 class="text-pink-700 text-4xl font-bold">Datastar test</h1>
+		@theme.ThemeTrigger()
+		<div class="w-full max-w-sm">
+			@accordion.Accordion(&accordion.Props{
+				Class: "w-full",
+			}) {
+				@accordion.Item(&accordion.ItemProps{}) {
+					@accordion.Trigger(&accordion.TriggerProps{}) {
+						Is it accessible?
+					}
+					@accordion.Content(&accordion.ContentProps{}) {
+						Yes. It adheres to the WAI-ARIA design pattern.
+					}
+				}
+				@accordion.Item(&accordion.ItemProps{}) {
+					@accordion.Trigger(&accordion.TriggerProps{}) {
+						Is it styled?
+					}
+					@accordion.Content(&accordion.ContentProps{}) {
+						Yes. It comes with default styles that matches the other components aesthetic.
+					}
+				}
+				@accordion.Item(&accordion.ItemProps{}) {
+					@accordion.Trigger(&accordion.TriggerProps{}) {
+						Is it animated?
+					}
+					@accordion.Content(&accordion.ContentProps{}) {
+						Yes. It is animated by default, but you can disable it if you prefer.
+					}
+				}
+			}
+		</div>
+		<div class="w-full max-w-sm">
+			@input.Input(&input.Props{
+				Type:        input.TypePassword,
+				Placeholder: "your password",
+			})
+		</div>
+		<div>
+			@button.Button(&button.Props{
+				Variant: button.VariantOutline,
+				Attributes: templ.Attributes{
+					"data-on:click": datastar.PostSSE(router.TOAST_ROUTE),
+				},
+			}) {
+				show new toast
+			}
+		</div>
+		@DialogExternalTrigger()
+		<div class="w-full max-w-sm">
+			@input.Input(&input.Props{
+				Type:        input.TypePassword,
+				Placeholder: "your password",
+			})
+		</div>
+		<div class="w-full max-w-sm">
+			@input.Input(&input.Props{
+				Type:        input.TypePassword,
+				Placeholder: "your password",
+			})
+		</div>
+	}
+}
+
+templ DialogExternalTrigger() {
+	<div class="space-y-4">
+		// External trigger button
+		@dialog.Trigger(&dialog.TriggerProps{
+			For: "external-dialog",
+		}) {
+			@button.Button(&button.Props{
+				Variant: button.VariantOutline,
+			}) {
+				Open External Dialog
+			}
+		}
+		// Dialog defined separately
+		@dialog.Dialog(&dialog.Props{
+			ID: "external-dialog",
+		}) {
+			@dialog.Content(&dialog.ContentProps{
+				Class: "max-w-md",
+			}) {
+				@dialog.Header(&dialog.HeaderProps{}) {
+					@dialog.Title(&dialog.TitleProps{}) {
+						External Dialog
+					}
+					@dialog.Description(&dialog.DescriptionProps{}) {
+						This dialog can be triggered from anywhere on the page.
+					}
+				}
+				@dialog.Footer(&dialog.FooterProps{}) {
+					@dialog.Close(&dialog.CloseProps{}) {
+						@button.Button(&button.Props{}) {
+							Close
+						}
+					}
+				}
+			}
+		}
+	</div>
+}
+
+templ TestNotification() {
+	@toast.Toast(&toast.Props{
+		Variant:     toast.VariantInfo,
+		Title:       "Hello from server!",
+		Description: "Lorem ipsum dolor sit amet !",
+		Duration:    200000,
+		Icon:        true,
+		Dismissible: true,
+	}) {
+		@button.Button(&button.Props{
+			Variant: button.VariantOutline,
+		}) {
+			hello in toast
+		}
+	}
+}
+
+templ homeScripts() {
+	<script type="module" src={ resources.HomeScriptJSPath }></script>
+}
+
+// <div>
+// 	<input type="text" data-bind:new_message__case.snake/>
+// 	<button
+// 		data-on:click="@post('/messages')"
+// 	>add new message</button>
+// 	<div id="messages"></div>
+// 	<div id="updates" data-init="@get('/updates')"></div>
+// </div>

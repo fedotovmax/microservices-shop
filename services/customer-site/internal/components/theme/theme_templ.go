@@ -8,8 +8,8 @@ package theme
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
 
 func ThemeTrigger() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -54,9 +54,9 @@ func ThemeTrigger() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = btn.Btn(&btn.Props{
+		templ_7745c5c3_Err = button.Button(&button.Props{
 			Class: "mr-3",
-			Attrs: templ.Attributes{
+			Attributes: templ.Attributes{
 				"onclick": templ.JSFuncCall(dom.SetTheme, dom.DarkThemeValue),
 			},
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
@@ -81,10 +81,9 @@ func ThemeTrigger() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = btn.Btn(&btn.Props{
-			Appearance: btn.NewSolidBtn(btn.SolidVariantAlternate, btn.SizeMd),
-			Attrs: templ.Attributes{
-				"id":      1,
+		templ_7745c5c3_Err = button.Button(&button.Props{
+			Variant: button.VariantOutline,
+			Attributes: templ.Attributes{
 				"onclick": templ.JSFuncCall(dom.SetTheme, dom.LightThemeValue),
 			},
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)

@@ -47,7 +47,9 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		link, err := u.s.users.CreateEmailVerifyLink(txCtx, createUserResult.ID, time.Now().Add(20*time.Minute))
+		expiresAt := time.Now().Add(u.cfg.EmailVerifyLinkExpiresDuration).UTC()
+
+		link, err := u.s.users.CreateEmailVerifyLink(txCtx, createUserResult.ID, expiresAt)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

@@ -1,7 +1,7 @@
 package input
 
 import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/btn"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
 
 type Type string
@@ -24,52 +24,104 @@ const (
 )
 
 type Props struct {
-	Type  Type
-	Class string
-	Attrs templ.Attributes
+	ID               string
+	Class            string
+	Attributes       templ.Attributes
+	Name             string
+	Type             Type
+	Form             string
+	Placeholder      string
+	Value            string
+	Disabled         bool
+	Readonly         bool
+	FileAccept       string
+	HasError         bool
+	NoTogglePassword bool
 }
 
 templ Input(props *Props) {
-	{{ inputType := props.Type }}
-	if inputType == "" {
-		{{ inputType = TypeText }}
+	{{ var p *Props }}
+	if props != nil {
+		{{ p = props }}
+	} else {
+		{{ p = &Props{} }}
 	}
-	<div
-		class="relative w-full"
-		if inputType == TypePassword {
-			x-data="{isShow:false}"
-		}
-	>
+	if p.Type == "" {
+		{{ p.Type = TypeText }}
+	}
+	if p.ID == "" {
+		{{ p.ID = utils.RandomID() }}
+	}
+	<div class="relative w-full">
 		<input
-			class={ utils.TwMerge(
-					"flex w-full rounded-radius border border-outline bg-surface-alt px-2 py-2 text-sm", "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" ,"disabled:cursor-not-allowed disabled:opacity-40 dark:border-outline-dark" ,"dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark",
-					"data-[has-error=true]:border-danger data-[has-error=true]:focus-visible:outline-danger",
-					utils.If(inputType == TypePassword, "pr-8"),
-					props.Class,
-			) }
-			if inputType == TypePassword {
-				:type="isShow ? 'text' : 'password'"
-			} else {
-				type={ string(inputType) }
+			id={ p.ID }
+			type={ string(p.Type) }
+			if p.Name != "" {
+				name={ p.Name }
 			}
-			{ props.Attrs... }
+			if p.Placeholder != "" {
+				placeholder={ p.Placeholder }
+			}
+			if p.Value != "" {
+				value={ p.Value }
+			}
+			if p.Type == TypeFile && p.FileAccept != "" {
+				accept={ p.FileAccept }
+			}
+			if p.Form != "" {
+				form={ p.Form }
+			}
+			disabled?={ p.Disabled }
+			readonly?={ p.Readonly }
+			if p.HasError {
+				aria-invalid="true"
+			}
+			class={
+				utils.TwMerge(
+					// Base styles
+					"flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+					// Dark mode background
+					"dark:bg-input/30",
+					// Selection styles
+					"selection:bg-primary selection:text-primary-foreground",
+					// Placeholder
+					"placeholder:text-muted-foreground",
+					// File input styles
+					"file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground",
+					// Focus styles
+					"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+					// Disabled styles
+					"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+					// Error/Invalid styles
+					"aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40",
+					utils.If(p.HasError, "border-destructive ring-destructive/20 dark:ring-destructive/40"),
+					utils.If(p.Type == TypePassword && !p.NoTogglePassword, "pr-8"),
+					p.Class,
+				),
+			}
+			{ p.Attributes... }
 		/>
-		if inputType == TypePassword {
-			@btn.Btn(&btn.Props{
-				Appearance: btn.NewGhostBtn(btn.GhostVariantPrimary, btn.SizeIcon),
-				Class:      "absolute right-2 top-1/2 -translate-y-1/2 opacity-50",
-				Attrs: templ.Attributes{
-					"@click": "isShow = !isShow",
-				},
+		if p.Type == TypePassword && !p.NoTogglePassword {
+			@button.Button(&button.Props{
+				Size:       button.SizeIcon,
+				Variant:    button.VariantGhost,
+				Class:      "absolute right-0 top-1/2 -translate-y-1/2 opacity-50 cursor-pointer",
+				Attributes: templ.Attributes{"data-tui-input-toggle-password": p.ID},
 			}) {
-				@icon.Icon(&icon.Props{Icon: icon.IconHideOutline24, Attrs: templ.Attributes{
-					"x-show":  "isShow",
-					"x-cloak": "",
-				}})
-				@icon.Icon(&icon.Props{Icon: icon.IconViewOutline24, Attrs: templ.Attributes{
-					"x-show":  "!isShow",
-					"x-cloak": "",
-				}})
+				<span class="icon-open block">
+					@icon.Icon(&icon.Props{
+						Icon:  icon.IconViewOutline24,
+						Class: "size-5",
+						Size:  20,
+					})
+				</span>
+				<span class="icon-closed hidden">
+					@icon.Icon(&icon.Props{
+						Icon:  icon.IconHideOutline24,
+						Class: "size-5",
+						Size:  20,
+					})
+				</span>
 			}
 		}
 	</div>

@@ -4,47 +4,98 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-@theme {
-	/* light theme */
-	--color-surface: var(--color-white);
-	--color-surface-alt: var(--color-neutral-50);
-	--color-on-surface: var(--color-neutral-600);
-	--color-on-surface-strong: var(--color-neutral-900);
-	--color-primary: var(--color-black);
-	--color-on-primary: var(--color-neutral-100);
-	--color-secondary: var(--color-neutral-800);
-	--color-on-secondary: var(--color-white);
-	--color-outline: var(--color-neutral-300);
-	--color-outline-strong: var(--color-neutral-800);
+@custom-variant dark (&:where(.dark, .dark *));
 
-	/* dark theme */
-	--color-surface-dark: var(--color-neutral-950);
-	--color-surface-dark-alt: var(--color-neutral-900);
-	--color-on-surface-dark: var(--color-neutral-300);
-	--color-on-surface-dark-strong: var(--color-white);
-	--color-primary-dark: var(--color-white);
-	--color-on-primary-dark: var(--color-black);
-	--color-secondary-dark: var(--color-neutral-300);
-	--color-on-secondary-dark: var(--color-black);
-	--color-outline-dark: var(--color-neutral-700);
-	--color-outline-dark-strong: var(--color-neutral-300);
-
-	/* shared colors */
-	--color-info: var(--color-sky-500);
-	--color-on-info: var(--color-white);
-	--color-success: var(--color-green-500);
-	--color-on-success: var(--color-white);
-	--color-warning: var(--color-amber-500);
-	--color-on-warning: var(--color-white);
-	--color-danger: var(--color-red-500);
-	--color-on-danger: var(--color-white);
-
-	/* border radius */
-	--radius-radius: var(--radius-sm);
+@theme inline {
+	--breakpoint-3xl: 1600px;
+	--breakpoint-4xl: 2000px;
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
 }
 
-[x-cloak] {
-	display: none !important;
+:root {
+	--radius: 0.65rem;
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-foreground: oklch(0.556 0 0);
+	--accent: oklch(0.97 0 0);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: oklch(0.708 0 0);
+}
+
+[data-theme='dark'] {
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.205 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.205 0 0);
+	--popover-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.922 0 0);
+	--primary-foreground: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-foreground: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
+}
+
+@layer base {
+	* {
+		@apply border-border;
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-muted-foreground) transparent;
+	}
+	*::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	*::-webkit-scrollbar-thumb {
+		background: var(--color-muted-foreground);
+		border-radius: 4px;
+	}
+	*::-webkit-scrollbar-thumb:hover {
+		background: var(--color-foreground);
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
 }
 
 .input-has-error {

@@ -22,7 +22,7 @@ func (p *postgres) FindNewAndNotReservedEvents(ctx context.Context, limit int) (
 
 	tx := p.ex.ExtractTx(ctx)
 
-	rows, err := tx.Query(ctx, findNewAndNotReservedEventsQuery, domain.EventStatusDone, time.Now(), limit)
+	rows, err := tx.Query(ctx, findNewAndNotReservedEventsQuery, domain.EventStatusDone, time.Now().UTC(), limit)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w: %v", op, adapter.ErrInternal, err)

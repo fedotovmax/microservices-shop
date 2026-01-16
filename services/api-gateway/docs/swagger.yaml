@@ -64,6 +64,20 @@ definitions:
       message:
         type: string
     type: object
+  sessionspb.CreateSessionResponse:
+    properties:
+      access_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      access_token:
+        type: string
+      refresh_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      refresh_token:
+        type: string
+    required:
+    - access_token
+    - refresh_token
+    type: object
   timestamppb.Timestamp:
     properties:
       nanos:
@@ -219,7 +233,15 @@ definitions:
         format: uuid
         type: string
       user_session_action_status:
-        $ref: '#/definitions/userspb.UserSessionActionStatus'
+        allOf:
+        - $ref: '#/definitions/userspb.UserSessionActionStatus'
+        description: |-
+          SESSION_STATUS_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+          SESSION_STATUS_DELETED = 1 User account is deleted
+          SESSION_STATUS_EMAIL_NOT_VERIFIED = 2 User email address not verfied
+          SESSION_STATUS_BAD_CREDENTIALS = 3 Invalid login or password
+          SESSION_STATUS_OK = 4 Success value
+        example: 2
     required:
     - user_session_action_status
     type: object
@@ -262,13 +284,18 @@ paths:
         in: header
         name: X-Request-Locale
         type: string
+      - description: security code from email when user login from new device or ip
+          address
+        in: query
+        name: bypass_code
+        type: string
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/userspb.CreateUserResponse'
+            $ref: '#/definitions/sessionspb.CreateSessionResponse'
         "400":
           description: Bad Request
           schema:

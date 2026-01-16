@@ -68,9 +68,6 @@ func (a *App) Run(cancel context.CancelFunc) {
 
 	log := a.log.With(slog.String("op", op))
 
-	log.Info("Try to start HTTP server on",
-		slog.String("addr", fmt.Sprintf("http://localhost:%d", a.c.Port)))
-
 	go func() {
 		if err := a.http.Start(); err != nil {
 			log.Error("Cannot start http server", logger.Err(err))
@@ -79,6 +76,11 @@ func (a *App) Run(cancel context.CancelFunc) {
 			return
 		}
 	}()
+
+	log.Info("Try to start HTTP server on",
+		slog.String("addr", fmt.Sprintf("http://localhost:%d", a.c.Port)))
+
+	log.Info("Swagger documentation is available at", slog.String("addr", fmt.Sprintf("http://localhost:%d/swagger/", a.c.Port)))
 }
 
 func (a *App) Stop(ctx context.Context) {

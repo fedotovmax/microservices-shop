@@ -1,36 +1,27 @@
 {
-  "web/public/js/entrypoints/home-7L2CBBSB.js": {
+  "web/public/js/entrypoints/home-MN2YIEVJ.js": {
     "imports": [],
     "exports": [
       "default"
     ],
     "entryPoint": "web/dev/scripts/entrypoints/home.ts",
     "inputs": {
-      "node_modules/alpinejs/dist/module.esm.js": {
-        "bytesInOutput": 45904
+      "web/dev/scripts/vendor/datastar.js": {
+        "bytesInOutput": 30752
       },
-      "node_modules/@alpinejs/focus/dist/module.esm.js": {
-        "bytesInOutput": 14805
+      "web/dev/scripts/components/input.js": {
+        "bytesInOutput": 487
       },
-      "node_modules/htmx.org/dist/htmx.esm.js": {
-        "bytesInOutput": 60216
+      "web/dev/scripts/components/toast.js": {
+        "bytesInOutput": 1447
       },
-      "web/dev/scripts/components/toast.ts": {
-        "bytesInOutput": 478
-      },
-      "web/dev/scripts/components/modal.ts": {
-        "bytesInOutput": 89
-      },
-      "web/dev/scripts/shared/selectors.ts": {
-        "bytesInOutput": 50
-      },
-      "web/dev/scripts/shared/htmx/index.ts": {
-        "bytesInOutput": 394
+      "web/dev/scripts/components/dialog.js": {
+        "bytesInOutput": 4193
       },
       "web/dev/scripts/entrypoints/home.ts": {
-        "bytesInOutput": 460
+        "bytesInOutput": 62
       }
     },
-    "bytes": 122935
+    "bytes": 37536
   }
 }

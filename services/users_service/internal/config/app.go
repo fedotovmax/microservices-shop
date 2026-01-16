@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
@@ -10,11 +11,12 @@ import (
 )
 
 type AppConfig struct {
-	KafkaBrokers    []string
-	Env             string
-	DBUrl           string
-	TranslationPath string
-	Port            uint16
+	EmailVerifyLinkExpiresDuration time.Duration
+	KafkaBrokers                   []string
+	Env                            string
+	DBUrl                          string
+	TranslationPath                string
+	Port                           uint16
 }
 
 type appFlags struct {
@@ -76,15 +78,21 @@ func LoadAppConfig() (*AppConfig, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
+	emailVerifyLinkExpiresDuration, err := envconfig.GetEnvAs[time.Duration]("EMAIL_VERIFY_LINK_EXPIRES_DURATION")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	config := &AppConfig{
-		Env:             appEnv,
-		Port:            port,
-		DBUrl:           dbUrl,
-		KafkaBrokers:    kafkaBrokers,
-		TranslationPath: translationPath,
+		Env:                            appEnv,
+		Port:                           port,
+		DBUrl:                          dbUrl,
+		KafkaBrokers:                   kafkaBrokers,
+		TranslationPath:                translationPath,
+		EmailVerifyLinkExpiresDuration: emailVerifyLinkExpiresDuration,
 	}
 
 	return config, nil

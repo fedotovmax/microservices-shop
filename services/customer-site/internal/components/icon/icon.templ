@@ -7,11 +7,22 @@ import "github.com/fedotovmax/microservices-shop/customer-site/internal/resource
 type Props struct {
 	Class string
 	Attrs templ.Attributes
+	Size  int
 	Icon  ID
 }
 
 templ Icon(props *Props) {
-	<svg class={ utils.TwMerge("w-6 h-6 fill-current transition-colors", props.Class) } { props.Attrs... }>
-		<use xlink:href={ fmt.Sprintf("%s#%s", resources.SpriteName, props.Icon) }></use>
+	{{ var p *Props }}
+	if props != nil {
+		{{ p = props }}
+	} else {
+		{{ p = &Props{} }}
+	}
+	{{ size := p.Size }}
+	if size <= 0 {
+		{{ size = 24 }}
+	}
+	<svg width={ size } height={ size } class={ utils.TwMerge("fill-current transition-colors", p.Class) } { p.Attrs... }>
+		<use xlink:href={ fmt.Sprintf("%s#%s", resources.SpriteName, p.Icon) }></use>
 	</svg>
 }

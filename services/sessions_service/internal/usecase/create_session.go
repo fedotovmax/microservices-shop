@@ -88,7 +88,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration)
+		refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration).UTC()
 
 		newAccessToken, err := u.jwt.CreateAccessToken(
 			data.issuer,

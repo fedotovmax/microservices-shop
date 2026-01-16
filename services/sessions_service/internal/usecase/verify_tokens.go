@@ -113,7 +113,7 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration)
+	refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration).UTC()
 
 	err = u.storage.sessions.UpdateSession(ctx, &inputs.CreateSessionInput{
 		SID:            session.ID,

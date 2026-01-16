@@ -27,7 +27,7 @@ func (a *jwtAdapter) CreateAccessToken(issuer, uid, sid string) (*domain.NewAcce
 
 	const op = "adapter.auth.jwt.CreateAccessToken"
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	accessExpTime := now.Add(a.config.AccessTokenExpDuration)
 
