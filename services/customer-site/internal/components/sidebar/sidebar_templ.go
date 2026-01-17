@@ -726,7 +726,7 @@ func Trigger(props *TriggerProps) templ.Component {
 			ctx = templ.InitializeContext(ctx)
 			templ_7745c5c3_Err = icon.Icon(&icon.Props{
 				Class: "size-4",
-				Icon:  icon.IconPanelLeftOutline24,
+				Icon:  icon.IconPanelLeft,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
