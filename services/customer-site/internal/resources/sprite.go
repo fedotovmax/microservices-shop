@@ -1,3 +1,3 @@
 package resources
 
-const SpriteName = "/public/icons/sprite.81d9d040.svg"
+const SpriteName = "/public/icons/sprite.5eaf0e1a.svg"

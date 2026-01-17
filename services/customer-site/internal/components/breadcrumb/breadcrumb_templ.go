@@ -539,7 +539,7 @@ func Separator(props *SeparatorProps) templ.Component {
 		} else {
 			templ_7745c5c3_Err = icon.Icon(&icon.Props{
 				Size:  14,
-				Icon:  icon.IconChevronRightSmall24,
+				Icon:  icon.IconChevronRight,
 				Class: "text-muted-foreground",
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

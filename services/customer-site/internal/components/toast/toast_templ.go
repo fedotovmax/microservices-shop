@@ -227,7 +227,7 @@ func Toast(props *Props) templ.Component {
 			case VariantSuccess:
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
 					Size:  22,
-					Icon:  icon.IconCheckCircleOutline24,
+					Icon:  icon.IconCircleCheck,
 					Class: "text-green-500 mr-3 flex-shrink-0",
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -236,7 +236,7 @@ func Toast(props *Props) templ.Component {
 			case VariantError:
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
 					Size:  22,
-					Icon:  icon.IconErrorCircleOutline24,
+					Icon:  icon.IconCircleX,
 					Class: "text-red-500 mr-3 flex-shrink-0",
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -245,7 +245,7 @@ func Toast(props *Props) templ.Component {
 			case VariantWarning:
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
 					Size:  22,
-					Icon:  icon.IconWarningTriangleOutline24,
+					Icon:  icon.IconTriangleAlert,
 					Class: "text-yellow-500 mr-3 flex-shrink-0",
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -254,7 +254,7 @@ func Toast(props *Props) templ.Component {
 			case VariantInfo:
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
 					Size:  22,
-					Icon:  icon.IconInfoCircleOutline24,
+					Icon:  icon.IconInfo,
 					Class: "text-blue-500 mr-3 flex-shrink-0",
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -331,7 +331,7 @@ func Toast(props *Props) templ.Component {
 				ctx = templ.InitializeContext(ctx)
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
 					Size:  18,
-					Icon:  icon.IconCancelOutline24,
+					Icon:  icon.IconX,
 					Class: "opacity-75 hover:opacity-100",
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {

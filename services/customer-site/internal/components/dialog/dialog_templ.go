@@ -575,7 +575,7 @@ func Content(props *ContentProps) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = icon.Icon(&icon.Props{
-				Icon: icon.IconCancelOutline24,
+				Icon: icon.IconX,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

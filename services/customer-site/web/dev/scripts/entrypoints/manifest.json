@@ -1,5 +1,5 @@
 {
-  "web/public/js/entrypoints/home-MN2YIEVJ.js": {
+  "web/public/js/entrypoints/home-AUJOYZ7C.js": {
     "imports": [],
     "exports": [
       "default"
@@ -7,10 +7,13 @@
     "entryPoint": "web/dev/scripts/entrypoints/home.ts",
     "inputs": {
       "web/dev/scripts/vendor/datastar.js": {
-        "bytesInOutput": 30752
+        "bytesInOutput": 30938
       },
       "web/dev/scripts/components/input.js": {
         "bytesInOutput": 487
+      },
+      "web/dev/scripts/components/rating.js": {
+        "bytesInOutput": 3607
       },
       "web/dev/scripts/components/toast.js": {
         "bytesInOutput": 1447
@@ -18,10 +21,28 @@
       "web/dev/scripts/components/dialog.js": {
         "bytesInOutput": 4193
       },
+      "web/dev/scripts/components/label.js": {
+        "bytesInOutput": 898
+      },
+      "web/dev/scripts/components/dropdown.js": {
+        "bytesInOutput": 424
+      },
+      "web/dev/scripts/components/selectbox.js": {
+        "bytesInOutput": 8364
+      },
+      "web/dev/scripts/vendor/floatingui_core.js": {
+        "bytesInOutput": 12440
+      },
+      "web/dev/scripts/vendor/floatingui_dom.js": {
+        "bytesInOutput": 9996
+      },
+      "web/dev/scripts/components/popover.js": {
+        "bytesInOutput": 6745
+      },
       "web/dev/scripts/entrypoints/home.ts": {
-        "bytesInOutput": 62
+        "bytesInOutput": 122
       }
     },
-    "bytes": 37536
+    "bytes": 80256
   }
 }

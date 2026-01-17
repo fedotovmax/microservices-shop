@@ -296,7 +296,7 @@ func Input(props *Props) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
-					Icon:  icon.IconViewOutline24,
+					Icon:  icon.IconEye,
 					Class: "size-5",
 					Size:  20,
 				}).Render(ctx, templ_7745c5c3_Buffer)
@@ -308,7 +308,7 @@ func Input(props *Props) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = icon.Icon(&icon.Props{
-					Icon:  icon.IconHideOutline24,
+					Icon:  icon.IconEyeOff,
 					Class: "size-5",
 					Size:  20,
 				}).Render(ctx, templ_7745c5c3_Buffer)

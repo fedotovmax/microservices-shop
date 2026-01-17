@@ -13,8 +13,13 @@ type Props struct {
 	TargetID string           // Required - ID of element to copy from
 }
 
-templ CopyButton(props Props) {
-	{{ var p = props }}
+templ CopyButton(props *Props) {
+	{{ var p *Props }}
+	if props != nil {
+		{{ p = props }}
+	} else {
+		{{ p = &Props{} }}
+	}
 	if p.ID == "" {
 		{{ p.ID = "copybutton-" + utils.RandomID() }}
 	}
@@ -34,13 +39,13 @@ templ CopyButton(props Props) {
 			<span data-copy-icon-clipboard>
 				@icon.Icon(&icon.Props{
 					Size: 16,
-					Icon: icon.IconCopyOutline24,
+					Icon: icon.IconClipboard,
 				})
 			</span>
 			<span data-copy-icon-check class="hidden">
 				@icon.Icon(&icon.Props{
 					Size: 16,
-					Icon: icon.IconDoneOutline24,
+					Icon: icon.IconCheck,
 				})
 			</span>
 		}

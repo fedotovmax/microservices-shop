@@ -224,7 +224,7 @@ func Checkbox(props *Props) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = icon.Icon(&icon.Props{Size: 14, Icon: icon.IconDoneOutline24}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = icon.Icon(&icon.Props{Size: 14, Icon: icon.IconCheck}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -233,7 +233,7 @@ func Checkbox(props *Props) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = icon.Icon(&icon.Props{Size: 14, Icon: icon.IconMinusOutline24}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = icon.Icon(&icon.Props{Size: 14, Icon: icon.IconMinus}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

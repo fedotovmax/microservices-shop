@@ -298,7 +298,7 @@ func Calendar(props *Props) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
-			Icon: icon.IconChevronLeftSmall24,
+			Icon: icon.IconChevronLeft,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -407,7 +407,7 @@ func Calendar(props *Props) templ.Component {
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
 			Size:  14,
-			Icon:  icon.IconChevronDownSmall24,
+			Icon:  icon.IconChevronDown,
 			Class: "text-muted-foreground",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -504,7 +504,7 @@ func Calendar(props *Props) templ.Component {
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
 			Size:  14,
-			Icon:  icon.IconChevronDownSmall24,
+			Icon:  icon.IconChevronLeft,
 			Class: "text-muted-foreground",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -515,7 +515,7 @@ func Calendar(props *Props) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
-			Icon: icon.IconChevronRightSmall24,
+			Icon: icon.IconChevronRight,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

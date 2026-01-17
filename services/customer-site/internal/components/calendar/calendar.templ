@@ -136,7 +136,7 @@ templ Calendar(props *Props) {
 					class="inline-flex items-center justify-center rounded-md text-sm font-medium h-7 w-7 hover:bg-accent hover:text-accent-foreground focus:outline-none disabled:opacity-50 shrink-0"
 				>
 					@icon.Icon(&icon.Props{
-						Icon: icon.IconChevronLeftSmall24,
+						Icon: icon.IconChevronLeft,
 					})
 				</button>
 				<div class="flex gap-2 flex-1 min-w-0">
@@ -159,7 +159,7 @@ templ Calendar(props *Props) {
 							<span id={ p.ID + "-month-value" }>{ monthNames[currentMonth] }</span>
 							@icon.Icon(&icon.Props{
 								Size:  14,
-								Icon:  icon.IconChevronDownSmall24,
+								Icon:  icon.IconChevronDown,
 								Class: "text-muted-foreground",
 							})
 						</span>
@@ -183,7 +183,7 @@ templ Calendar(props *Props) {
 							<span id={ p.ID + "-year-value" }>{ strconv.Itoa(currentYear) }</span>
 							@icon.Icon(&icon.Props{
 								Size:  14,
-								Icon:  icon.IconChevronDownSmall24,
+								Icon:  icon.IconChevronLeft,
 								Class: "text-muted-foreground",
 							})
 						</span>
@@ -195,7 +195,7 @@ templ Calendar(props *Props) {
 					class="inline-flex items-center justify-center rounded-md text-sm font-medium h-7 w-7 hover:bg-accent hover:text-accent-foreground focus:outline-none disabled:opacity-50 shrink-0"
 				>
 					@icon.Icon(&icon.Props{
-						Icon: icon.IconChevronRightSmall24,
+						Icon: icon.IconChevronRight,
 					})
 				</button>
 			</div>

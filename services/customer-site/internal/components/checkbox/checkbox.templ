@@ -69,13 +69,13 @@ templ Checkbox(props *Props) {
 			if p.Icon != nil {
 				@p.Icon
 			} else {
-				@icon.Icon(&icon.Props{Size: 14, Icon: icon.IconDoneOutline24})
+				@icon.Icon(&icon.Props{Size: 14, Icon: icon.IconCheck})
 			}
 		</div>
 		<div
 			class="absolute inset-0 pointer-events-none flex items-center justify-center text-primary-foreground opacity-0 peer-indeterminate:opacity-100"
 		>
-			@icon.Icon(&icon.Props{Size: 14, Icon: icon.IconMinusOutline24})
+			@icon.Icon(&icon.Props{Size: 14, Icon: icon.IconMinus})
 		</div>
 	</div>
 }

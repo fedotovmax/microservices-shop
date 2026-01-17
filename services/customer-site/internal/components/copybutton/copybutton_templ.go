@@ -21,7 +21,7 @@ type Props struct {
 	TargetID string           // Required - ID of element to copy from
 }
 
-func CopyButton(props Props) templ.Component {
+func CopyButton(props *Props) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -42,7 +42,12 @@ func CopyButton(props Props) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var p = props
+		var p *Props
+		if props != nil {
+			p = props
+		} else {
+			p = &Props{}
+		}
 		if p.ID == "" {
 			p.ID = "copybutton-" + utils.RandomID()
 		}
@@ -53,7 +58,7 @@ func CopyButton(props Props) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(p.TargetID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/copybutton/copybutton.templ`, Line: 23, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/copybutton/copybutton.templ`, Line: 28, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -81,7 +86,7 @@ func CopyButton(props Props) templ.Component {
 			}
 			templ_7745c5c3_Err = icon.Icon(&icon.Props{
 				Size: 16,
-				Icon: icon.IconCopyOutline24,
+				Icon: icon.IconClipboard,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -92,7 +97,7 @@ func CopyButton(props Props) templ.Component {
 			}
 			templ_7745c5c3_Err = icon.Icon(&icon.Props{
 				Size: 16,
-				Icon: icon.IconDoneOutline24,
+				Icon: icon.IconCheck,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

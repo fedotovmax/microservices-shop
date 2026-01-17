@@ -10,6 +10,15 @@ import "github.com/starfederation/datastar-go/datastar"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/sheet"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/popover"
+import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/label"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/tooltip"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dropdown"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/selectbox"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/rating"
 
 templ Home() {
 	@layouts.Base(&layouts.BaseLayoutProps{
@@ -65,8 +74,16 @@ templ Home() {
 				show new toast
 			}
 		</div>
+		// ============== Examples
+		@SheetExternalTrigger()
 		@DialogExternalTrigger()
-		<div class="w-full max-w-sm">
+		@PopoverDefault()
+		@TooltipDefault()
+		@DropdownDefault()
+		@SelectBoxMultipleSelectPills()
+		@RatingStyles()
+		// ============== Examples
+		<div class="w-full max-w-sm mt-3">
 			@input.Input(&input.Props{
 				Type:        input.TypePassword,
 				Placeholder: "your password",
@@ -78,6 +95,50 @@ templ Home() {
 				Placeholder: "your password",
 			})
 		</div>
+	}
+}
+
+templ SheetExternalTrigger() {
+	// Sheet with content but no internal trigger
+	@sheet.Sheet(&sheet.Props{
+		ID:   "external-trigger-demo",
+		Side: sheet.SideRight,
+	}) {
+		// No trigger inside - will be triggered externally
+		@sheet.Content(&sheet.ContentProps{}) {
+			@sheet.Header(&sheet.HeaderProps{}) {
+				@sheet.Title(&sheet.TitleProps{}) {
+					External Trigger
+				}
+				@sheet.Description(&sheet.DescriptionProps{}) {
+					This sheet has no internal trigger
+				}
+			}
+			<div class="flex-1 p-4">
+				<p class="text-sm text-muted-foreground">
+					The trigger button exists outside the Sheet component.
+				</p>
+			</div>
+			@sheet.Footer(&sheet.FooterProps{}) {
+				@sheet.Close(&sheet.CloseProps{}) {
+					@button.Button(&button.Props{
+						Variant: button.VariantOutline,
+					}) {
+						Close
+					}
+				}
+			}
+		}
+	}
+	// External trigger outside of Sheet component
+	@sheet.Trigger(&sheet.TriggerProps{
+		For: "external-trigger-demo",
+	}) {
+		@button.Button(&button.Props{
+			Variant: button.VariantOutline,
+		}) {
+			Open Sheet
+		}
 	}
 }
 
@@ -135,6 +196,289 @@ templ TestNotification() {
 			hello in toast
 		}
 	}
+}
+
+templ PopoverDefault() {
+	@popover.Trigger(&popover.TriggerProps{
+		For: "default-popover",
+	}) {
+		@button.Button(&button.Props{
+			Variant: button.VariantOutline,
+		}) {
+			Open Popover
+		}
+	}
+	@popover.Content(&popover.ContentProps{
+		ID: "default-popover",
+	}) {
+		@PopoverContent()
+	}
+}
+
+templ PopoverContent() {
+	{{ var id = utils.RandomID() }}
+	<div class="p-4 space-y-4">
+		<div>
+			<h3 class="text-lg font-semibold">Dimensions</h3>
+			<p>Set the dimensions for the layer.</p>
+		</div>
+		<div class="flex flex-col gap-2 max-w-fit">
+			<div class="flex items-center gap-2">
+				@label.Label(&label.Props{
+					For:   "width" + id,
+					Class: "w-24",
+				}) {
+					Width
+				}
+				@input.Input(&input.Props{
+					ID:          "width" + id,
+					Placeholder: "Width",
+					Value:       "100%",
+					Class:       "flex-1",
+				})
+			</div>
+			<div class="flex items-center gap-2">
+				@label.Label(&label.Props{
+					For:   "height" + id,
+					Class: "w-24",
+				}) {
+					Height
+				}
+				@input.Input(&input.Props{
+					ID:          "height" + id,
+					Placeholder: "Height",
+					Value:       "100%",
+					Class:       "flex-1",
+				})
+			</div>
+		</div>
+	</div>
+}
+
+templ TooltipDefault() {
+	@tooltip.Tooltip(&tooltip.Props{}) {
+		@tooltip.Trigger(&tooltip.TriggerProps{
+			For: "tooltip-default",
+		}) {
+			@button.Button(&button.Props{
+				Variant: button.VariantOutline,
+			}) {
+				Hover Me
+			}
+		}
+		@tooltip.Content(&tooltip.ContentProps{
+			ID:            "tooltip-default",
+			Position:      tooltip.PositionTop,
+			HoverDelay:    500,
+			HoverOutDelay: 100,
+		}) {
+			Add to cart
+		}
+	}
+}
+
+templ DropdownDefault() {
+	@dropdown.Dropdown(&dropdown.Props{}) {
+		@dropdown.Trigger(&dropdown.TriggerProps{}) {
+			@button.Button(&button.Props{
+				Variant: button.VariantOutline,
+			}) {
+				Open
+			}
+		}
+		@dropdown.Content(&dropdown.ContentProps{
+			Class: "w-56",
+		}) {
+			@dropdown.Label(&dropdown.LabelProps{}) {
+				My Account
+			}
+			@dropdown.Separator(&dropdown.SeparatorProps{})
+			@dropdown.Group(&dropdown.GroupProps{}) {
+				@dropdown.Item(&dropdown.ItemProps{}) {
+					Team
+				}
+				@dropdown.Sub(&dropdown.SubProps{}) {
+					@dropdown.SubTrigger(&dropdown.SubTriggerProps{}) {
+						<span class="flex items-center">
+							@icon.Icon(&icon.Props{
+								Size:  16,
+								Class: "mr-2",
+								Icon:  icon.IconUsers,
+							})
+							Invite users
+						</span>
+					}
+					@dropdown.SubContent(&dropdown.SubContentProps{}) {
+						@dropdown.Item(&dropdown.ItemProps{}) {
+							<span class="flex items-center">
+								@icon.Icon(&icon.Props{
+									Size:  16,
+									Class: "mr-2",
+									Icon:  icon.IconMail,
+								})
+								Email
+							</span>
+						}
+						@dropdown.Item(&dropdown.ItemProps{}) {
+							<span class="flex items-center">
+								@icon.Icon(&icon.Props{
+									Size:  16,
+									Class: "mr-2",
+									Icon:  icon.IconMessageSquare,
+								})
+								Message
+							</span>
+						}
+						@dropdown.Separator(&dropdown.SeparatorProps{})
+						@dropdown.Item(&dropdown.ItemProps{}) {
+							More...
+						}
+					}
+				}
+				@dropdown.Item(&dropdown.ItemProps{}) {
+					New Team
+					@dropdown.Shortcut(&dropdown.ShortcutProps{}) {
+						⌘+T
+					}
+				}
+			}
+			@dropdown.Separator(&dropdown.SeparatorProps{})
+			@dropdown.Item(&dropdown.ItemProps{
+				Href:   "https://github.com",
+				Target: "_blank",
+			}) {
+				<span class="flex items-center">
+					@icon.Icon(&icon.Props{
+						Size:  16,
+						Class: "mr-2",
+						Icon:  icon.IconGithub,
+					})
+					GitHub
+				</span>
+			}
+			@dropdown.Item(&dropdown.ItemProps{}) {
+				<span class="flex items-center">
+					@icon.Icon(&icon.Props{
+						Size:  16,
+						Class: "mr-2",
+						Icon:  icon.IconLifeBuoy,
+					})
+					Support
+				</span>
+			}
+			@dropdown.Item(&dropdown.ItemProps{
+				Disabled: true,
+			}) {
+				<span class="flex items-center">
+					@icon.Icon(&icon.Props{
+						Size:  16,
+						Class: "mr-2",
+						Icon:  icon.IconCode,
+					})
+					API
+				</span>
+			}
+			@dropdown.Separator(&dropdown.SeparatorProps{})
+			@dropdown.Item(&dropdown.ItemProps{}) {
+				<span class="flex items-center">
+					@icon.Icon(&icon.Props{
+						Size:  16,
+						Class: "mr-2",
+						Icon:  icon.IconLogout,
+					})
+					Log out
+				</span>
+				@dropdown.Shortcut(&dropdown.ShortcutProps{}) {
+					⇧⌘Q
+				}
+			}
+		}
+	}
+}
+
+templ SelectBoxMultipleSelectPills() {
+	<div class="w-full max-w-sm">
+		@selectbox.SelectBox(&selectbox.Props{}) {
+			@selectbox.Trigger(&selectbox.TriggerProps{ShowPills: true}) {
+				@selectbox.Value(&selectbox.ValueProps{
+					Placeholder: "Select a fruit",
+				})
+			}
+			@selectbox.Content(&selectbox.ContentProps{}) {
+				@selectbox.Group(&selectbox.GroupProps{}) {
+					@selectbox.Label(&selectbox.LabelProps{}) {
+						Fruits
+					}
+					@selectbox.Item(&selectbox.ItemProps{
+						Value: "apple",
+					}) {
+						Apple
+					}
+					@selectbox.Item(&selectbox.ItemProps{
+						Value: "banana",
+					}) {
+						Banana
+					}
+					@selectbox.Item(&selectbox.ItemProps{
+						Value: "blueberry",
+					}) {
+						Blueberry
+					}
+					@selectbox.Item(&selectbox.ItemProps{
+						Value: "grapes",
+					}) {
+						Grapes
+					}
+					@selectbox.Item(&selectbox.ItemProps{
+						Value: "pineapple",
+					}) {
+						Pineapple
+					}
+				}
+			}
+		}
+	</div>
+}
+
+templ RatingStyles() {
+	<div class="flex flex-col gap-4">
+		@rating.Rating(&rating.Props{
+			Value: 2,
+		}) {
+			@rating.Group(&rating.GroupProps{}) {
+				for i := 1; i <= 5; i++ {
+					@rating.Item(&rating.ItemProps{
+						Value: i,
+						Style: rating.StyleStar,
+					})
+				}
+			}
+		}
+		@rating.Rating(&rating.Props{
+			Value: 3,
+		}) {
+			@rating.Group(&rating.GroupProps{}) {
+				for i := 1; i <= 5; i++ {
+					@rating.Item(&rating.ItemProps{
+						Value: i,
+						Style: rating.StyleHeart,
+					})
+				}
+			}
+		}
+		@rating.Rating(&rating.Props{
+			Value: 4,
+		}) {
+			@rating.Group(&rating.GroupProps{}) {
+				for i := 1; i <= 5; i++ {
+					@rating.Item(&rating.ItemProps{
+						Value: i,
+						Style: rating.StyleEmoji,
+					})
+				}
+			}
+		}
+	</div>
 }
 
 templ homeScripts() {

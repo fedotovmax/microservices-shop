@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Oudwins/tailwind-merge-go/pkg/twmerge"
+	"github.com/a-h/templ"
 )
 
 func TwMerge(classes ...string) string {
@@ -28,4 +29,14 @@ func If[T comparable](condition bool, value T) T {
 
 func RandomID() string {
 	return fmt.Sprintf("id-%s", rand.Text())
+}
+
+func MergeAttributes(attrs ...templ.Attributes) templ.Attributes {
+	merged := templ.Attributes{}
+	for _, attr := range attrs {
+		for k, v := range attr {
+			merged[k] = v
+		}
+	}
+	return merged
 }

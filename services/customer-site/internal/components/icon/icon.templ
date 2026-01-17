@@ -5,10 +5,12 @@ import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
 
 type Props struct {
-	Class string
-	Attrs templ.Attributes
-	Size  int
-	Icon  ID
+	Class  string
+	Fill   string
+	Stroke string
+	Attrs  templ.Attributes
+	Size   int
+	Icon   ID
 }
 
 templ Icon(props *Props) {
@@ -22,7 +24,25 @@ templ Icon(props *Props) {
 	if size <= 0 {
 		{{ size = 24 }}
 	}
-	<svg width={ size } height={ size } class={ utils.TwMerge("fill-current transition-colors", p.Class) } { p.Attrs... }>
+	{{ fill := p.Fill }}
+	if fill == "" {
+		{{ fill = "none" }}
+	}
+	{{ stroke := p.Stroke }}
+	if stroke == "" {
+		{{ stroke = p.Stroke }}
+	}
+	if stroke == "" {
+		{{ stroke = "currentColor" }}
+	}
+	<svg
+		width={ size }
+		height={ size }
+		class={ utils.TwMerge("transition-colors", p.Class) }
+		fill={ fill }
+		stroke={ stroke }
+		{ p.Attrs... }
+	>
 		<use xlink:href={ fmt.Sprintf("%s#%s", resources.SpriteName, p.Icon) }></use>
 	</svg>
 }

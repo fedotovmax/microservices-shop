@@ -324,7 +324,7 @@ func Trigger(props *TriggerProps) templ.Component {
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
 			Class: "size-4 shrink-0 translate-y-0.5 transition-transform duration-200 text-muted-foreground pointer-events-none",
-			Icon:  icon.IconChevronDownSmall24,
+			Icon:  icon.IconChevronDown,
 			Size:  16,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

@@ -472,7 +472,7 @@ func Previous(props *PreviousProps) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
-			Icon: icon.IconChevronLeftSmall24,
+			Icon: icon.IconChevronLeft,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -570,7 +570,7 @@ func Next(props *NextProps) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = icon.Icon(&icon.Props{
-			Icon: icon.IconChevronRightSmall24,
+			Icon: icon.IconChevronRight,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

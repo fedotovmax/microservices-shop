@@ -1,6 +1,7 @@
 package layouts
 
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/containers"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
 
 type BaseLayoutProps struct {
 	Title           string
@@ -24,6 +25,7 @@ templ Base(props *BaseLayoutProps) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="description" content={ props.Description }/>
 			<link rel="stylesheet" href="/public/css/styles.css"/>
+			<link rel="preload" href={ resources.SpriteName } as="image" type="image/svg+xml"/>
 			<script src="/public/js/theme.js"></script>
 			<title>{ p.Title }</title>
 		</head>
