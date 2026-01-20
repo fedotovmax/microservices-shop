@@ -10,29 +10,21 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/client"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/config"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/pages/home"
+	"github.com/fedotovmax/microservices-shop/customer-site/pkg/logger"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
 	"github.com/go-chi/chi/v5"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/starfederation/datastar-go/datastar"
 )
-
-type Sender struct {
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-}
-
-type Notify struct {
-	Variant *string `json:"variant"`
-	Title   *string `json:"title"`
-	Message *string `json:"message"`
-	Sender  *Sender `json:"sender"`
-}
 
 func Static(dir string) http.Handler {
 	return http.StripPrefix("/public/", http.FileServer(http.Dir(dir)))
@@ -42,20 +34,43 @@ type Store struct {
 	Message string `json:"new_message"`
 }
 
+func setupLooger(env string) (*slog.Logger, error) {
+	switch env {
+	case keys.Development:
+		return logger.NewDevelopmentHandler(slog.LevelDebug), nil
+	case keys.Production:
+		return logger.NewProductionHandler(slog.LevelWarn), nil
+	default:
+		return nil, envconfig.ErrInvalidAppEnv
+	}
+}
+
 func main() {
 
-	log := slog.Default()
+	cfg, err := config.LoadAppConfig()
 
-	projectRoot, err := os.Getwd()
+	if err != nil {
+		logger.GetFallback().Error(err.Error())
+		os.Exit(1)
+	}
 
-	publicDir := filepath.Join(projectRoot, "web", "public")
+	log, err := setupLooger(cfg.Env)
+
+	if err != nil {
+		logger.GetFallback().Error(err.Error())
+		os.Exit(1)
+	}
+
+	workdir, err := os.Getwd()
 
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
 	}
 
-	transport := httptransport.New("localhost:8081", "", nil)
+	publicDir := filepath.Join(workdir, "web", "public")
+
+	transport := httptransport.New(cfg.ApiGatewayAddr, "", nil)
 
 	customersApi := client.New(transport, strfmt.Default).Customers
 	//TODO: use for query to api gateway
@@ -75,7 +90,12 @@ func main() {
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir(publicDir))))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		err := utils.Render(w, r, home.Home())
+
+		csrf := utils.NewCSRF()
+		csrfCookie := utils.CreateCSRFCookie(keys.CookieCsrf, csrf)
+		http.SetCookie(w, csrfCookie)
+
+		err := utils.Render(w, r, home.Home(&home.Props{CSRF: csrf}))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -83,6 +103,9 @@ func main() {
 	})
 
 	r.Post(router.TOAST_ROUTE, func(w http.ResponseWriter, r *http.Request) {
+
+		log.Info(r.Header.Get("X-Csrf-Token"))
+
 		sse := datastar.NewSSE(w, r)
 
 		err := sse.PatchElementTempl(home.TestNotification(), datastar.WithSelectorID(dom.RandomToastContainerID()), datastar.WithModeAppend())
@@ -141,7 +164,7 @@ func main() {
 
 	})
 
-	port := ":3000"
+	port := fmt.Sprintf(":%d", cfg.Port)
 
 	s := &http.Server{
 		Addr:    port,

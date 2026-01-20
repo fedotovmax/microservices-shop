@@ -2,5 +2,6 @@
 	"validation_invalid_body": "the request body has an invalid format",
 	"validation_empty_id": "param id is empty",
 	"bad_credentials": "bad credentials",
-	"unexpected_session_status": "unexpected session status"
+	"unexpected_session_status": "unexpected session status",
+	"unauthorized": "unauthorized"
 }

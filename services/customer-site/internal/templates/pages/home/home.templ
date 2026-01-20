@@ -6,7 +6,7 @@ import "github.com/fedotovmax/microservices-shop/customer-site/internal/componen
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/layouts"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
-import "github.com/starfederation/datastar-go/datastar"
+
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
@@ -19,12 +19,26 @@ import "github.com/fedotovmax/microservices-shop/customer-site/internal/componen
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/selectbox"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/rating"
+import "fmt"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 
-templ Home() {
+type Props struct {
+	CSRF string
+}
+
+templ Home(props *Props) {
+	{{ var p *Props }}
+	if props != nil {
+		{{ p = props }}
+	} else {
+		{{ p = &Props{} }}
+	}
 	@layouts.Base(&layouts.BaseLayoutProps{
 		Title:           "Home",
 		Description:     "Home page!",
 		PageScriptsBody: homeScripts(),
+		CSRF:            p.CSRF,
 	}) {
 		<h1 class="text-pink-700 text-4xl font-bold">Datastar test</h1>
 		@theme.ThemeTrigger()
@@ -68,7 +82,12 @@ templ Home() {
 			@button.Button(&button.Props{
 				Variant: button.VariantOutline,
 				Attributes: templ.Attributes{
-					"data-on:click": datastar.PostSSE(router.TOAST_ROUTE),
+					"data-on:click": utils.DatastarSseWithOptions("post", router.TOAST_ROUTE, fmt.Sprintf(`
+					{
+    				headers: {
+        			'%s': document.getElementById('%s').content,
+						}
+					}`, keys.HeaderCsrf, dom.META_CSRF)),
 				},
 			}) {
 				show new toast

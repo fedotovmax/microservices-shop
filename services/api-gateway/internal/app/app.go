@@ -42,7 +42,18 @@ func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	customerController := customercontroller.New(r, log, usersClient.RPC, sessionsClient.RPC)
+	customerController := customercontroller.New(
+		r,
+		log,
+		usersClient.RPC,
+		sessionsClient.RPC,
+		&customercontroller.Config{
+			SessionsTokenIssuer:     c.SessionsTokenIssuer,
+			ApplicationsTokenIssuer: c.ApplicationsTokenIssuer,
+			SessionsTokenSecret:     c.SessionsTokenSecret,
+			ApplicationsTokenSecret: c.ApplicationsTokenSecret,
+		},
+	)
 
 	customerController.Register()
 

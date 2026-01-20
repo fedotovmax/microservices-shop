@@ -10,4 +10,8 @@ const (
 	BadCredentials = "bad_credentials"
 
 	UnexpectedSessionStatus = "unexpected_session_status"
+
+	Unauthorized = "unauthorized"
+
+	UnexpectedApp = "unexpected_app"
 )

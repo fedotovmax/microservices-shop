@@ -1,20 +1,26 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
 	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
+	"github.com/fedotovmax/validation"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	Env                string
-	Port               uint16
-	UsersClientAddr    string
-	SessionsClientAddr string
-	TranslationPath    string
+	Env                     string
+	UsersClientAddr         string
+	SessionsClientAddr      string
+	TranslationPath         string
+	SessionsTokenIssuer     string
+	ApplicationsTokenIssuer string
+	SessionsTokenSecret     string
+	ApplicationsTokenSecret string
+	Port                    uint16
 }
 
 type appFlags struct {
@@ -78,15 +84,103 @@ func LoadAppConfig() (*AppConfig, error) {
 		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
 	}
 
+	sessionsTokenIssuer, err := envconfig.GetEnv("SESSIONS_TOKEN_ISSUER")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
+	}
+
+	sessionsTokenSecret, err := envconfig.GetEnv("SESSIONS_TOKEN_SECRET")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
+	}
+
+	appsTokenSecret, err := envconfig.GetEnv("APPS_TOKEN_SECRET")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
+	}
+
+	appsTokenIssuer, err := envconfig.GetEnv("APPS_TOKEN_ISSUER")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errConfigPathNotExists)
+	}
+
 	config := &AppConfig{
-		Env:                appEnv,
-		Port:               port,
-		UsersClientAddr:    usersClientAddr,
-		SessionsClientAddr: sessionsClientAddr,
-		TranslationPath:    translationPath,
+		Env:                     appEnv,
+		Port:                    port,
+		UsersClientAddr:         usersClientAddr,
+		SessionsClientAddr:      sessionsClientAddr,
+		TranslationPath:         translationPath,
+		SessionsTokenIssuer:     sessionsTokenIssuer,
+		ApplicationsTokenIssuer: appsTokenIssuer,
+		SessionsTokenSecret:     sessionsTokenSecret,
+		ApplicationsTokenSecret: appsTokenSecret,
+	}
+
+	err = config.validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: invalid config: %w", op, err)
 	}
 
 	return config, nil
+}
+
+func (c *AppConfig) validate() error {
+	var verrs []error
+
+	// TRANSLATIONS_PATH
+	err := validation.IsFilePath(c.TranslationPath)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "TranslationPath", err))
+	}
+
+	// USERS_CLIENT_ADDR
+	_, err = validation.IsURI(c.UsersClientAddr)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "UsersClientAddr", err))
+	}
+
+	// SESSIONS_CLIENT_ADDR
+	_, err = validation.IsURI(c.SessionsClientAddr)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "SessionsClientAddr", err))
+	}
+
+	// SESSIONS_TOKEN_ISSUER
+	err = validation.MinLength(c.SessionsTokenIssuer, 1)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "SessionsTokenIssuer", err))
+	}
+
+	// APPLICATIONS_TOKEN_ISSUER
+	err = validation.MinLength(c.ApplicationsTokenIssuer, 1)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "ApplicationsTokenIssuer", err))
+	}
+
+	// SESSIONS_TOKEN_SECRET
+	err = validation.MinLength(c.SessionsTokenSecret, 1)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "SessionsTokenSecret", err))
+	}
+
+	// APPLICATIONS_TOKEN_SECRET
+	err = validation.MinLength(c.ApplicationsTokenSecret, 1)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "ApplicationsTokenSecret", err))
+	}
+
+	// PORT
+	err = validation.Range(c.Port, 1024, 65535)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "Port", err))
+	}
+
+	return errors.Join(verrs...)
 }
 
 func loadAppConfigFlags() (*appFlags, error) {

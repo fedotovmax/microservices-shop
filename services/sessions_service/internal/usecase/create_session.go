@@ -9,11 +9,11 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
+	"github.com/fedotovmax/passport"
 	"github.com/google/uuid"
 )
 
 type createSessionData struct {
-	issuer         string
 	uid            string
 	browser        string
 	browserVersion string
@@ -71,7 +71,6 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		}
 
 		data := &createSessionData{
-			issuer:         in.GetIssuer(),
 			uid:            user.Info.UID,
 			browser:        agent.Browser().String(),
 			browserVersion: agent.BrowserVersion(),
@@ -90,11 +89,13 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 
 		refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration).UTC()
 
-		newAccessToken, err := u.jwt.CreateAccessToken(
-			data.issuer,
-			data.uid,
-			sid,
-		)
+		token, exp, err := passport.CreateAccessToken(passport.CreateParms{
+			Issuer:          u.cfg.TokenIssuer,
+			Secret:          u.cfg.TokenSecret,
+			ExpiresDuration: u.cfg.AccessExpiresDuration,
+			UID:             data.uid,
+			SID:             sid,
+		})
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -117,9 +118,9 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		}
 
 		newSession = &domain.SessionResponse{
-			AccessToken:    newAccessToken.AccessToken,
+			AccessToken:    token,
 			RefreshToken:   refreshToken.nohashed,
-			AccessExpTime:  newAccessToken.AccessExpTime,
+			AccessExpTime:  exp,
 			RefreshExpTime: refreshExpTime,
 		}
 

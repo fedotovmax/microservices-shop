@@ -1,21 +1,23 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"time"
 
 	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
+	"github.com/fedotovmax/validation"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	EmailVerifyLinkExpiresDuration time.Duration
 	KafkaBrokers                   []string
 	Env                            string
 	DBUrl                          string
 	TranslationPath                string
+	EmailVerifyLinkExpiresDuration time.Duration
 	Port                           uint16
 }
 
@@ -95,7 +97,51 @@ func LoadAppConfig() (*AppConfig, error) {
 		EmailVerifyLinkExpiresDuration: emailVerifyLinkExpiresDuration,
 	}
 
+	err = config.validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: invalid config: %w", op, err)
+	}
+
 	return config, nil
+}
+
+func (c *AppConfig) validate() error {
+	var verrs []error
+
+	// TRANSLATIONS_PATH
+	err := validation.IsFilePath(c.TranslationPath)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "TranslationPath", err))
+	}
+
+	// EMAIL_VERIFY_LINK_EXPIRES_DURATION
+	err = validation.Min(c.EmailVerifyLinkExpiresDuration, 1)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "EmailVerifyLinkExpiresDuration", err))
+	}
+
+	// DB_URL
+	_, err = validation.IsURI(c.DBUrl)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "DBUrl", err))
+	}
+
+	// KAFKA_BROKERS
+	for idx, kafkaBroker := range c.KafkaBrokers {
+		_, err = validation.IsURI(kafkaBroker)
+		if err != nil {
+			verrs = append(verrs, fmt.Errorf("%s[%d]: %w", "KafkaBrokers", idx, err))
+		}
+	}
+
+	// PORT
+	err = validation.Range(c.Port, 1024, 65535)
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "Port", err))
+	}
+
+	return errors.Join(verrs...)
 }
 
 func loadAppConfigFlags() (*appFlags, error) {

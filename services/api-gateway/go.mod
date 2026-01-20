@@ -3,19 +3,25 @@ module github.com/fedotovmax/microservices-shop/api-gateway
 go 1.25.4
 
 require (
-	github.com/fedotovmax/envconfig v1.0.0
+	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/httputils v1.0.3
 	github.com/fedotovmax/i18n v1.0.2
-	github.com/fedotovmax/microservices-shop-protos v1.0.36
+	github.com/fedotovmax/microservices-shop-protos v1.0.37
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/grpc v1.78.0
 )
 
-require github.com/swaggo/files/v2 v2.0.0 // indirect
+require (
+	github.com/fedotovmax/passport v1.0.3 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/swaggo/files/v2 v2.0.0 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/fedotovmax/validation v1.0.2
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
 	github.com/go-openapi/jsonreference v0.21.4 // indirect
 	github.com/go-openapi/spec v0.22.3 // indirect

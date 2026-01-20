@@ -10,7 +10,6 @@ import (
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	jwtadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/auth/jwt"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
 	eventspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/events_postgres"
 	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/sessions_postgres"
@@ -77,20 +76,17 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	jwtAdapter := jwtadapter.New(&jwtadapter.Config{
-		AccessTokenExpDuration: c.AccessTokenExpDuration,
-		AccessTokenSecret:      c.AccessTokenSecret,
-	})
-
 	storage := usecase.CreateStorage(eventsPostgres, sessionsPostgres)
 
-	usecases := usecase.New(log, txManager, jwtAdapter, storage, &usecase.Config{
-		RefreshExpiresDuration: c.RefreshTokenExpDuration,
-		//TODO: from cfg
-		BlacklistCodeLength:      6,
-		BlacklistCodeExpDuration: time.Hour * 1,
-		LoginBypassCodeLength:    12,
-		LoginBypassExpDuration:   time.Minute * 20,
+	usecases := usecase.New(log, txManager, storage, &usecase.Config{
+		RefreshExpiresDuration:   c.RefreshTokenExpDuration,
+		AccessExpiresDuration:    c.AccessTokenExpDuration,
+		BlacklistCodeLength:      c.BlacklistCodeLength,
+		BlacklistCodeExpDuration: c.BlacklistCodeExpDuration,
+		LoginBypassCodeLength:    c.LoginBypassCodeLength,
+		LoginBypassExpDuration:   c.LoginBypassExpDuration,
+		TokenIssuer:              c.TokenIssuer,
+		TokenSecret:              c.AccessTokenSecret,
 	})
 
 	grpcController := grpccontroller.New(log, usecases)

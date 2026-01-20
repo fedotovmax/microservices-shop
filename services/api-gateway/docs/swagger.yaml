@@ -319,6 +319,38 @@ paths:
       summary: Login in account
       tags:
       - customers
+  /customers/session/refresh-session:
+    post:
+      consumes:
+      - application/json
+      description: Refresh session by refresh token from headers
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        type: string
+      - description: Refresh token
+        in: header
+        name: X-Refresh-Token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/sessionspb.CreateSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Refresh session
+      tags:
+      - customers
   /customers/users:
     post:
       consumes:
@@ -432,4 +464,9 @@ paths:
       summary: Update user profile
       tags:
       - customers
+securityDefinitions:
+  ApplicationsToken:
+    in: header
+    name: X-App-Token
+    type: apiKey
 swagger: "2.0"

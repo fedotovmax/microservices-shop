@@ -33,6 +33,9 @@ func setupLooger(env string) (*slog.Logger, error) {
 // @description Swagger Documentation for API Gateway of microservices shop project
 // @contact.name Fedotv Maxim (developer)
 // @contact.email f3d0t0tvmax@yandex.ru
+// @securityDefinitions.apikey ApplicationsToken
+// @in header
+// @name X-App-Token
 func main() {
 
 	cfg, err := config.LoadAppConfig()

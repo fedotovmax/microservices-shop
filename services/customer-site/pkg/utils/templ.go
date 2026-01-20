@@ -2,7 +2,9 @@ package utils
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/Oudwins/tailwind-merge-go/pkg/twmerge"
 	"github.com/a-h/templ"
@@ -39,4 +41,21 @@ func MergeAttributes(attrs ...templ.Attributes) templ.Attributes {
 		}
 	}
 	return merged
+}
+
+func CreateJSObject(v any) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "{}"
+	}
+
+	s := string(b)
+	slog.Info("OBJ", slog.String("obj", s))
+	return s
+}
+
+func DatastarSseWithOptions(method, url, opts string) string {
+
+	return fmt.Sprintf("@%s('%s', %s)", method, url, opts)
+
 }

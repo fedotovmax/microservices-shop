@@ -3,7 +3,7 @@ module github.com/fedotovmax/microservices-shop/notify_service
 go 1.25.4
 
 require (
-	github.com/fedotovmax/envconfig v1.0.0
+	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/kafka-lib v1.0.9
 	github.com/joho/godotenv v1.5.1
 )

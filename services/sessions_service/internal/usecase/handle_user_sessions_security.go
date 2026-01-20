@@ -10,16 +10,6 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
 )
 
-func (u *usecases) handleSessionExpired(ctx context.Context, session *domain.Session) error {
-	const op = "usecases.handleSessionExpired"
-
-	if session.IsExpired() {
-		//todo: mb revoke?
-		return fmt.Errorf("%s: %w", op, errs.ErrSessionExpired)
-	}
-	return nil
-}
-
 func (u *usecases) handleSessionRevoked(ctx context.Context, session *domain.Session) error {
 
 	const op = "usecases.handleSessionRevoked"

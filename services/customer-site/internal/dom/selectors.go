@@ -29,3 +29,5 @@ var toastContainers = []string{
 func RandomToastContainerID() string {
 	return toastContainers[rand.Intn(len(toastContainers))]
 }
+
+const META_CSRF = "meta-csrf"

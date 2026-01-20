@@ -21,7 +21,7 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 	bypassCode := grpcutils.GetFromMetadata(ctx, keys.MetadataBypassCodeKey, "")[0]
 
 	input := inputs.NewPrepareSessionInput(
-		req.Uid, req.UserAgent, req.Ip, req.Issuer,
+		req.Uid, req.UserAgent, req.Ip,
 	)
 
 	err := input.Validate(locale)

@@ -20,5 +20,4 @@ const (
 	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
 	BadBypassCode          = "bad_bypass_code"
 	BadBlacklistCode       = "bad_blacklist_code"
-	//TODO: add tranlations for bad_bypass_code, bad_blacklist_code
 )

@@ -86,6 +86,55 @@
                 }
             }
         },
+        "/customers/session/refresh-session": {
+            "post": {
+                "description": "Refresh session by refresh token from headers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Refresh session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Refresh token",
+                        "name": "X-Refresh-Token",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/sessionspb.CreateSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/users": {
             "post": {
                 "description": "Create new user account",
@@ -564,6 +613,13 @@
                 "UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS",
                 "UserSessionActionStatus_SESSION_STATUS_OK"
             ]
+        }
+    },
+    "securityDefinitions": {
+        "ApplicationsToken": {
+            "type": "apiKey",
+            "name": "X-App-Token",
+            "in": "header"
         }
     }
 }

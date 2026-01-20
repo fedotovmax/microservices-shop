@@ -14,7 +14,7 @@ import "github.com/fedotovmax/microservices-shop/customer-site/internal/componen
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/layouts"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
-import "github.com/starfederation/datastar-go/datastar"
+
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
@@ -27,8 +27,15 @@ import "github.com/fedotovmax/microservices-shop/customer-site/internal/componen
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/selectbox"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/rating"
+import "fmt"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 
-func Home() templ.Component {
+type Props struct {
+	CSRF string
+}
+
+func Home(props *Props) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -49,6 +56,12 @@ func Home() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		var p *Props
+		if props != nil {
+			p = props
+		} else {
+			p = &Props{}
+		}
 		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -335,7 +348,12 @@ func Home() templ.Component {
 			templ_7745c5c3_Err = button.Button(&button.Props{
 				Variant: button.VariantOutline,
 				Attributes: templ.Attributes{
-					"data-on:click": datastar.PostSSE(router.TOAST_ROUTE),
+					"data-on:click": utils.DatastarSseWithOptions("post", router.TOAST_ROUTE, fmt.Sprintf(`
+					{
+    				headers: {
+        			'%s': document.getElementById('%s').content,
+						}
+					}`, keys.HeaderCsrf, dom.META_CSRF)),
 				},
 			}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -429,6 +447,7 @@ func Home() templ.Component {
 			Title:           "Home",
 			Description:     "Home page!",
 			PageScriptsBody: homeScripts(),
+			CSRF:            p.CSRF,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2404,7 +2423,7 @@ func homeScripts() templ.Component {
 		var templ_7745c5c3_Var91 string
 		templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(resources.HomeScriptJSPath)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/home/home.templ`, Line: 485, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/home/home.templ`, Line: 504, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
 		if templ_7745c5c3_Err != nil {

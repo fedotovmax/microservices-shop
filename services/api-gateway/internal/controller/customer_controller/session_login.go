@@ -106,7 +106,6 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 	case userspb.UserSessionActionStatus_SESSION_STATUS_OK:
 		if params.Response.UserId != nil && params.Response.Email != nil {
 			res, err := c.sessions.CreateSession(ctx, &sessionspb.CreateSessionRequest{
-				Issuer:    c.issuer,
 				Uid:       *params.Response.UserId,
 				UserAgent: params.UserAgent,
 				Ip:        params.IP,

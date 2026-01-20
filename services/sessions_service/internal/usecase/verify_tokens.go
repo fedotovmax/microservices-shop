@@ -8,43 +8,8 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
+	"github.com/fedotovmax/passport"
 )
-
-func (u *usecases) VerifyAccessToken(ctx context.Context, in *inputs.VerifyAccessInput) (*domain.Session, error) {
-
-	const op = "usecases.VerifyAccessToken"
-
-	sid, uid, err := u.jwt.ParseAccessToken(in.GetAccessToken(), in.GetIssuer())
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	session, err := u.FindSessionByID(ctx, sid)
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	if session.User.Info.UID != uid {
-		u.log.Warn("the received user ID is not equal to the session user ID")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionNotFound)
-	}
-
-	err = u.handleUserBlacklist(ctx, session.User)
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	err = u.handleSessionRevoked(ctx, session)
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return session, nil
-}
 
 func (u *usecases) VerifyRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 
@@ -58,10 +23,8 @@ func (u *usecases) VerifyRefreshToken(ctx context.Context, refreshToken string) 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.handleSessionExpired(ctx, session)
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+	if session.IsExpired() {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrSessionExpired)
 	}
 
 	err = u.handleUserBlacklist(ctx, session.User)
@@ -82,7 +45,6 @@ func (u *usecases) VerifyRefreshToken(ctx context.Context, refreshToken string) 
 
 func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error) {
 
-	//TODO?
 	const op = "usecases.RefreshTokens"
 
 	agent := u.uaparser.Parse(in.GetUserAgent())
@@ -97,11 +59,13 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	newAccessToken, err := u.jwt.CreateAccessToken(
-		in.GetIssuer(),
-		session.User.Info.UID,
-		session.ID,
-	)
+	token, exp, err := passport.CreateAccessToken(passport.CreateParms{
+		Issuer:          u.cfg.TokenIssuer,
+		Secret:          u.cfg.TokenSecret,
+		ExpiresDuration: u.cfg.AccessExpiresDuration,
+		UID:             session.User.Info.UID,
+		SID:             session.ID,
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -132,8 +96,8 @@ func (u *usecases) RefreshTokens(ctx context.Context, in *inputs.RefreshSessionI
 	}
 
 	response := &domain.SessionResponse{
-		AccessToken:    newAccessToken.AccessToken,
-		AccessExpTime:  newAccessToken.AccessExpTime,
+		AccessToken:    token,
+		AccessExpTime:  exp,
 		RefreshToken:   newRefreshToken.nohashed,
 		RefreshExpTime: refreshExpTime,
 	}

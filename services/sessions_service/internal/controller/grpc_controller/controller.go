@@ -19,7 +19,6 @@ import (
 type Usecases interface {
 	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput, bypassCode string) (*domain.SessionResponse, error)
 	RefreshTokens(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error)
-	VerifyAccessToken(ctx context.Context, in *inputs.VerifyAccessInput) (*domain.Session, error)
 }
 
 type controller struct {
@@ -57,7 +56,6 @@ func handleError(l *slog.Logger, locale string, fallback string, err error) erro
 	case errors.Is(err, errs.ErrBadBlacklistCode):
 		code = codes.PermissionDenied
 		msgKey = keys.BadBlacklistCode
-	//TODO: add user in blacklist, user bypass, codes expired, bad codes, login from new ip or device
 	default:
 		l.Warn(err.Error())
 		code = codes.Internal

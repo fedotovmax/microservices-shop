@@ -2,12 +2,14 @@ package layouts
 
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/containers"
 import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
+import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 
 type BaseLayoutProps struct {
 	Title           string
 	Description     string
 	PageScriptsBody templ.Component
 	PageScriptsHead templ.Component
+	CSRF            string
 }
 
 templ Base(props *BaseLayoutProps) {
@@ -22,6 +24,7 @@ templ Base(props *BaseLayoutProps) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="theme-color" content="#ffffff"/>
+			<meta name="csrf-token" content={ p.CSRF } id={ dom.META_CSRF }/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="description" content={ props.Description }/>
 			<link rel="stylesheet" href="/public/css/styles.css"/>

@@ -35,7 +35,6 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	//TODO: get from session
 	userId := r.PathValue("id")
 
 	if userId == "" {

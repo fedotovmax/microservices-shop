@@ -17,11 +17,6 @@ import (
 	"github.com/medama-io/go-useragent"
 )
 
-type JwtAdapter interface {
-	CreateAccessToken(issuer, uid, sid string) (*domain.NewAccessToken, error)
-	ParseAccessToken(token string, issuer string) (jti string, uid string, perr error)
-}
-
 type EventsStorage interface {
 	SetEventStatusDone(ctx context.Context, id string) error
 	SetEventsReservedToByIDs(ctx context.Context, ids []string, dur time.Duration) error
@@ -50,17 +45,19 @@ type Storage struct {
 }
 
 type Config struct {
+	TokenIssuer              string
+	TokenSecret              string
 	RefreshExpiresDuration   time.Duration
-	BlacklistCodeLength      uint8
+	AccessExpiresDuration    time.Duration
 	BlacklistCodeExpDuration time.Duration
-	LoginBypassCodeLength    uint8
 	LoginBypassExpDuration   time.Duration
+	BlacklistCodeLength      uint8
+	LoginBypassCodeLength    uint8
 }
 
 type usecases struct {
 	log      *slog.Logger
 	txm      pgxtx.Manager
-	jwt      JwtAdapter
 	storage  *Storage
 	uaparser *useragent.Parser
 	cfg      *Config
@@ -73,12 +70,11 @@ func CreateStorage(events EventsStorage, sessions SessionsStorage) *Storage {
 	}
 }
 
-func New(log *slog.Logger, txm pgxtx.Manager, jwt JwtAdapter, storage *Storage, cfg *Config) *usecases {
+func New(log *slog.Logger, txm pgxtx.Manager, storage *Storage, cfg *Config) *usecases {
 	uaparser := useragent.NewParser()
 	return &usecases{
 		log:      log,
 		txm:      txm,
-		jwt:      jwt,
 		storage:  storage,
 		uaparser: uaparser,
 		cfg:      cfg,

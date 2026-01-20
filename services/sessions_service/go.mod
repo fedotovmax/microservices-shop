@@ -4,10 +4,10 @@ go 1.25.4
 
 require (
 	github.com/IBM/sarama v1.46.3
-	github.com/fedotovmax/envconfig v1.0.1
+	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/grpcutils v1.0.9
 	github.com/fedotovmax/kafka-lib v1.0.9
-	github.com/fedotovmax/microservices-shop-protos v1.0.30
+	github.com/fedotovmax/microservices-shop-protos v1.0.37
 	github.com/fedotovmax/validation v1.0.2
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
@@ -23,6 +23,7 @@ require (
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
+	github.com/fedotovmax/passport v1.0.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

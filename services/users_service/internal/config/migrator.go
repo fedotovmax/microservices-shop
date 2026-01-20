@@ -1,10 +1,12 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
 	"github.com/fedotovmax/envconfig"
+	"github.com/fedotovmax/validation"
 	"github.com/joho/godotenv"
 )
 
@@ -59,14 +61,49 @@ func LoadMigratorConfig() (*MigratorConfig, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &MigratorConfig{
+	//TODO:validate
+	mc := &MigratorConfig{
 		DBUrl:           dbUrl,
 		Cmd:             mflags.Cmd,
 		Version:         mflags.Version,
 		Steps:           mflags.Steps,
 		MigrationsPath:  migrationsPath,
 		MigrationsTable: migrationsTable,
-	}, nil
+	}
+
+	err = mc.validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: invalid config: %w", op, err)
+	}
+
+	return mc, nil
+
+}
+
+func (mc *MigratorConfig) validate() error {
+	var verrs []error
+
+	_, err := validation.IsURI(mc.DBUrl)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "DBUrl", err))
+	}
+
+	err = validation.IsFilePath(mc.MigrationsPath)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "MigrationsPath", err))
+	}
+
+	err = validation.MinLength(mc.MigrationsTable, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "MigrationsTable", err))
+	}
+
+	return errors.Join(verrs...)
+
 }
 
 type migratorFlags struct {

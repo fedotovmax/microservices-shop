@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/IBM/sarama v1.46.3
-	github.com/fedotovmax/envconfig v1.0.0
+	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/goutils v1.0.1
 	github.com/fedotovmax/grpcutils v1.0.9
 	github.com/fedotovmax/i18n v1.0.2

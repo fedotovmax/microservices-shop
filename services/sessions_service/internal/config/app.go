@@ -1,25 +1,31 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"time"
 
 	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
+	"github.com/fedotovmax/validation"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	KafkaBrokers            []string
-	Env                     string
-	DBUrl                   string
-	TranslationPath         string
-	Port                    uint16
-	AccessTokenSecret       string
-	RefreshTokenSecret      string
-	AccessTokenExpDuration  time.Duration
-	RefreshTokenExpDuration time.Duration
+	KafkaBrokers             []string
+	Env                      string
+	DBUrl                    string
+	TranslationPath          string
+	AccessTokenSecret        string
+	TokenIssuer              string
+	AccessTokenExpDuration   time.Duration
+	RefreshTokenExpDuration  time.Duration
+	BlacklistCodeExpDuration time.Duration
+	LoginBypassExpDuration   time.Duration
+	Port                     uint16
+	BlacklistCodeLength      uint8
+	LoginBypassCodeLength    uint8
 }
 
 type appFlags struct {
@@ -89,12 +95,6 @@ func LoadAppConfig() (*AppConfig, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	refreshTokenSecret, err := envconfig.GetEnv("REFRESH_TOKEN_SECRET")
-
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
 	accessTokenExpDuration, err := envconfig.GetEnvAs[time.Duration]("ACCESS_TOKEN_DURATION")
 
 	if err != nil {
@@ -106,19 +106,140 @@ func LoadAppConfig() (*AppConfig, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	blacklistCodeExpDuration, err := envconfig.GetEnvAs[time.Duration]("BLACKLIST_CODE_EXP_DURATION")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	loginBypassCodeExpDuration, err := envconfig.GetEnvAs[time.Duration]("LOGIN_BYPASS_CODE_EXP_DURATION")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	loginBypassCodeLength, err := envconfig.GetEnvAs[uint8]("LOGIN_BYPASS_CODE_LENGTH")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	blacklistCodeLength, err := envconfig.GetEnvAs[uint8]("BLACKLIST_CODE_LENGTH")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	tokenIssuer, err := envconfig.GetEnv("TOKEN_ISSUER")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
 	config := &AppConfig{
-		Env:                     appEnv,
-		Port:                    port,
-		DBUrl:                   dbUrl,
-		KafkaBrokers:            kafkaBrokers,
-		TranslationPath:         translationPath,
-		AccessTokenSecret:       accessTokenSecret,
-		RefreshTokenSecret:      refreshTokenSecret,
-		AccessTokenExpDuration:  accessTokenExpDuration,
-		RefreshTokenExpDuration: refreshTokenExpDuration,
+		Env:                      appEnv,
+		Port:                     port,
+		DBUrl:                    dbUrl,
+		KafkaBrokers:             kafkaBrokers,
+		TranslationPath:          translationPath,
+		AccessTokenSecret:        accessTokenSecret,
+		AccessTokenExpDuration:   accessTokenExpDuration,
+		RefreshTokenExpDuration:  refreshTokenExpDuration,
+		BlacklistCodeLength:      blacklistCodeLength,
+		BlacklistCodeExpDuration: blacklistCodeExpDuration,
+		LoginBypassCodeLength:    loginBypassCodeLength,
+		LoginBypassExpDuration:   loginBypassCodeExpDuration,
+		TokenIssuer:              tokenIssuer,
+	}
+
+	err = config.validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: invalid config: %w", op, err)
 	}
 
 	return config, nil
+}
+
+func (c *AppConfig) validate() error {
+
+	var verrs []error
+
+	err := validation.IsFilePath(c.TranslationPath)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "TranslationPath", err))
+	}
+
+	err = validation.Min(c.AccessTokenExpDuration, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "AccessTokenExpDuration", err))
+	}
+
+	err = validation.Min(c.RefreshTokenExpDuration, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "RefreshTokenExpDuration", err))
+	}
+
+	err = validation.Min(c.BlacklistCodeExpDuration, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "BlacklistCodeExpDuration", err))
+	}
+
+	err = validation.Min(c.LoginBypassExpDuration, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "LoginBypassExpDuration", err))
+	}
+
+	err = validation.Min(c.BlacklistCodeLength, 6)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "BlacklistCodeLength", err))
+	}
+
+	err = validation.Min(c.LoginBypassCodeLength, 6)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "LoginBypassCodeLength", err))
+	}
+
+	_, err = validation.IsURI(c.DBUrl)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "DBUrl", err))
+	}
+
+	for idx, kafkaBroker := range c.KafkaBrokers {
+		_, err = validation.IsURI(kafkaBroker)
+		if err != nil {
+			verrs = append(verrs, fmt.Errorf("%s[%d]: %w", "KafkaBrokers", idx, err))
+		}
+	}
+
+	err = validation.MinLength(c.TokenIssuer, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "TokenIssuer", err))
+	}
+
+	err = validation.MinLength(c.AccessTokenSecret, 1)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "AccessTokenSecret", err))
+	}
+
+	err = validation.Range(c.Port, 1024, 65535)
+
+	if err != nil {
+		verrs = append(verrs, fmt.Errorf("%s: %w", "Port", err))
+	}
+
+	return errors.Join(verrs...)
+
 }
 
 func loadAppConfigFlags() (*appFlags, error) {
