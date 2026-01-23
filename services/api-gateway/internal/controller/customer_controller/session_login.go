@@ -31,7 +31,7 @@ type handleSessionStatusParams struct {
 // @Produce      json
 // @Param dto body domain.LoginInput true "Dto for login in account"
 // @Param X-Request-Locale header string false "Locale"
-// @Success      201  {object}  sessionspb.CreateSessionResponse
+// @Success      200  {object}  sessionspb.CreateSessionResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      401  {object}  httputils.ErrorResponse
 // @Failure      403  {object}  userspb.UserSessionActionResponse
@@ -77,7 +77,7 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.handleUserSessionActionStatus(ctx, w, &handleSessionStatusParams{
+	c.handleUserSessionActionResponse(ctx, w, &handleSessionStatusParams{
 		UserAgent:        loginInput.UserAgent,
 		IP:               loginInput.Ip,
 		Locale:           locale,
@@ -85,43 +85,86 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 		DeviceTrustToken: loginInput.DeviceTrustToken,
 		Response:         response,
 	})
+
 }
 
-func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.ResponseWriter, params *handleSessionStatusParams) {
+func (c *controller) handleUserSessionActionResponse(
+	ctx context.Context,
+	w http.ResponseWriter,
+	params *handleSessionStatusParams,
+) {
 
-	//TODO: send messages with actions for user
-	switch params.Response.UserSessionActionStatus {
-	case userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS:
-		msg, _ := i18n.Local.Get(params.Locale, keys.BadCredentials)
-		httputils.WriteJSON(w, http.StatusUnauthorized, httputils.NewError(msg))
-		return
-	case userspb.UserSessionActionStatus_SESSION_STATUS_DELETED, userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED:
-		httputils.WriteJSON(w, http.StatusForbidden, params.Response)
-		return
-	case userspb.UserSessionActionStatus_SESSION_STATUS_OK:
-		if params.Response.UserId != nil && params.Response.Email != nil {
-			res, err := c.sessions.CreateSession(ctx, &sessionspb.CreateSessionRequest{
-				Uid:              *params.Response.UserId,
-				UserAgent:        params.UserAgent,
-				Ip:               params.IP,
-				BypassCode:       params.BypassCode,
-				DeviceTrustToken: params.DeviceTrustToken,
-			})
+	const op = "controller.customers.handleUserSessionActionResponse"
 
-			if err != nil {
-				httputils.HandleErrorFromGrpc(w, err)
-				return
-			}
-			httputils.WriteJSON(w, http.StatusCreated, res)
+	l := c.log.With(slog.String("op", op))
+
+	switch t := params.Response.Payload.(type) {
+	case *userspb.UserSessionActionResponse_Deleted:
+		httputils.WriteJSON(w, http.StatusForbidden, t.Deleted)
+		return
+	case *userspb.UserSessionActionResponse_BadCredentials:
+		httputils.WriteJSON(w, http.StatusBadRequest, t.BadCredentials)
+		return
+	case *userspb.UserSessionActionResponse_EmailNotVerified:
+		httputils.WriteJSON(w, http.StatusForbidden, t.EmailNotVerified)
+		return
+	case *userspb.UserSessionActionResponse_Ok:
+		sessionResponse, err := c.sessions.CreateSession(ctx, &sessionspb.CreateSessionRequest{
+			Uid:              t.Ok.UserId,
+			UserAgent:        params.UserAgent,
+			Ip:               params.IP,
+			BypassCode:       params.BypassCode,
+			DeviceTrustToken: params.DeviceTrustToken,
+		})
+
+		if err != nil {
+			httputils.HandleErrorFromGrpc(w, err)
 			return
 		}
-		c.log.Error("unexpected grpc response from users client")
-		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError("unexpected grpc response when get user information for prepare session"))
+		c.handleCreateSessionResponse(w, sessionResponse)
 		return
 	default:
-		c.log.Error("unexpected session status")
-		msg, _ := i18n.Local.Get(params.Locale, keys.UnexpectedSessionStatus)
-		httputils.WriteJSON(w, http.StatusInternalServerError, httputils.NewError(msg))
+		l.Error(
+			"unknown response from grpc.users-service.UserSessionAction",
+			slog.Any("response.payload", params.Response.Payload),
+		)
+		httputils.WriteJSON(
+			w,
+			http.StatusInternalServerError,
+			httputils.NewError("unknown user session action response"),
+		)
 		return
+	}
+}
+
+func (c *controller) handleCreateSessionResponse(w http.ResponseWriter, res *sessionspb.CreateSessionResponse) {
+	const op = "controller.customers.handleCreateSessionResponse"
+
+	l := c.log.With(slog.String("op", op))
+
+	switch t := res.Payload.(type) {
+
+	case *sessionspb.CreateSessionResponse_BadBypassCode:
+		httputils.WriteJSON(w, http.StatusBadRequest, t.BadBypassCode)
+		return
+	case *sessionspb.CreateSessionResponse_LoginFromNewDevice:
+		httputils.WriteJSON(w, http.StatusForbidden, t.LoginFromNewDevice)
+		return
+	case *sessionspb.CreateSessionResponse_SessionCreated:
+		httputils.WriteJSON(w, http.StatusCreated, t.SessionCreated)
+		return
+	case *sessionspb.CreateSessionResponse_UserInBlacklist:
+		httputils.WriteJSON(w, http.StatusForbidden, t.UserInBlacklist)
+		return
+	default:
+		l.Error(
+			"unknown response from grpc.sessions-service.CreateSession",
+			slog.Any("response.payload", res.Payload),
+		)
+		httputils.WriteJSON(
+			w,
+			http.StatusInternalServerError,
+			httputils.NewError("unknown create session response"),
+		)
 	}
 }

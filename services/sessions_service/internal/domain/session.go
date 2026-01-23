@@ -3,9 +3,6 @@ package domain
 import (
 	"net"
 	"time"
-
-	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type NewAccessToken struct {
@@ -164,27 +161,6 @@ type SessionResponse struct {
 	AccessExpTime  time.Time
 	RefreshExpTime time.Time
 	TrustToken     *SessionResponseTrustToken
-}
-
-func (r *SessionResponse) ToProto() *sessionspb.CreateSessionResponse {
-
-	var trustToken *sessionspb.CreatedTrustToken
-
-	if r.TrustToken != nil {
-		trustToken = &sessionspb.CreatedTrustToken{
-			TrustTokenValue:   r.TrustToken.DeviceTrustTokenValue,
-			TrustTokenExpTime: timestamppb.New(r.TrustToken.DeviceTrustTokenExpTime),
-		}
-	}
-
-	return &sessionspb.CreateSessionResponse{
-		AccessToken:    r.AccessToken,
-		RefreshToken:   r.RefreshToken,
-		AccessExpTime:  timestamppb.New(r.AccessExpTime),
-		RefreshExpTime: timestamppb.New(r.RefreshExpTime),
-		TrustToken:     trustToken,
-	}
-
 }
 
 type DeviceTrustToken struct {

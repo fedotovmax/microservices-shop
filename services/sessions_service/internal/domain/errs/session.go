@@ -2,6 +2,10 @@ package errs
 
 import (
 	"errors"
+	"fmt"
+	"time"
+
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
 )
 
 var ErrTrustTokenNotFound = errors.New("trust token not found or expired or revoked")
@@ -16,7 +20,7 @@ var ErrSessionExpired = errors.New("session is expired")
 
 var ErrSessionRevoked = errors.New("session is revoked")
 
-var ErrUserSessionsInBlackList = errors.New("session in blacklist")
+var ErrUserSessionsInBlackList = errors.New(keys.UserInBlacklist)
 
 var ErrBlacklistCodeExpired = errors.New("blacklist code expired")
 
@@ -26,71 +30,48 @@ var ErrAgentLooksLikeBot = errors.New("the user agent looks like a bot")
 
 var ErrInvalidSessionIP = errors.New("invalid session IP")
 
-var ErrLoginFromNewIPOrDevice = errors.New("login from a new IP address or device")
+var ErrLoginFromNewIPOrDevice = errors.New(keys.LoginFromNewIPOrDevice)
 
 var ErrBypassCodeExpired = errors.New("bypass code expired")
 
-var ErrBadBypassCode = errors.New("bad bypass code")
+var ErrBadBypassCode = errors.New(keys.BadBypassCode)
 
-// type UserSessionRevokedError struct {
-// 	Email string
-// 	UID   string
-// 	SID   string
-// }
+type UserSessionsInBlacklistError struct {
+	ErrCode       string
+	LinkExpiresAt time.Time
+}
 
-// func NewUserSessionRevokedError(email, uid, sid string) *UserSessionRevokedError {
-// 	return &UserSessionRevokedError{
-// 		Email: email,
-// 		UID:   uid,
-// 		SID:   sid,
-// 	}
-// }
+func NewUserSessionsInBlacklistError(code string, linkExpiresAt time.Time) *UserSessionsInBlacklistError {
+	return &UserSessionsInBlacklistError{
+		ErrCode:       code,
+		LinkExpiresAt: linkExpiresAt,
+	}
+}
 
-// func (err *UserSessionRevokedError) Error() string {
-// 	return fmt.Sprintf("session revoked: sid=%s; uid=%s; email=%s", err.SID, err.UID, err.Email)
-// }
+func (err *UserSessionsInBlacklistError) Error() string {
+	return fmt.Sprintf("sessions in blacklist: error code=%s; link expires at=%s", err.ErrCode, err.LinkExpiresAt)
+}
 
-// func (err *UserSessionRevokedError) Unwrap() error {
-// 	return ErrSessionRevoked
-// }
+func (err *UserSessionsInBlacklistError) Unwrap() error {
+	return ErrUserSessionsInBlackList
+}
 
-// type UserSessionsInBlacklistError struct {
-// 	Email              string
-// 	UID                string
-// 	NeedNewUnblockCode bool
-// }
+type LoginFromNewIPOrDeviceError struct {
+	ErrCode       string
+	CodeExpiresAt time.Time
+}
 
-// func NewUserSessionsInBlacklistError(email, uid string) *UserSessionsInBlacklistError {
-// 	return &UserSessionsInBlacklistError{
-// 		Email: email,
-// 		UID:   uid,
-// 	}
-// }
+func NewLoginFromNewIPOrDeviceError(code string, expiresAt time.Time) *LoginFromNewIPOrDeviceError {
+	return &LoginFromNewIPOrDeviceError{
+		ErrCode:       code,
+		CodeExpiresAt: expiresAt,
+	}
+}
 
-// func (err *UserSessionsInBlacklistError) Error() string {
-// 	return fmt.Sprintf("sessions in blacklist: uid=%s; email=%s", err.UID, err.Email)
-// }
+func (err *LoginFromNewIPOrDeviceError) Error() string {
+	return fmt.Sprintf("login from a new IP address or device: error code=%s; bypass code expires at=%s", err.ErrCode, err.CodeExpiresAt)
+}
 
-// func (err *UserSessionsInBlacklistError) Unwrap() error {
-// 	return ErrUserSessionsInBlackList
-// }
-
-// type LoginFromNewIPOrDeviceError struct {
-// 	Email string
-// 	UID   string
-// }
-
-// func NewLoginFromNewIPOrDeviceError(email, uid string) *LoginFromNewIPOrDeviceError {
-// 	return &LoginFromNewIPOrDeviceError{
-// 		Email: email,
-// 		UID:   uid,
-// 	}
-// }
-
-// func (err *LoginFromNewIPOrDeviceError) Error() string {
-// 	return fmt.Sprintf("login from a new IP address or device: uid=%s; email=%s", err.UID, err.Email)
-// }
-
-// func (err *LoginFromNewIPOrDeviceError) Unwrap() error {
-// 	return ErrLoginFromNewIPOrDevice
-// }
+func (err *LoginFromNewIPOrDeviceError) Unwrap() error {
+	return ErrLoginFromNewIPOrDevice
+}

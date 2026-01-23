@@ -30,7 +30,7 @@ func (c *controller) FindUserByID(ctx context.Context, req *userspb.FindUserByID
 	user, err := c.usecases.FindUserByID(ctx, req.GetId())
 
 	if err != nil {
-		return nil, c.handleError(l, locale, keys.GetUserInternal, err)
+		return nil, c.handleError(locale, keys.GetUserInternal, err)
 	}
 
 	return user.ToProto(), nil

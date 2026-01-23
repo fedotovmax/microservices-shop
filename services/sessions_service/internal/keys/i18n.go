@@ -21,4 +21,10 @@ const (
 	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
 	BadBypassCode          = "bad_bypass_code"
 	BadBlacklistCode       = "bad_blacklist_code"
+	UserInBlacklist        = "user_in_blacklist"
+)
+
+const (
+	SessionNotFound       = "session_not_found"
+	InvalidTokenOrExpired = "invalid_token_or_expired"
 )

@@ -32,7 +32,7 @@ func (c *controller) UpdateUserProfile(ctx context.Context, req *userspb.UpdateU
 	err = c.usecases.UpdateUserProfile(ctx, updateUserProfileInput, locale)
 
 	if err != nil {
-		return nil, c.handleError(l, locale, keys.UpdateUserProfileInternal, err)
+		return nil, c.handleError(locale, keys.UpdateUserProfileInternal, err)
 	}
 
 	return &emptypb.Empty{}, nil

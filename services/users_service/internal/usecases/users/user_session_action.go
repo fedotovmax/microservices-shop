@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
 func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (
-	*domain.UserSessionActionResponse, error) {
+	*domain.UserOKResponse, error) {
 
 	const op = "usecases.users.UserSessionAction"
 
@@ -19,7 +21,7 @@ func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActi
 
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNotFound) {
-			return domain.NewUserSessionActionResponse("", "", domain.UserSessionStatusBadCredentials), nil
+			return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrBadCredentials, err)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -27,16 +29,20 @@ func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActi
 	ok := comparePassword(in.GetPassword(), user.PasswordHash)
 
 	if !ok {
-		return domain.NewUserSessionActionResponse("", "", domain.UserSessionStatusBadCredentials), nil
+		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrBadCredentials, err)
 	}
 
 	if !user.IsEmailVerified {
-		return domain.NewUserSessionActionResponse(user.ID, user.Email, domain.UserSessionStatusEmailNotVerified), nil
+		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrEmailNotVerified, err)
 	}
 
 	if user.DeletedAt != nil {
-		return domain.NewUserSessionActionResponse(user.ID, user.Email, domain.UserSessionStatusDeleted), nil
+		deletedErr := errs.NewUserDeletedError(keys.UserDeleted, *user.DeletedAt, time.Now().UTC())
+		return nil, fmt.Errorf("%s: %w", op, deletedErr)
 	}
 
-	return domain.NewUserSessionActionResponse(user.ID, user.Email, domain.UserSessionStatusOK), nil
+	return &domain.UserOKResponse{
+		UID:   user.ID,
+		Email: user.Email,
+	}, nil
 }

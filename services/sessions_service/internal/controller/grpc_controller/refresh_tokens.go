@@ -8,6 +8,7 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (c *controller) RefreshSession(ctx context.Context, req *sessionspb.RefreshSessionRequest) (
@@ -32,9 +33,19 @@ func (c *controller) RefreshSession(ctx context.Context, req *sessionspb.Refresh
 	response, err := c.usecases.RefreshSession(ctx, input)
 
 	if err != nil {
-		return nil, handleError(l, locale, keys.RefreshSessionInternal, err)
+		return nil, c.handleError(locale, keys.RefreshSessionInternal, err)
 	}
 
-	return response.ToProto(), nil
+	//TODO:replace maybe??
+	return &sessionspb.CreateSessionResponse{
+		Payload: &sessionspb.CreateSessionResponse_SessionCreated{
+			SessionCreated: &sessionspb.SessionCreated{
+				AccessToken:    response.AccessToken,
+				RefreshToken:   response.RefreshToken,
+				AccessExpTime:  timestamppb.New(response.AccessExpTime),
+				RefreshExpTime: timestamppb.New(response.RefreshExpTime),
+			},
+		},
+	}, nil
 
 }

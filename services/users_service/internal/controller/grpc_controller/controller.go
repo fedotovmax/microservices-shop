@@ -21,7 +21,7 @@ type Usecases interface {
 	UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserInput, locale string) error
 	FindUserByID(ctx context.Context, id string) (*domain.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*domain.User, error)
-	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserSessionActionResponse, error)
+	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserOKResponse, error)
 }
 
 type controller struct {
@@ -37,7 +37,12 @@ func New(log *slog.Logger, u Usecases) *controller {
 	}
 }
 
-func (c *controller) handleError(l *slog.Logger, locale string, fallback string, err error) error {
+func (c *controller) handleError(locale string, fallback string, err error) error {
+
+	const op = "controller.grpc.handleError"
+
+	l := c.log.With(slog.String("op", op))
+
 	var (
 		code   codes.Code
 		msgKey string

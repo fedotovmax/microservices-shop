@@ -34,13 +34,25 @@ func New(log *slog.Logger, u Usecases) *controller {
 	}
 }
 
-func handleError(l *slog.Logger, locale string, fallback string, err error) error {
+func (c *controller) handleError(locale string, fallback string, err error) error {
+
+	const op = "controller.grpc.handleError"
+
+	l := c.log.With(slog.String("op", op))
+
 	var (
 		code   codes.Code
 		msgKey string
 	)
 
 	switch {
+
+	case errors.Is(err, errs.ErrSessionNotFound):
+		code = codes.NotFound
+		msgKey = keys.SessionNotFound
+	case errors.Is(err, errs.ErrSessionExpired):
+		code = codes.Unauthenticated
+		msgKey = keys.InvalidTokenOrExpired
 	case errors.Is(err, errs.ErrUserNotFound):
 		code = codes.NotFound
 		msgKey = keys.UserNotFound
@@ -50,15 +62,6 @@ func handleError(l *slog.Logger, locale string, fallback string, err error) erro
 	case errors.Is(err, errs.ErrUserAlreadyExists):
 		code = codes.AlreadyExists
 		msgKey = keys.UserAlreadyExists
-	case errors.Is(err, errs.ErrLoginFromNewIPOrDevice):
-		code = codes.PermissionDenied
-		msgKey = keys.LoginFromNewIPOrDevice
-	case errors.Is(err, errs.ErrBadBypassCode):
-		code = codes.PermissionDenied
-		msgKey = keys.BadBypassCode
-	case errors.Is(err, errs.ErrBadBlacklistCode):
-		code = codes.PermissionDenied
-		msgKey = keys.BadBlacklistCode
 	default:
 		l.Warn(err.Error())
 		code = codes.Internal

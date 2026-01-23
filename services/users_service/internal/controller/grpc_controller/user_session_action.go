@@ -2,12 +2,17 @@ package grpccontroller
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"github.com/fedotovmax/grpcutils"
+	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
+	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (c *controller) UserSessionAction(ctx context.Context, req *userspb.UserSessionActionRequest) (*userspb.UserSessionActionResponse, error) {
@@ -31,8 +36,78 @@ func (c *controller) UserSessionAction(ctx context.Context, req *userspb.UserSes
 	sessionActionResponse, err := c.usecases.UserSessionAction(ctx, userSessionActionInput)
 
 	if err != nil {
-		return nil, c.handleError(l, locale, keys.CreateUserInternal, err)
+		return c.handleSessionActionError(locale, keys.UserSessionActionInternal, err)
 	}
 
-	return sessionActionResponse.ToProto(), nil
+	return &userspb.UserSessionActionResponse{
+		Payload: &userspb.UserSessionActionResponse_Ok{
+			Ok: &userspb.UserOK{
+				Email:  sessionActionResponse.Email,
+				UserId: sessionActionResponse.UID,
+			},
+		},
+	}, nil
+}
+
+func (c *controller) handleSessionActionError(locale string, fallbackMsg string, err error) (*userspb.UserSessionActionResponse, error) {
+
+	const op = "controller.grpc.handleSessionActionError"
+
+	l := c.log.With(slog.String("op", op))
+
+	var deletedErr *errs.UserDeletedError
+
+	switch {
+
+	case errors.As(err, &deletedErr):
+		msg, i18nerr := i18n.Local.Get(locale, deletedErr.ErrCode)
+
+		if i18nerr != nil {
+			l.Warn("18n error", logger.Err(err))
+		}
+
+		return &userspb.UserSessionActionResponse{
+			Payload: &userspb.UserSessionActionResponse_Deleted{
+				Deleted: &userspb.UserDeleted{
+					Message:           msg,
+					DeletedAt:         timestamppb.New(deletedErr.DeletedAt),
+					LastChanceRestore: timestamppb.New(deletedErr.LastChanceRestore),
+				},
+			},
+		}, nil
+
+	case errors.Is(err, errs.ErrBadCredentials):
+
+		msg, i18nerr := i18n.Local.Get(locale, err.Error())
+
+		if i18nerr != nil {
+			l.Warn("18n error", logger.Err(err))
+		}
+
+		return &userspb.UserSessionActionResponse{
+			Payload: &userspb.UserSessionActionResponse_BadCredentials{
+				BadCredentials: &userspb.UserBadCredentials{
+					Message: msg,
+				},
+			},
+		}, nil
+
+	case errors.Is(err, errs.ErrEmailNotVerified):
+		msg, i18nerr := i18n.Local.Get(locale, err.Error())
+
+		if i18nerr != nil {
+			l.Warn("18n error", logger.Err(err))
+		}
+
+		return &userspb.UserSessionActionResponse{
+			Payload: &userspb.UserSessionActionResponse_EmailNotVerified{
+				EmailNotVerified: &userspb.UserEmailNotVerified{
+					Message: msg,
+				},
+			},
+		}, nil
+
+	default:
+		return nil, c.handleError(locale, fallbackMsg, err)
+	}
 }

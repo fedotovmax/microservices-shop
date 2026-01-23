@@ -31,7 +31,7 @@ func (c *controller) CreateUser(ctx context.Context, req *userspb.CreateUserRequ
 	userId, err := c.usecases.CreateUser(ctx, createUserInput, locale)
 
 	if err != nil {
-		return nil, c.handleError(l, locale, keys.CreateUserInternal, err)
+		return nil, c.handleError(locale, keys.CreateUserInternal, err)
 	}
 
 	return &userspb.CreateUserResponse{

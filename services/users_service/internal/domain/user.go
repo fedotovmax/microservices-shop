@@ -9,66 +9,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type UserSessionStatus int8
-
-const (
-	UserSessionStatusUnspecified      UserSessionStatus = 0
-	UserSessionStatusDeleted          UserSessionStatus = 1
-	UserSessionStatusEmailNotVerified UserSessionStatus = 2
-	UserSessionStatusBadCredentials   UserSessionStatus = 3
-	UserSessionStatusOK               UserSessionStatus = 4
-)
-
-func (s UserSessionStatus) ToProto() userspb.UserSessionActionStatus {
-	switch s {
-	case UserSessionStatusUnspecified:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
-	case UserSessionStatusDeleted:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_DELETED
-	case UserSessionStatusEmailNotVerified:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED
-	case UserSessionStatusBadCredentials:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS
-	case UserSessionStatusOK:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_OK
-	default:
-		return userspb.UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
-	}
-}
-
-type UserSessionActionResponse struct {
-	Fields UserPrimaryFields
-	Status UserSessionStatus
-}
-
-func NewUserSessionActionResponse(id, email string, status UserSessionStatus) *UserSessionActionResponse {
-	return &UserSessionActionResponse{
-		Status: status,
-		Fields: UserPrimaryFields{
-			ID:    id,
-			Email: email,
-		},
-	}
-}
-
-func (sr *UserSessionActionResponse) ToProto() *userspb.UserSessionActionResponse {
-
-	var email *string
-	var userId *string
-
-	if sr.Fields.Email != "" {
-		email = &sr.Fields.Email
-	}
-
-	if sr.Fields.ID != "" {
-		userId = &sr.Fields.ID
-	}
-
-	return &userspb.UserSessionActionResponse{
-		UserSessionActionStatus: sr.Status.ToProto(),
-		Email:                   email,
-		UserId:                  userId,
-	}
+type UserOKResponse struct {
+	UID   string
+	Email string
 }
 
 func (u *User) ToProto() *userspb.User {

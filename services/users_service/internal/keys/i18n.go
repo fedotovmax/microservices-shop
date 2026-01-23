@@ -32,3 +32,9 @@ const (
 	UpdateUserProfileInternal = "update_user_profile_internal"
 	UserSessionActionInternal = "user_session_action_internal"
 )
+
+const (
+	UserDeleted          = "user_deleted"
+	UserBadCredentials   = "bad_credentials"
+	UserEmailNotVerified = "email_not_verified"
+)
