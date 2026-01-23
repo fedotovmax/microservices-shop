@@ -59,6 +59,34 @@ definitions:
         description: The localized error message in the above locale.
         type: string
     type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput:
+    properties:
+      bypass_code:
+        example: 1A2B3C4D5E6F
+        type: string
+      device_trust_token:
+        example: skdjfsdfsdifsdfsdf123
+        type: string
+      email:
+        example: makc-dgek@mail.ru
+        format: email
+        type: string
+      ip:
+        example: 19.56.186.122
+        format: ip4
+        type: string
+      password:
+        type: string
+      user_agent:
+        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+        type: string
+    required:
+    - email
+    - ip
+    - password
+    - user_agent
+    type: object
   httputils.ErrorResponse:
     properties:
       message:
@@ -77,6 +105,23 @@ definitions:
     required:
     - access_token
     - refresh_token
+    type: object
+  sessionspb.RefreshSessionRequest:
+    properties:
+      ip:
+        example: 19.56.186.122
+        format: ip4
+        type: string
+      refresh_token:
+        type: string
+      user_agent:
+        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+        type: string
+    required:
+    - ip
+    - refresh_token
+    - user_agent
     type: object
   timestamppb.Timestamp:
     properties:
@@ -212,18 +257,6 @@ definitions:
     - profile
     - updated_at
     type: object
-  userspb.UserSessionActionRequest:
-    properties:
-      email:
-        example: makc-dgek@mail.ru
-        format: email
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
   userspb.UserSessionActionResponse:
     properties:
       email:
@@ -279,15 +312,10 @@ paths:
         name: dto
         required: true
         schema:
-          $ref: '#/definitions/userspb.UserSessionActionRequest'
+          $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput'
       - description: Locale
         in: header
         name: X-Request-Locale
-        type: string
-      - description: security code from email when user login from new device or ip
-          address
-        in: query
-        name: bypass_code
         type: string
       produces:
       - application/json
@@ -325,13 +353,15 @@ paths:
       - application/json
       description: Refresh session by refresh token from headers
       parameters:
+      - description: Refresh session dto
+        in: body
+        name: dto
+        required: true
+        schema:
+          $ref: '#/definitions/sessionspb.RefreshSessionRequest'
       - description: Locale
         in: header
         name: X-Request-Locale
-        type: string
-      - description: Refresh token
-        in: header
-        name: X-Refresh-Token
         type: string
       produces:
       - application/json
@@ -389,17 +419,12 @@ paths:
       summary: Create user account
       tags:
       - customers
-  /customers/users/{id}:
+  /customers/users/profile:
     get:
       consumes:
       - application/json
-      description: Get user base info by id
+      description: Get user base profile
       parameters:
-      - description: User id parameter
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Locale
         in: header
         name: X-Request-Locale
@@ -415,6 +440,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -423,7 +452,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-      summary: Get user base info by id
+      security:
+      - BearerAuth: []
+      summary: Get user profile
       tags:
       - customers
     patch:
@@ -431,11 +462,6 @@ paths:
       - application/json
       description: Update user profile
       parameters:
-      - description: User id parameter
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Update user profile with body dto
         in: body
         name: dto
@@ -457,16 +483,22 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update user profile
       tags:
       - customers
 securityDefinitions:
-  ApplicationsToken:
+  BearerAuth:
     in: header
-    name: X-App-Token
+    name: Authorization
     type: apiKey
 swagger: "2.0"

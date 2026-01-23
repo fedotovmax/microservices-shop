@@ -9,6 +9,7 @@
 	"verify_access_internal": "internal error when verify access token",
 
 	"user_not_found": "user not found",
+	"user_deleted": "user is deleted",
 	"user_already_exists": "user already exists",
 
 	"login_from_new_ip_or_device": "login from a new device or IP, a login link has been sent to your email"

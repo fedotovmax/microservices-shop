@@ -29,7 +29,7 @@ func (c *controller) RefreshSession(ctx context.Context, req *sessionspb.Refresh
 		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
 	}
 
-	response, err := c.usecases.RefreshTokens(ctx, input)
+	response, err := c.usecases.RefreshSession(ctx, input)
 
 	if err != nil {
 		return nil, handleError(l, locale, keys.RefreshSessionInternal, err)

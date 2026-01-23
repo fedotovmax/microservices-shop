@@ -17,9 +17,11 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/kafka_controller"
-	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecase"
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 	"github.com/fedotovmax/pgxtx"
+
+	eventsUsecasesPkg "github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases/events"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases/security"
 )
 
 type App struct {
@@ -76,24 +78,30 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	storage := usecase.CreateStorage(eventsPostgres, sessionsPostgres)
+	eventsUsecases := eventsUsecasesPkg.New(eventsPostgres, txManager)
 
-	usecases := usecase.New(log, txManager, storage, &usecase.Config{
-		RefreshExpiresDuration:   c.RefreshTokenExpDuration,
-		AccessExpiresDuration:    c.AccessTokenExpDuration,
-		BlacklistCodeLength:      c.BlacklistCodeLength,
-		BlacklistCodeExpDuration: c.BlacklistCodeExpDuration,
-		LoginBypassCodeLength:    c.LoginBypassCodeLength,
-		LoginBypassExpDuration:   c.LoginBypassExpDuration,
-		TokenIssuer:              c.TokenIssuer,
-		TokenSecret:              c.AccessTokenSecret,
-	})
+	securityUsecases := security.New(
+		sessionsPostgres,
+		eventsUsecases,
+		txManager,
+		log,
+		&security.Config{
+			RefreshExpiresDuration:   c.RefreshTokenExpDuration,
+			AccessExpiresDuration:    c.AccessTokenExpDuration,
+			BlacklistCodeLength:      c.BlacklistCodeLength,
+			BlacklistCodeExpDuration: c.BlacklistCodeExpDuration,
+			LoginBypassCodeLength:    c.LoginBypassCodeLength,
+			LoginBypassExpDuration:   c.LoginBypassExpDuration,
+			TokenIssuer:              c.TokenIssuer,
+			TokenSecret:              c.AccessTokenSecret,
+		},
+	)
 
-	grpcController := grpccontroller.New(log, usecases)
+	grpcController := grpccontroller.New(log, securityUsecases)
 
-	kafkaConsumerController := kafkacontroller.New(log, usecases)
+	kafkaConsumerController := kafkacontroller.New(log, securityUsecases)
 
-	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, eventsUsecases, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

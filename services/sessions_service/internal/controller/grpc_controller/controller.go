@@ -17,8 +17,8 @@ import (
 )
 
 type Usecases interface {
-	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput, bypassCode string) (*domain.SessionResponse, error)
-	RefreshTokens(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error)
+	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput) (*domain.SessionResponse, error)
+	RefreshSession(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error)
 }
 
 type controller struct {
@@ -44,6 +44,9 @@ func handleError(l *slog.Logger, locale string, fallback string, err error) erro
 	case errors.Is(err, errs.ErrUserNotFound):
 		code = codes.NotFound
 		msgKey = keys.UserNotFound
+	case errors.Is(err, errs.ErrUserDeleted):
+		code = codes.PermissionDenied
+		msgKey = keys.UserDeleted
 	case errors.Is(err, errs.ErrUserAlreadyExists):
 		code = codes.AlreadyExists
 		msgKey = keys.UserAlreadyExists

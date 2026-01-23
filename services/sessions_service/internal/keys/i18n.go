@@ -16,6 +16,7 @@ const (
 
 const (
 	UserNotFound           = "user_not_found"
+	UserDeleted            = "user_deleted"
 	UserAlreadyExists      = "user_already_exists"
 	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
 	BadBypassCode          = "bad_bypass_code"

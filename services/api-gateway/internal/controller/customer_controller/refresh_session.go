@@ -7,7 +7,6 @@ import (
 	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
-	controllerPkg "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
@@ -18,8 +17,8 @@ import (
 // @Tags         customers
 // @Accept       json
 // @Produce      json
+// @Param dto body sessionspb.RefreshSessionRequest true "Refresh session dto"
 // @Param X-Request-Locale header string false "Locale"
-// @Param X-Refresh-Token header string false "Refresh token"
 // @Success      201  {object}  sessionspb.CreateSessionResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      500  {object}  httputils.ErrorResponse
@@ -34,24 +33,20 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	userAgent := r.UserAgent()
+	var refreshReq sessionspb.RefreshSessionRequest
 
-	ip := controllerPkg.GetRealIP(r)
+	err := httputils.DecodeJSON(r.Body, &refreshReq)
 
-	refreshToken := r.Header.Get(keys.HeaderRefreshToken)
+	if err != nil {
 
-	if refreshToken == "" {
-		msg, err := i18n.Local.Get(locale, keys.Unauthorized)
+		msg, err := i18n.Local.Get(locale, keys.ValidationInvalidBody)
+
 		if err != nil {
 			l.Error(err.Error())
 		}
-		httputils.WriteJSON(w, http.StatusUnauthorized, httputils.NewError(msg))
-	}
 
-	userSessionActionReq := &sessionspb.RefreshSessionRequest{
-		RefreshToken: refreshToken,
-		UserAgent:    userAgent,
-		Ip:           ip,
+		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
+		return
 	}
 
 	md := metadata.Pairs(
@@ -60,7 +55,7 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 
 	ctx := metadata.NewOutgoingContext(r.Context(), md)
 
-	response, err := c.sessions.RefreshSession(ctx, userSessionActionReq)
+	response, err := c.sessions.RefreshSession(ctx, &refreshReq)
 
 	if err != nil {
 		httputils.HandleErrorFromGrpc(w, err)

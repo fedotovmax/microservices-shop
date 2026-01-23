@@ -32,22 +32,28 @@ func New(router chi.Router, log *slog.Logger, usersrpc userspb.UserServiceClient
 
 func (c *controller) Register() {
 
-	//TODO
-	testMiddleware := middlewares.NewTestMiddleware(c.log)
+	authMiddleware := middlewares.NewAuthMiddleware(
+		c.log,
+		c.cfg.SessionsTokenSecret,
+		c.cfg.SessionsTokenIssuer,
+	)
 
-	c.router.With(testMiddleware).Route("/customers", func(cr chi.Router) {
+	c.router.Route("/customers", func(customersRouter chi.Router) {
 
-		cr.Route("/users", func(ur chi.Router) {
+		customersRouter.Route("/users", func(userRouter chi.Router) {
 
-			ur.Post("/", c.createUser)
-			//TODO: get ID from session
-			ur.Patch("/{id}", c.updateUserByID)
-			ur.Get("/{id}", c.findUserByID)
+			userRouter.Post("/", c.createUser)
+
+			userRouter.With(authMiddleware).Route("/profile", func(profileRouter chi.Router) {
+				profileRouter.Get("/", c.getMe)
+				profileRouter.Patch("/", c.updateUserProfile)
+			})
+
 		})
 
-		cr.Route("/session", func(sr chi.Router) {
-			sr.Post("/login", c.sessionLogin)
-			sr.Post("/refresh-session", c.refreshSession)
+		customersRouter.Route("/session", func(sessionRouter chi.Router) {
+			sessionRouter.Post("/login", c.sessionLogin)
+			sessionRouter.Post("/refresh-session", c.refreshSession)
 		})
 	})
 }

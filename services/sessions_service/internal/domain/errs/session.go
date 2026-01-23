@@ -4,6 +4,10 @@ import (
 	"errors"
 )
 
+var ErrTrustTokenNotFound = errors.New("trust token not found or expired or revoked")
+
+var ErrUserDeleted = errors.New("user is deleted")
+
 var ErrInvalidSession = errors.New("invalid session")
 
 var ErrSessionNotFound = errors.New("session not found")

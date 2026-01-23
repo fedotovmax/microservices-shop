@@ -9,16 +9,18 @@ import (
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
-	controolerPkg "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
 
 type handleSessionStatusParams struct {
-	UserAgent string
-	IP        string
-	Locale    string
-	Response  *userspb.UserSessionActionResponse
+	UserAgent        string
+	IP               string
+	Locale           string
+	BypassCode       *string
+	DeviceTrustToken *string
+	Response         *userspb.UserSessionActionResponse
 }
 
 // @Summary      Login in account
@@ -27,9 +29,8 @@ type handleSessionStatusParams struct {
 // @Tags         customers
 // @Accept       json
 // @Produce      json
-// @Param dto body userspb.UserSessionActionRequest true "Dto for login in account"
+// @Param dto body domain.LoginInput true "Dto for login in account"
 // @Param X-Request-Locale header string false "Locale"
-// @Param        bypass_code  query     string  false  "security code from email when user login from new device or ip address"
 // @Success      201  {object}  sessionspb.CreateSessionResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      401  {object}  httputils.ErrorResponse
@@ -47,20 +48,9 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	userAgent := r.UserAgent()
+	var loginInput domain.LoginInput
 
-	ip := controolerPkg.GetRealIP(r)
-
-	//TODO:remove
-	if ip == "::1" {
-		ip = "127.0.0.1"
-	}
-
-	bypassCode := r.URL.Query().Get("bypass_code")
-
-	var userSessionActionReq userspb.UserSessionActionRequest
-
-	err := httputils.DecodeJSON(r.Body, &userSessionActionReq)
+	err := httputils.DecodeJSON(r.Body, &loginInput)
 
 	if err != nil {
 		msg, err := i18n.Local.Get(locale, keys.ValidationInvalidBody)
@@ -73,12 +63,14 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 
 	md := metadata.Pairs(
 		keys.MetadataLocaleKey, locale,
-		keys.MetadataSessionBypassCode, bypassCode,
 	)
 
 	ctx := metadata.NewOutgoingContext(r.Context(), md)
 
-	response, err := c.users.UserSessionAction(ctx, &userSessionActionReq)
+	response, err := c.users.UserSessionAction(ctx, &userspb.UserSessionActionRequest{
+		Email:    loginInput.Email,
+		Password: loginInput.Password,
+	})
 
 	if err != nil {
 		httputils.HandleErrorFromGrpc(w, err)
@@ -86,15 +78,18 @@ func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.handleUserSessionActionStatus(ctx, w, &handleSessionStatusParams{
-		UserAgent: userAgent,
-		IP:        ip,
-		Locale:    locale,
-		Response:  response,
+		UserAgent:        loginInput.UserAgent,
+		IP:               loginInput.Ip,
+		Locale:           locale,
+		BypassCode:       loginInput.BypassCode,
+		DeviceTrustToken: loginInput.DeviceTrustToken,
+		Response:         response,
 	})
 }
 
 func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.ResponseWriter, params *handleSessionStatusParams) {
 
+	//TODO: send messages with actions for user
 	switch params.Response.UserSessionActionStatus {
 	case userspb.UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS:
 		msg, _ := i18n.Local.Get(params.Locale, keys.BadCredentials)
@@ -106,9 +101,11 @@ func (c *controller) handleUserSessionActionStatus(ctx context.Context, w http.R
 	case userspb.UserSessionActionStatus_SESSION_STATUS_OK:
 		if params.Response.UserId != nil && params.Response.Email != nil {
 			res, err := c.sessions.CreateSession(ctx, &sessionspb.CreateSessionRequest{
-				Uid:       *params.Response.UserId,
-				UserAgent: params.UserAgent,
-				Ip:        params.IP,
+				Uid:              *params.Response.UserId,
+				UserAgent:        params.UserAgent,
+				Ip:               params.IP,
+				BypassCode:       params.BypassCode,
+				DeviceTrustToken: params.DeviceTrustToken,
 			})
 
 			if err != nil {

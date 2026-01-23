@@ -5,3 +5,5 @@ const HeaderRefreshToken = "X-Refresh-Token"
 const HeaderCustomersAppToken = "X-Customers-App-Token"
 
 const HeaderAuthorization = "Authorization"
+
+const BearerAuthorizationToken = "Bearer"

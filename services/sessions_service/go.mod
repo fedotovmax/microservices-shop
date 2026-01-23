@@ -7,7 +7,7 @@ require (
 	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/grpcutils v1.0.9
 	github.com/fedotovmax/kafka-lib v1.0.9
-	github.com/fedotovmax/microservices-shop-protos v1.0.37
+	github.com/fedotovmax/microservices-shop-protos v1.0.43
 	github.com/fedotovmax/validation v1.0.2
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0

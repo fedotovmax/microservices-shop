@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"net"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
@@ -13,8 +14,9 @@ type NewAccessToken struct {
 }
 
 type User struct {
-	UID   string
-	Email string
+	UID       string
+	Email     string
+	DeletedAt *time.Time
 }
 
 type BlackList struct {
@@ -31,6 +33,8 @@ type SessionsUser struct {
 	Info      User
 	BlackList *BlackList
 	Bypass    *Bypass
+	//TODO:
+	twoFactor bool
 }
 
 func (u *SessionsUser) Clone() *SessionsUser {
@@ -58,6 +62,14 @@ func (u *SessionsUser) Clone() *SessionsUser {
 		BlackList: bl,
 		Bypass:    bp,
 	}
+}
+
+func (u *SessionsUser) HasTwoFactor() bool {
+	return u.twoFactor
+}
+
+func (u *SessionsUser) IsDeleted() bool {
+	return u.Info.DeletedAt != nil
 }
 
 func (u *SessionsUser) IsInBlackList() bool {
@@ -88,7 +100,7 @@ type Session struct {
 	ID             string
 	User           *SessionsUser
 	RefreshHash    string
-	IP             string
+	IP             net.IP
 	Browser        string
 	BrowserVersion string
 	OS             string
@@ -125,20 +137,68 @@ func (s *Session) IsRevoked() bool {
 	return s.RevokedAt != nil
 }
 
+type PreparedTrustTokenAction int8
+
+const (
+	TrustTokenNone PreparedTrustTokenAction = iota
+	TrustTokenCreated
+	TrustTokenUpdated
+)
+
+type PreparedTrustToken struct {
+	UID                     string
+	DeviceTrustTokenValue   string
+	DeviceTrustTokenHash    string
+	DeviceTrustTokenExpTime time.Time
+	Action                  PreparedTrustTokenAction
+}
+
+type SessionResponseTrustToken struct {
+	DeviceTrustTokenExpTime time.Time
+	DeviceTrustTokenValue   string
+}
+
 type SessionResponse struct {
 	AccessToken    string
 	RefreshToken   string
 	AccessExpTime  time.Time
 	RefreshExpTime time.Time
+	TrustToken     *SessionResponseTrustToken
 }
 
 func (r *SessionResponse) ToProto() *sessionspb.CreateSessionResponse {
+
+	var trustToken *sessionspb.CreatedTrustToken
+
+	if r.TrustToken != nil {
+		trustToken = &sessionspb.CreatedTrustToken{
+			TrustTokenValue:   r.TrustToken.DeviceTrustTokenValue,
+			TrustTokenExpTime: timestamppb.New(r.TrustToken.DeviceTrustTokenExpTime),
+		}
+	}
 
 	return &sessionspb.CreateSessionResponse{
 		AccessToken:    r.AccessToken,
 		RefreshToken:   r.RefreshToken,
 		AccessExpTime:  timestamppb.New(r.AccessExpTime),
 		RefreshExpTime: timestamppb.New(r.RefreshExpTime),
+		TrustToken:     trustToken,
 	}
 
+}
+
+type DeviceTrustToken struct {
+	TokenHash string
+	UID       string
+	LastUsed  time.Time
+	ExpiresAt time.Time
+	RevokedAt *time.Time
+}
+
+func (s *DeviceTrustToken) IsExpired() bool {
+	return time.Now().After(s.ExpiresAt)
+}
+
+func (s *DeviceTrustToken) IsRevoked() bool {
+	return s.RevokedAt != nil
 }

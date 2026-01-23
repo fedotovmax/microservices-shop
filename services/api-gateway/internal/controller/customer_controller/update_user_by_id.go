@@ -6,26 +6,29 @@ import (
 
 	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
+
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
+	controllerPkg "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
 
 // @Summary      Update user profile
 // @Description  Update user profile
-// @Router       /customers/users/{id} [patch]
+// @Router       /customers/users/profile [patch]
 // @Tags         customers
 // @Accept       json
 // @Produce      json
-// @Param id path string true "User id parameter"
+// @Security BearerAuth
 // @Param dto body userspb.UpdateUserProfileData true "Update user profile with body dto"
 // @Param X-Request-Locale header string false "Locale"
 // @Success      200  {object}  httputils.ErrorResponse
+// @Failure      401  {object}  httputils.ErrorResponse
 // @Failure      400  {object}  errdetails.BadRequest
 // @Failure      500  {object}  httputils.ErrorResponse
-func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
+func (c *controller) updateUserProfile(w http.ResponseWriter, r *http.Request) {
 
-	const op = "controller.customer.updateUserByID"
+	const op = "controller.customer.updateUserProfile"
 
 	l := c.log.With(slog.String("op", op))
 
@@ -35,20 +38,16 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	userId := r.PathValue("id")
+	user, err := controllerPkg.GetLocalSession(r)
 
-	if userId == "" {
-		msg, err := i18n.Local.Get(locale, keys.ValidationEmptyID)
-		if err != nil {
-			l.Error(err.Error())
-		}
-		httputils.WriteJSON(w, http.StatusBadRequest, httputils.NewError(msg))
+	if err != nil {
+		httputils.WriteJSON(w, http.StatusUnauthorized, httputils.NewError(err.Error()))
 		return
 	}
 
 	var updateUserProfileData userspb.UpdateUserProfileData
 
-	err := httputils.DecodeJSON(r.Body, &updateUserProfileData)
+	err = httputils.DecodeJSON(r.Body, &updateUserProfileData)
 
 	if err != nil {
 
@@ -69,7 +68,7 @@ func (c *controller) updateUserByID(w http.ResponseWriter, r *http.Request) {
 	ctx := metadata.NewOutgoingContext(r.Context(), md)
 
 	updateUserProfileReq := &userspb.UpdateUserProfileRequest{
-		UserId: userId,
+		UserId: user.UID,
 		Data:   &updateUserProfileData,
 	}
 

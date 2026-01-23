@@ -60,16 +60,20 @@ func (i *RefreshSessionInput) Validate(locale string) error {
 }
 
 type PrepareSessionInput struct {
-	uid       string
-	userAgent string
-	ip        string
+	uid              string
+	userAgent        string
+	ip               string
+	bypassCode       *string
+	deviceTrustToken *string
 }
 
-func NewPrepareSessionInput(uid, userAgent, ip string) *PrepareSessionInput {
+func NewPrepareSessionInput(uid, userAgent, ip string, code, token *string) *PrepareSessionInput {
 	return &PrepareSessionInput{
-		uid:       uid,
-		userAgent: userAgent,
-		ip:        ip,
+		uid:              uid,
+		userAgent:        userAgent,
+		ip:               ip,
+		bypassCode:       code,
+		deviceTrustToken: token,
 	}
 }
 
@@ -112,6 +116,20 @@ func (i *PrepareSessionInput) GetUserAgent() string {
 	return i.userAgent
 }
 
+func (i *PrepareSessionInput) GetBypassCode() string {
+	if i.bypassCode != nil {
+		return *i.bypassCode
+	}
+	return ""
+}
+
+func (i *PrepareSessionInput) GetDeviceTrustToken() string {
+	if i.deviceTrustToken != nil {
+		return *i.deviceTrustToken
+	}
+	return ""
+}
+
 type SecurityInput struct {
 	UID           string
 	Code          string
@@ -133,5 +151,11 @@ type CreateSessionInput struct {
 	Device string
 
 	IP        string
+	ExpiresAt time.Time
+}
+
+type CreateTrustTokenInput struct {
+	TokenHash string
+	UID       string
 	ExpiresAt time.Time
 }

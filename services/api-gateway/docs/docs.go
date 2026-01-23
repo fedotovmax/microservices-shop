@@ -38,7 +38,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/userspb.UserSessionActionRequest"
+                            "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput"
                         }
                     },
                     {
@@ -46,12 +46,6 @@ const docTemplate = `{
                         "description": "Locale",
                         "name": "X-Request-Locale",
                         "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "security code from email when user login from new device or ip address",
-                        "name": "bypass_code",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -109,15 +103,18 @@ const docTemplate = `{
                 "summary": "Refresh session",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Locale",
-                        "name": "X-Request-Locale",
-                        "in": "header"
+                        "description": "Refresh session dto",
+                        "name": "dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sessionspb.RefreshSessionRequest"
+                        }
                     },
                     {
                         "type": "string",
-                        "description": "Refresh token",
-                        "name": "X-Refresh-Token",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
                         "in": "header"
                     }
                 ],
@@ -201,9 +198,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/customers/users/{id}": {
+        "/customers/users/profile": {
             "get": {
-                "description": "Get user base info by id",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get user base profile",
                 "consumes": [
                     "application/json"
                 ],
@@ -213,15 +215,8 @@ const docTemplate = `{
                 "tags": [
                     "customers"
                 ],
-                "summary": "Get user base info by id",
+                "summary": "Get user profile",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User id parameter",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "Locale",
@@ -242,6 +237,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/errdetails.BadRequest"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -257,6 +258,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update user profile",
                 "consumes": [
                     "application/json"
@@ -269,13 +275,6 @@ const docTemplate = `{
                 ],
                 "summary": "Update user profile",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User id parameter",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "Update user profile with body dto",
                         "name": "dto",
@@ -303,6 +302,12 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
                         }
                     },
                     "500": {
@@ -366,6 +371,42 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "ip",
+                "password",
+                "user_agent"
+            ],
+            "properties": {
+                "bypass_code": {
+                    "type": "string",
+                    "example": "1A2B3C4D5E6F"
+                },
+                "device_trust_token": {
+                    "type": "string",
+                    "example": "skdjfsdfsdifsdfsdf123"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "makc-dgek@mail.ru"
+                },
+                "ip": {
+                    "type": "string",
+                    "format": "ip4",
+                    "example": "19.56.186.122"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+                }
+            }
+        },
         "httputils.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -392,6 +433,28 @@ const docTemplate = `{
                 },
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "sessionspb.RefreshSessionRequest": {
+            "type": "object",
+            "required": [
+                "ip",
+                "refresh_token",
+                "user_agent"
+            ],
+            "properties": {
+                "ip": {
+                    "type": "string",
+                    "format": "ip4",
+                    "example": "19.56.186.122"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
                 }
             }
         },
@@ -562,23 +625,6 @@ const docTemplate = `{
                 }
             }
         },
-        "userspb.UserSessionActionRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "makc-dgek@mail.ru"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
         "userspb.UserSessionActionResponse": {
             "type": "object",
             "required": [
@@ -624,9 +670,9 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApplicationsToken": {
+        "BearerAuth": {
             "type": "apiKey",
-            "name": "X-App-Token",
+            "name": "Authorization",
             "in": "header"
         }
     }

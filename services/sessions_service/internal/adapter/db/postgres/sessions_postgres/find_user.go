@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// TODO: add migration and scan deleted_at field
 const findUserQuery = `
 select su.uid, su.email, bl.code, bl.code_expires_at, bp.code, bp.bypass_expires_at
 from sessions_users as su

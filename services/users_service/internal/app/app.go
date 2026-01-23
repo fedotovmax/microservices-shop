@@ -16,7 +16,8 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/usecase"
+	eventsUsecasesPkg "github.com/fedotovmax/microservices-shop/users_service/internal/usecases/events"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases/users"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 
 	"github.com/fedotovmax/pgxtx"
@@ -79,19 +80,19 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	storage := usecase.CreateStorage(eventsPostgres, usersPostgres)
+	eventsUsecases := eventsUsecasesPkg.New(eventsPostgres, txManager)
 
-	usecases := usecase.NewUsecases(storage, txManager, log, &usecase.Config{
+	usersUsecases := users.New(usersPostgres, txManager, eventsUsecases, log, &users.Config{
 		EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
 	})
 
-	eventProcessor, err := outbox.New(log, producer, usecases, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, eventsUsecases, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	grpcController := grpccontroller.New(log, usecases)
+	grpcController := grpccontroller.New(log, usersUsecases)
 
 	kafkaConsumerController := kafkacontroller.New(log, &ku{})
 
