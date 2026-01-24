@@ -527,7 +527,6 @@
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
-                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {
@@ -565,7 +564,6 @@
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
-                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {

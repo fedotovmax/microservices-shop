@@ -11,19 +11,15 @@ import (
 	"time"
 
 	"github.com/fedotovmax/envconfig"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/client"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/config"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/models"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/pages/home"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/logger"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
 	"github.com/go-chi/chi/v5"
-	httptransport "github.com/go-openapi/runtime/client"
-	"github.com/go-openapi/strfmt"
 	"github.com/starfederation/datastar-go/datastar"
 )
 
@@ -48,10 +44,6 @@ func setupLooger(env string) (*slog.Logger, error) {
 
 func main() {
 
-	var men models.UserspbGenderValue = 1
-
-	men.Validate(nil)
-
 	cfg, err := config.LoadAppConfig()
 
 	if err != nil {
@@ -74,19 +66,6 @@ func main() {
 	}
 
 	publicDir := filepath.Join(workdir, "web", "public")
-
-	transport := httptransport.New(cfg.ApiGatewayAddr, "", nil)
-
-	customersApi := client.New(transport, strfmt.Default).Customers
-	//TODO: use for query to api gateway
-
-	// params := customers.NewGetCustomersUsersIDParamsWithContext(context.Background())
-	// locale := "ru"
-	// params.SetXRequestLocale(&locale)
-	// params.SetID("123")
-
-	// customersApi.GetCustomersUsersID(params)
-	_ = customersApi
 
 	r := chi.NewRouter()
 

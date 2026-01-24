@@ -34,3 +34,13 @@ openapi:
 	curl -sSL https://raw.githubusercontent.com/fedotovmax/microservices-shop/main/services/api-gateway/docs/swagger.yaml -o openapi/swagger.yaml
 
 	swagger generate client -f openapi/swagger.yaml -A api -t ./internal
+
+
+openapiv2:
+
+	@if [ -d ./internal/openapiclient ]; then rm -rf ./internal/openapiclient; fi
+
+	openapi-generator generate \
+		-i openapi/swagger.yaml \
+		-g go \
+		-o internal/openapiclient

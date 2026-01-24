@@ -184,7 +184,6 @@ definitions:
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
-        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string
@@ -217,7 +216,6 @@ definitions:
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
-        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string

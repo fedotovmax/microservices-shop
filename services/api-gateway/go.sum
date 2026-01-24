@@ -41,6 +41,8 @@ github.com/fedotovmax/microservices-shop-protos v1.0.45 h1:MBuA3RFzOKtx2zi8XSRrq
 github.com/fedotovmax/microservices-shop-protos v1.0.45/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/microservices-shop-protos v1.0.46 h1:ZbJg8MV8Iv6kivXaEBbDnEwfEXMI5c48aEBP7vOg+8k=
 github.com/fedotovmax/microservices-shop-protos v1.0.46/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
+github.com/fedotovmax/microservices-shop-protos v1.0.47 h1:u6VimqsyP/4Il5E6K/YCYiz1NcVoTh4O3Q9xsCVGJLE=
+github.com/fedotovmax/microservices-shop-protos v1.0.47/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/passport v1.0.2 h1:jmT4sygnRGq/59ixz7EKpimc3qHn0ZhzHsh6x0NwTVI=
 github.com/fedotovmax/passport v1.0.2/go.mod h1:mjqQM7Q9Nfk9mMN2oDXN0pnP4ptqh4L6+OkqmYC6Yd0=
 github.com/fedotovmax/passport v1.0.3 h1:nWNCddyjhrxKxmydCN1y+H4h2D/8ZtTMaTQXKU2GCxU=

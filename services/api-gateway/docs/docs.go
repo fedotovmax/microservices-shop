@@ -535,7 +535,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
-                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {
@@ -573,7 +572,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
-                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {

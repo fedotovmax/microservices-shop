@@ -184,6 +184,7 @@ definitions:
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
+        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string
@@ -216,6 +217,7 @@ definitions:
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
+        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string
@@ -284,10 +286,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/sessionspb.CreateSessionResponse'
-        "228":
-          description: ""
-          schema:
-            $ref: '#/definitions/httputils.ErrorResponse'
         "400":
           description: Bad Request
           schema:
@@ -302,6 +300,10 @@ paths:
             $ref: '#/definitions/userspb.UserSessionActionResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "406":
+          description: Not Acceptable
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
         "500":

@@ -1,0 +1,578 @@
+openapi: 3.0.1
+info:
+  contact:
+    email: f3d0t0tvmax@yandex.ru
+    name: Fedotv Maxim (developer)
+  description: Swagger Documentation for API Gateway of microservices shop project
+  title: Swagger Documentation for microservices shop API Gateway
+  version: "1.0"
+servers:
+- url: /
+paths:
+  /customers/session/login:
+    post:
+      description: Login in account
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput"
+        description: Dto for login in account
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sessionspb.CreateSessionResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errdetails.BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userspb.UserSessionActionResponse"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Not Found
+        "406":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Not Acceptable
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Internal Server Error
+      summary: Login in account
+      tags:
+      - customers
+      x-codegen-request-body-name: dto
+  /customers/session/refresh-session:
+    post:
+      description: Refresh session by refresh token from headers
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sessionspb.RefreshSessionRequest"
+        description: Refresh session dto
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sessionspb.CreateSessionResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errdetails.BadRequest"
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Internal Server Error
+      summary: Refresh session
+      tags:
+      - customers
+      x-codegen-request-body-name: dto
+  /customers/users:
+    post:
+      description: Create new user account
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userspb.CreateUserRequest"
+        description: Create user account with body dto
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userspb.CreateUserResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errdetails.BadRequest"
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Internal Server Error
+      summary: Create user account
+      tags:
+      - customers
+      x-codegen-request-body-name: dto
+  /customers/users/profile:
+    get:
+      description: Get user base profile
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userspb.User"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errdetails.BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - customers
+    patch:
+      description: Update user profile
+      parameters:
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userspb.UpdateUserProfileData"
+        description: Update user profile with body dto
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errdetails.BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httputils.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - customers
+      x-codegen-request-body-name: dto
+components:
+  schemas:
+    errdetails.BadRequest:
+      example:
+        field_violations:
+        - reason: reason
+          field: field
+          description: description
+          localized_message: "{}"
+        - reason: reason
+          field: field
+          description: description
+          localized_message: "{}"
+      properties:
+        field_violations:
+          description: Describes all violations in a client request.
+          items:
+            $ref: "#/components/schemas/errdetails.BadRequest_FieldViolation"
+          type: array
+      type: object
+    errdetails.BadRequest_FieldViolation:
+      example:
+        reason: reason
+        field: field
+        description: description
+        localized_message: "{}"
+      properties:
+        description:
+          description: A description of why the request element is bad.
+          type: string
+        field:
+          description: "A path that leads to a field in the request body. The value\
+            \ will be a\nsequence of dot-separated identifiers that identify a protocol\
+            \ buffer\nfield.\n\nConsider the following:\n\n\tmessage CreateContactRequest\
+            \ {\n\t  message EmailAddress {\n\t    enum Type {\n\t      TYPE_UNSPECIFIED\
+            \ = 0;\n\t      HOME = 1;\n\t      WORK = 2;\n\t    }\n\n\t    optional\
+            \ string email = 1;\n\t    repeated EmailType type = 2;\n\t  }\n\n\t \
+            \ string full_name = 1;\n\t  repeated EmailAddress email_addresses = 2;\n\
+            \t}\n\nIn this example, in proto `field` could take one of the following\
+            \ values:\n\n  - `full_name` for a violation in the `full_name` value\n\
+            \  - `email_addresses[1].email` for a violation in the `email` field of\
+            \ the\n    first `email_addresses` message\n  - `email_addresses[3].type[2]`\
+            \ for a violation in the second `type`\n    value in the third `email_addresses`\
+            \ message.\n\nIn JSON, the same values are represented as:\n\n  - `fullName`\
+            \ for a violation in the `fullName` value\n  - `emailAddresses[1].email`\
+            \ for a violation in the `email` field of the\n    first `emailAddresses`\
+            \ message\n  - `emailAddresses[3].type[2]` for a violation in the second\
+            \ `type`\n    value in the third `emailAddresses` message."
+          type: string
+        localized_message:
+          allOf:
+          - $ref: "#/components/schemas/errdetails.LocalizedMessage"
+          description: |-
+            Provides a localized error message for field-level errors that is safe to
+            return to the API consumer.
+          type: object
+        reason:
+          description: |-
+            The reason of the field-level error. This is a constant value that
+            identifies the proximate cause of the field-level error. It should
+            uniquely identify the type of the FieldViolation within the scope of the
+            google.rpc.ErrorInfo.domain. This should be at most 63
+            characters and match a regular expression of `[A-Z][A-Z0-9_]+[A-Z0-9]`,
+            which represents UPPER_SNAKE_CASE.
+          type: string
+      type: object
+    errdetails.LocalizedMessage:
+      properties:
+        locale:
+          description: |-
+            The locale used following the specification defined at
+            https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+            Examples are: "en-US", "fr-CH", "es-MX"
+          type: string
+        message:
+          description: The localized error message in the above locale.
+          type: string
+      type: object
+    github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput:
+      properties:
+        bypass_code:
+          example: 1A2B3C4D5E6F
+          type: string
+        device_trust_token:
+          example: skdjfsdfsdifsdfsdf123
+          type: string
+        email:
+          example: makc-dgek@mail.ru
+          format: email
+          type: string
+        ip:
+          example: 19.56.186.122
+          format: ip4
+          type: string
+        password:
+          type: string
+        user_agent:
+          example: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36\
+            \ (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+          type: string
+      required:
+      - email
+      - ip
+      - password
+      - user_agent
+      type: object
+    httputils.ErrorResponse:
+      example:
+        message: message
+      properties:
+        message:
+          type: string
+      type: object
+    sessionspb.CreateSessionResponse:
+      example:
+        payload: "{}"
+      properties:
+        payload:
+          description: "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\
+            \t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\
+            \t*CreateSessionResponse_LoginFromNewDevice"
+          type: object
+      type: object
+    sessionspb.RefreshSessionRequest:
+      properties:
+        ip:
+          example: 19.56.186.122
+          format: ip4
+          type: string
+        refresh_token:
+          type: string
+        user_agent:
+          example: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36\
+            \ (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+          type: string
+      required:
+      - ip
+      - refresh_token
+      - user_agent
+      type: object
+    timestamppb.Timestamp:
+      example:
+        seconds: 6
+        nanos: 0
+      properties:
+        nanos:
+          description: |-
+            Non-negative fractions of a second at nanosecond resolution. This field is
+            the nanosecond portion of the duration, not an alternative to seconds.
+            Negative second values with fractions must still have non-negative nanos
+            values that count forward in time. Must be between 0 and 999,999,999
+            inclusive.
+          type: integer
+        seconds:
+          description: |-
+            Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must
+            be between -315576000000 and 315576000000 inclusive (which corresponds to
+            0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z).
+          type: integer
+      type: object
+    userspb.CreateUserRequest:
+      properties:
+        email:
+          example: makc-dgek@mail.ru
+          format: email
+          type: string
+        password:
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    userspb.CreateUserResponse:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      type: object
+    userspb.GenderValue:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - GenderValue_GENDER_UNSPECIFIED
+      - GenderValue_GENDER_UNSELECTED
+      - GenderValue_GENDER_MALE
+      - GenderValue_GENDER_FEMALE
+    userspb.Profile:
+      example:
+        avatar_url: /avatars/photo.jpg
+        gender: 1
+        updated_at:
+          seconds: 6
+          nanos: 0
+        birth_date: 2001-11-23
+        last_name: Ivanov
+        middle_name: Olegovich
+        first_name: Ivan
+      properties:
+        avatar_url:
+          example: /avatars/photo.jpg
+          type: string
+        birth_date:
+          example: 2001-11-23
+          type: string
+        first_name:
+          example: Ivan
+          type: string
+        gender:
+          allOf:
+          - $ref: "#/components/schemas/userspb.GenderValue"
+          description: |-
+            GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+            GENDER_UNSELECTED = 1 User has not selected a gender
+            GENDER_MALE = 2 Represents male gender
+            GENDER_FEMALE = 3 Represents female gender
+          example: 1
+          type: object
+          x-enum-varnames: GENDER_UNSPECIFIED
+        last_name:
+          example: Ivanov
+          type: string
+        middle_name:
+          example: Olegovich
+          type: string
+        updated_at:
+          $ref: "#/components/schemas/timestamppb.Timestamp"
+      required:
+      - gender
+      - updated_at
+      type: object
+    userspb.UpdateUserProfileData:
+      properties:
+        avatar_url:
+          example: /avatars/photo.jpg
+          type: string
+        birth_date:
+          example: 2001-11-23
+          type: string
+        first_name:
+          example: Ivan
+          type: string
+        gender_value:
+          allOf:
+          - $ref: "#/components/schemas/userspb.GenderValue"
+          description: |-
+            GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+            GENDER_UNSELECTED = 1 User has not selected a gender
+            GENDER_MALE = 2 Represents male gender
+            GENDER_FEMALE = 3 Represents female gender
+          example: 1
+          type: object
+          x-enum-varnames: GENDER_UNSPECIFIED
+        last_name:
+          example: Ivanov
+          type: string
+        middle_name:
+          example: Olegovich
+          type: string
+      type: object
+    userspb.User:
+      example:
+        updated_at:
+          seconds: 6
+          nanos: 0
+        phone: "+79517735133"
+        profile:
+          avatar_url: /avatars/photo.jpg
+          gender: 1
+          updated_at:
+            seconds: 6
+            nanos: 0
+          birth_date: 2001-11-23
+          last_name: Ivanov
+          middle_name: Olegovich
+          first_name: Ivan
+        created_at:
+          seconds: 6
+          nanos: 0
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        email: makc-dgek@mail.ru
+      properties:
+        created_at:
+          $ref: "#/components/schemas/timestamppb.Timestamp"
+        email:
+          example: makc-dgek@mail.ru
+          format: email
+          type: string
+        id:
+          format: uuid
+          type: string
+        phone:
+          example: "+79517735133"
+          type: string
+        profile:
+          $ref: "#/components/schemas/userspb.Profile"
+        updated_at:
+          $ref: "#/components/schemas/timestamppb.Timestamp"
+      required:
+      - created_at
+      - email
+      - id
+      - profile
+      - updated_at
+      type: object
+    userspb.UserSessionActionResponse:
+      example:
+        payload: "{}"
+      properties:
+        payload:
+          description: "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\
+            \t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\
+            \t*UserSessionActionResponse_Ok"
+          type: object
+      type: object
+  securitySchemes:
+    BearerAuth:
+      in: header
+      name: Authorization
+      type: apiKey
+x-original-swagger-version: "2.0"
