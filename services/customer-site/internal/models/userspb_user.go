@@ -40,7 +40,8 @@ type UserspbUser struct {
 	Phone string `json:"phone,omitempty"`
 
 	// profile
-	Profile *UserspbProfile `json:"profile,omitempty"`
+	// Required: true
+	Profile *UserspbProfile `json:"profile"`
 
 	// updated at
 	// Required: true
@@ -128,8 +129,9 @@ func (m *UserspbUser) validateID(formats strfmt.Registry) error {
 }
 
 func (m *UserspbUser) validateProfile(formats strfmt.Registry) error {
-	if swag.IsZero(m.Profile) { // not required
-		return nil
+
+	if err := validate.Required("profile", "body", m.Profile); err != nil {
+		return err
 	}
 
 	if m.Profile != nil {
@@ -220,10 +222,6 @@ func (m *UserspbUser) contextValidateCreatedAt(ctx context.Context, formats strf
 func (m *UserspbUser) contextValidateProfile(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Profile != nil {
-
-		if swag.IsZero(m.Profile) { // not required
-			return nil
-		}
 
 		if err := m.Profile.ContextValidate(ctx, formats); err != nil {
 			ve := new(errors.Validation)

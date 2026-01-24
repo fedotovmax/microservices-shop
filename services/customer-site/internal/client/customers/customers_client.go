@@ -56,9 +56,13 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetCustomersUsersID(params *GetCustomersUsersIDParams, opts ...ClientOption) (*GetCustomersUsersIDOK, error)
+	GetCustomersUsersProfile(params *GetCustomersUsersProfileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetCustomersUsersProfileOK, error)
 
-	PatchCustomersUsersID(params *PatchCustomersUsersIDParams, opts ...ClientOption) (*PatchCustomersUsersIDOK, error)
+	PatchCustomersUsersProfile(params *PatchCustomersUsersProfileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchCustomersUsersProfileOK, error)
+
+	PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, error)
+
+	PostCustomersSessionRefreshSession(params *PostCustomersSessionRefreshSessionParams, opts ...ClientOption) (*PostCustomersSessionRefreshSessionCreated, error)
 
 	PostCustomersUsers(params *PostCustomersUsersParams, opts ...ClientOption) (*PostCustomersUsersCreated, error)
 
@@ -66,24 +70,25 @@ type ClientService interface {
 }
 
 /*
-GetCustomersUsersID gets user base info by id
+GetCustomersUsersProfile gets user profile
 
-Get user base info by id
+Get user base profile
 */
-func (a *Client) GetCustomersUsersID(params *GetCustomersUsersIDParams, opts ...ClientOption) (*GetCustomersUsersIDOK, error) {
+func (a *Client) GetCustomersUsersProfile(params *GetCustomersUsersProfileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetCustomersUsersProfileOK, error) {
 	// NOTE: parameters are not validated before sending
 	if params == nil {
-		params = NewGetCustomersUsersIDParams()
+		params = NewGetCustomersUsersProfileParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetCustomersUsersID",
+		ID:                 "GetCustomersUsersProfile",
 		Method:             "GET",
-		PathPattern:        "/customers/users/{id}",
+		PathPattern:        "/customers/users/profile",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetCustomersUsersIDReader{formats: a.formats},
+		Reader:             &GetCustomersUsersProfileReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -96,7 +101,7 @@ func (a *Client) GetCustomersUsersID(params *GetCustomersUsersIDParams, opts ...
 	}
 
 	// only one success response has to be checked
-	success, ok := result.(*GetCustomersUsersIDOK)
+	success, ok := result.(*GetCustomersUsersProfileOK)
 	if ok {
 		return success, nil
 	}
@@ -106,29 +111,30 @@ func (a *Client) GetCustomersUsersID(params *GetCustomersUsersIDParams, opts ...
 	// no default response is defined.
 	//
 	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetCustomersUsersID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetCustomersUsersProfile: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-PatchCustomersUsersID updates user profile
+PatchCustomersUsersProfile updates user profile
 
 Update user profile
 */
-func (a *Client) PatchCustomersUsersID(params *PatchCustomersUsersIDParams, opts ...ClientOption) (*PatchCustomersUsersIDOK, error) {
+func (a *Client) PatchCustomersUsersProfile(params *PatchCustomersUsersProfileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchCustomersUsersProfileOK, error) {
 	// NOTE: parameters are not validated before sending
 	if params == nil {
-		params = NewPatchCustomersUsersIDParams()
+		params = NewPatchCustomersUsersProfileParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "PatchCustomersUsersID",
+		ID:                 "PatchCustomersUsersProfile",
 		Method:             "PATCH",
-		PathPattern:        "/customers/users/{id}",
+		PathPattern:        "/customers/users/profile",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &PatchCustomersUsersIDReader{formats: a.formats},
+		Reader:             &PatchCustomersUsersProfileReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -141,7 +147,7 @@ func (a *Client) PatchCustomersUsersID(params *PatchCustomersUsersIDParams, opts
 	}
 
 	// only one success response has to be checked
-	success, ok := result.(*PatchCustomersUsersIDOK)
+	success, ok := result.(*PatchCustomersUsersProfileOK)
 	if ok {
 		return success, nil
 	}
@@ -151,7 +157,97 @@ func (a *Client) PatchCustomersUsersID(params *PatchCustomersUsersIDParams, opts
 	// no default response is defined.
 	//
 	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PatchCustomersUsersID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for PatchCustomersUsersProfile: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+PostCustomersSessionLogin logins in account
+
+Login in account
+*/
+func (a *Client) PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, error) {
+	// NOTE: parameters are not validated before sending
+	if params == nil {
+		params = NewPostCustomersSessionLoginParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "PostCustomersSessionLogin",
+		Method:             "POST",
+		PathPattern:        "/customers/session/login",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &PostCustomersSessionLoginReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+
+	// only one success response has to be checked
+	success, ok := result.(*PostCustomersSessionLoginOK)
+	if ok {
+		return success, nil
+	}
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for PostCustomersSessionLogin: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+PostCustomersSessionRefreshSession refreshes session
+
+Refresh session by refresh token from headers
+*/
+func (a *Client) PostCustomersSessionRefreshSession(params *PostCustomersSessionRefreshSessionParams, opts ...ClientOption) (*PostCustomersSessionRefreshSessionCreated, error) {
+	// NOTE: parameters are not validated before sending
+	if params == nil {
+		params = NewPostCustomersSessionRefreshSessionParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "PostCustomersSessionRefreshSession",
+		Method:             "POST",
+		PathPattern:        "/customers/session/refresh-session",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &PostCustomersSessionRefreshSessionReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+
+	// only one success response has to be checked
+	success, ok := result.(*PostCustomersSessionRefreshSessionCreated)
+	if ok {
+		return success, nil
+	}
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for PostCustomersSessionRefreshSession: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

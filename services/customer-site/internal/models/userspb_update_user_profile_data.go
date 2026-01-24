@@ -19,7 +19,7 @@ import (
 type UserspbUpdateUserProfileData struct {
 
 	// avatar url
-	// Example: https://example.com/photo.jpg
+	// Example: /avatars/photo.jpg
 	AvatarURL string `json:"avatar_url,omitempty"`
 
 	// birth date
@@ -30,7 +30,10 @@ type UserspbUpdateUserProfileData struct {
 	// Example: Ivan
 	FirstName string `json:"first_name,omitempty"`
 
-	// gender value
+	// GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+	// GENDER_UNSELECTED = 1 User has not selected a gender
+	// GENDER_MALE = 2 Represents male gender
+	// GENDER_FEMALE = 3 Represents female gender
 	// Example: 1
 	GenderValue struct {
 		UserspbGenderValue

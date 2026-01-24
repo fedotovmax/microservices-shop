@@ -59,10 +59,60 @@ definitions:
         description: The localized error message in the above locale.
         type: string
     type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput:
+    properties:
+      bypass_code:
+        example: 1A2B3C4D5E6F
+        type: string
+      device_trust_token:
+        example: skdjfsdfsdifsdfsdf123
+        type: string
+      email:
+        example: makc-dgek@mail.ru
+        format: email
+        type: string
+      ip:
+        example: 19.56.186.122
+        format: ip4
+        type: string
+      password:
+        type: string
+      user_agent:
+        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+        type: string
+    required:
+    - email
+    - ip
+    - password
+    - user_agent
+    type: object
   httputils.ErrorResponse:
     properties:
       message:
         type: string
+    type: object
+  sessionspb.CreateSessionResponse:
+    properties:
+      payload:
+        description: "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
+    type: object
+  sessionspb.RefreshSessionRequest:
+    properties:
+      ip:
+        example: 19.56.186.122
+        format: ip4
+        type: string
+      refresh_token:
+        type: string
+      user_agent:
+        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+        type: string
+    required:
+    - ip
+    - refresh_token
+    - user_agent
     type: object
   timestamppb.Timestamp:
     properties:
@@ -117,8 +167,7 @@ definitions:
   userspb.Profile:
     properties:
       avatar_url:
-        example: https://example.com/photo.jpg
-        format: url
+        example: /avatars/photo.jpg
         type: string
       birth_date:
         example: "2001-11-23"
@@ -129,6 +178,11 @@ definitions:
       gender:
         allOf:
         - $ref: '#/definitions/userspb.GenderValue'
+        description: |-
+          GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+          GENDER_UNSELECTED = 1 User has not selected a gender
+          GENDER_MALE = 2 Represents male gender
+          GENDER_FEMALE = 3 Represents female gender
         example: 1
       last_name:
         example: Ivanov
@@ -145,8 +199,7 @@ definitions:
   userspb.UpdateUserProfileData:
     properties:
       avatar_url:
-        example: https://example.com/photo.jpg
-        format: url
+        example: /avatars/photo.jpg
         type: string
       birth_date:
         example: "2001-11-23"
@@ -157,6 +210,11 @@ definitions:
       gender_value:
         allOf:
         - $ref: '#/definitions/userspb.GenderValue'
+        description: |-
+          GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
+          GENDER_UNSELECTED = 1 User has not selected a gender
+          GENDER_MALE = 2 Represents male gender
+          GENDER_FEMALE = 3 Represents female gender
         example: 1
       last_name:
         example: Ivanov
@@ -187,7 +245,13 @@ definitions:
     - created_at
     - email
     - id
+    - profile
     - updated_at
+    type: object
+  userspb.UserSessionActionResponse:
+    properties:
+      payload:
+        description: "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
     type: object
 info:
   contact:
@@ -197,6 +261,90 @@ info:
   title: Swagger Documentation for microservices shop API Gateway
   version: "1.0"
 paths:
+  /customers/session/login:
+    post:
+      consumes:
+      - application/json
+      description: Login in account
+      parameters:
+      - description: Dto for login in account
+        in: body
+        name: dto
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput'
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sessionspb.CreateSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/userspb.UserSessionActionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Login in account
+      tags:
+      - customers
+  /customers/session/refresh-session:
+    post:
+      consumes:
+      - application/json
+      description: Refresh session by refresh token from headers
+      parameters:
+      - description: Refresh session dto
+        in: body
+        name: dto
+        required: true
+        schema:
+          $ref: '#/definitions/sessionspb.RefreshSessionRequest'
+      - description: Locale
+        in: header
+        name: X-Request-Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/sessionspb.CreateSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errdetails.BadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+      summary: Refresh session
+      tags:
+      - customers
   /customers/users:
     post:
       consumes:
@@ -235,17 +383,12 @@ paths:
       summary: Create user account
       tags:
       - customers
-  /customers/users/{id}:
+  /customers/users/profile:
     get:
       consumes:
       - application/json
-      description: Get user base info by id
+      description: Get user base profile
       parameters:
-      - description: User id parameter
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Locale
         in: header
         name: X-Request-Locale
@@ -261,6 +404,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -269,7 +416,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-      summary: Get user base info by id
+      security:
+      - BearerAuth: []
+      summary: Get user profile
       tags:
       - customers
     patch:
@@ -277,11 +426,6 @@ paths:
       - application/json
       description: Update user profile
       parameters:
-      - description: User id parameter
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Update user profile with body dto
         in: body
         name: dto
@@ -303,11 +447,22 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update user profile
       tags:
       - customers
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
