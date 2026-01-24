@@ -31,6 +31,12 @@ func (o *PostCustomersSessionLoginReader) ReadResponse(response runtime.ClientRe
 			return nil, err
 		}
 		return result, nil
+	case 228:
+		result := NewPostCustomersSessionLoginStatus228()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return result, nil
 	case 400:
 		result := NewPostCustomersSessionLoginBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -51,12 +57,6 @@ func (o *PostCustomersSessionLoginReader) ReadResponse(response runtime.ClientRe
 		return nil, result
 	case 404:
 		result := NewPostCustomersSessionLoginNotFound()
-		if err := result.readResponse(response, consumer, o.formats); err != nil {
-			return nil, err
-		}
-		return nil, result
-	case 406:
-		result := NewPostCustomersSessionLoginNotAcceptable()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -133,6 +133,76 @@ func (o *PostCustomersSessionLoginOK) GetPayload() *models.SessionspbCreateSessi
 func (o *PostCustomersSessionLoginOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.SessionspbCreateSessionResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
+		return err
+	}
+
+	return nil
+}
+
+// NewPostCustomersSessionLoginStatus228 creates a PostCustomersSessionLoginStatus228 with default headers values
+func NewPostCustomersSessionLoginStatus228() *PostCustomersSessionLoginStatus228 {
+	return &PostCustomersSessionLoginStatus228{}
+}
+
+/*
+PostCustomersSessionLoginStatus228 describes a response with status code 228, with default header values.
+
+PostCustomersSessionLoginStatus228 post customers session login status228
+*/
+type PostCustomersSessionLoginStatus228 struct {
+	Payload *models.HttputilsErrorResponse
+}
+
+// IsSuccess returns true when this post customers session login status228 response has a 2xx status code
+func (o *PostCustomersSessionLoginStatus228) IsSuccess() bool {
+	return true
+}
+
+// IsRedirect returns true when this post customers session login status228 response has a 3xx status code
+func (o *PostCustomersSessionLoginStatus228) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this post customers session login status228 response has a 4xx status code
+func (o *PostCustomersSessionLoginStatus228) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this post customers session login status228 response has a 5xx status code
+func (o *PostCustomersSessionLoginStatus228) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this post customers session login status228 response a status code equal to that given
+func (o *PostCustomersSessionLoginStatus228) IsCode(code int) bool {
+	return code == 228
+}
+
+// Code gets the status code for the post customers session login status228 response
+func (o *PostCustomersSessionLoginStatus228) Code() int {
+	return 228
+}
+
+func (o *PostCustomersSessionLoginStatus228) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /customers/session/login][%d] postCustomersSessionLoginStatus228 %s", 228, payload)
+}
+
+func (o *PostCustomersSessionLoginStatus228) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[POST /customers/session/login][%d] postCustomersSessionLoginStatus228 %s", 228, payload)
+}
+
+func (o *PostCustomersSessionLoginStatus228) GetPayload() *models.HttputilsErrorResponse {
+	return o.Payload
+}
+
+func (o *PostCustomersSessionLoginStatus228) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.HttputilsErrorResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
@@ -411,76 +481,6 @@ func (o *PostCustomersSessionLoginNotFound) GetPayload() *models.HttputilsErrorR
 }
 
 func (o *PostCustomersSessionLoginNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
-	o.Payload = new(models.HttputilsErrorResponse)
-
-	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
-		return err
-	}
-
-	return nil
-}
-
-// NewPostCustomersSessionLoginNotAcceptable creates a PostCustomersSessionLoginNotAcceptable with default headers values
-func NewPostCustomersSessionLoginNotAcceptable() *PostCustomersSessionLoginNotAcceptable {
-	return &PostCustomersSessionLoginNotAcceptable{}
-}
-
-/*
-PostCustomersSessionLoginNotAcceptable describes a response with status code 406, with default header values.
-
-Not Acceptable
-*/
-type PostCustomersSessionLoginNotAcceptable struct {
-	Payload *models.HttputilsErrorResponse
-}
-
-// IsSuccess returns true when this post customers session login not acceptable response has a 2xx status code
-func (o *PostCustomersSessionLoginNotAcceptable) IsSuccess() bool {
-	return false
-}
-
-// IsRedirect returns true when this post customers session login not acceptable response has a 3xx status code
-func (o *PostCustomersSessionLoginNotAcceptable) IsRedirect() bool {
-	return false
-}
-
-// IsClientError returns true when this post customers session login not acceptable response has a 4xx status code
-func (o *PostCustomersSessionLoginNotAcceptable) IsClientError() bool {
-	return true
-}
-
-// IsServerError returns true when this post customers session login not acceptable response has a 5xx status code
-func (o *PostCustomersSessionLoginNotAcceptable) IsServerError() bool {
-	return false
-}
-
-// IsCode returns true when this post customers session login not acceptable response a status code equal to that given
-func (o *PostCustomersSessionLoginNotAcceptable) IsCode(code int) bool {
-	return code == 406
-}
-
-// Code gets the status code for the post customers session login not acceptable response
-func (o *PostCustomersSessionLoginNotAcceptable) Code() int {
-	return 406
-}
-
-func (o *PostCustomersSessionLoginNotAcceptable) Error() string {
-	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[POST /customers/session/login][%d] postCustomersSessionLoginNotAcceptable %s", 406, payload)
-}
-
-func (o *PostCustomersSessionLoginNotAcceptable) String() string {
-	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[POST /customers/session/login][%d] postCustomersSessionLoginNotAcceptable %s", 406, payload)
-}
-
-func (o *PostCustomersSessionLoginNotAcceptable) GetPayload() *models.HttputilsErrorResponse {
-	return o.Payload
-}
-
-func (o *PostCustomersSessionLoginNotAcceptable) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.HttputilsErrorResponse)
 

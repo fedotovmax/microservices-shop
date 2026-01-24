@@ -284,6 +284,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/sessionspb.CreateSessionResponse'
+        "228":
+          description: ""
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
         "400":
           description: Bad Request
           schema:
@@ -298,10 +302,6 @@ paths:
             $ref: '#/definitions/userspb.UserSessionActionResponse'
         "404":
           description: Not Found
-          schema:
-            $ref: '#/definitions/httputils.ErrorResponse'
-        "406":
-          description: Not Acceptable
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
         "500":

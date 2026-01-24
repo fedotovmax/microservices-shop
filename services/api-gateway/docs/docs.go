@@ -55,12 +55,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/sessionspb.CreateSessionResponse"
                         }
                     },
-                    "228": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/httputils.ErrorResponse"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -81,6 +75,12 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
                         "schema": {
                             "$ref": "#/definitions/httputils.ErrorResponse"
                         }
@@ -535,6 +535,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
+                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {
@@ -572,6 +573,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/userspb.GenderValue"
                         }
                     ],
+                    "x-enum-varnames": "GENDER_UNSPECIFIED",
                     "example": 1
                 },
                 "last_name": {

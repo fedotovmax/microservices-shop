@@ -16,6 +16,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/models"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/pages/home"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/logger"
@@ -46,6 +47,10 @@ func setupLooger(env string) (*slog.Logger, error) {
 }
 
 func main() {
+
+	var men models.UserspbGenderValue = 1
+
+	men.Validate(nil)
 
 	cfg, err := config.LoadAppConfig()
 

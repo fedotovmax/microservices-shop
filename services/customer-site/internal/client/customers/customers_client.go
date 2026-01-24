@@ -60,7 +60,7 @@ type ClientService interface {
 
 	PatchCustomersUsersProfile(params *PatchCustomersUsersProfileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchCustomersUsersProfileOK, error)
 
-	PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, error)
+	PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, *PostCustomersSessionLoginStatus228, error)
 
 	PostCustomersSessionRefreshSession(params *PostCustomersSessionRefreshSessionParams, opts ...ClientOption) (*PostCustomersSessionRefreshSessionCreated, error)
 
@@ -166,7 +166,7 @@ PostCustomersSessionLogin logins in account
 
 Login in account
 */
-func (a *Client) PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, error) {
+func (a *Client) PostCustomersSessionLogin(params *PostCustomersSessionLoginParams, opts ...ClientOption) (*PostCustomersSessionLoginOK, *PostCustomersSessionLoginStatus228, error) {
 	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostCustomersSessionLoginParams()
@@ -188,21 +188,21 @@ func (a *Client) PostCustomersSessionLogin(params *PostCustomersSessionLoginPara
 	}
 	result, err := a.transport.Submit(op)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// only one success response has to be checked
-	success, ok := result.(*PostCustomersSessionLoginOK)
-	if ok {
-		return success, nil
+	// several success responses have to be checked
+	switch value := result.(type) {
+	case *PostCustomersSessionLoginOK:
+		return value, nil, nil
+	case *PostCustomersSessionLoginStatus228:
+		return nil, value, nil
 	}
-
-	// unexpected success response.
 
 	// no default response is defined.
 	//
 	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostCustomersSessionLogin: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for customers: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
