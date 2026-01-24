@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
 )
 
 var ErrTrustTokenNotFound = errors.New("trust token not found or expired or revoked")
@@ -20,7 +18,7 @@ var ErrSessionExpired = errors.New("session is expired")
 
 var ErrSessionRevoked = errors.New("session is revoked")
 
-var ErrUserSessionsInBlackList = errors.New(keys.UserInBlacklist)
+var ErrUserSessionsInBlackList = errors.New("user in blacklist")
 
 var ErrBlacklistCodeExpired = errors.New("blacklist code expired")
 
@@ -30,11 +28,11 @@ var ErrAgentLooksLikeBot = errors.New("the user agent looks like a bot")
 
 var ErrInvalidSessionIP = errors.New("invalid session IP")
 
-var ErrLoginFromNewIPOrDevice = errors.New(keys.LoginFromNewIPOrDevice)
+var ErrLoginFromNewIPOrDevice = errors.New("login from new device")
 
 var ErrBypassCodeExpired = errors.New("bypass code expired")
 
-var ErrBadBypassCode = errors.New(keys.BadBypassCode)
+var ErrBadBypassCode = errors.New("invalid bypass code")
 
 type UserSessionsInBlacklistError struct {
 	ErrCode       string

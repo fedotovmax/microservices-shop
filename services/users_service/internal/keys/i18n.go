@@ -1,6 +1,13 @@
 package keys
 
-const FallbackLocale = "ru"
+const FallbackLocale = RuLocale
+
+const DateFormat = "2006-01-02"
+
+const RuLocale = "ru"
+const EnLocale = "en"
+
+const EnShortDateFormat = "Jan 02, 2006"
 
 const (
 	ValidationPassword   = "validation_password"

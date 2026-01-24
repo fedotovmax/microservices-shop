@@ -33,6 +33,8 @@ github.com/fedotovmax/envconfig v1.0.2 h1:1zQ3RsV/eLyQpitXcj4yeeE57xx4XPaRs/oVcs
 github.com/fedotovmax/envconfig v1.0.2/go.mod h1:1501oSJgcyOaNqMaAFLb0jPDup8q+2BWwu35X9xNfZI=
 github.com/fedotovmax/goutils v1.0.1 h1:n0M/QDamjF4sdkesu6y29nD3EJiRZpKXM1/p66LBfbM=
 github.com/fedotovmax/goutils v1.0.1/go.mod h1:p8XJPuBdFTgnSSEHlBbglV0YgxmN05b/pwF9a6+ofus=
+github.com/fedotovmax/goutils v1.0.2 h1:oo/7WjPP7bBBUWts0XS/P1TjnX7RqMEJY0fjm9U+cVY=
+github.com/fedotovmax/goutils v1.0.2/go.mod h1:p8XJPuBdFTgnSSEHlBbglV0YgxmN05b/pwF9a6+ofus=
 github.com/fedotovmax/grpcutils v1.0.9 h1:BFVYkOYYycbAwYqYRxQwjxJHALzYqEaMIgO9nuNaO3U=
 github.com/fedotovmax/grpcutils v1.0.9/go.mod h1:U/yvIiFPuvVpaNLMP1SK8RdTfM26XRZ3kh4tF6Lp5D4=
 github.com/fedotovmax/i18n v1.0.2 h1:7ZxzWd5ek76+p6GSuA0QU4E0QqKq8h0Of61sbh9UTnk=

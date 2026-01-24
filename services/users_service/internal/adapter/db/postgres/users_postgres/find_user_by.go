@@ -11,13 +11,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+//u.deleted_at is null and
+
 func findUserByQuery(column db.UserEntityFields) string {
 	return fmt.Sprintf(`select u.id, u.email, u.phone, u.password_hash, u.is_email_verified,
 u.is_phone_verified, u.created_at, u.updated_at, u.deleted_at,
 p.last_name, p.first_name, p.middle_name, p.birth_date, p.gender, p.avatar_url, p.updated_at
 from users as u
 inner join profiles as p on u.id = p.user_id
-where u.deleted_at is null and u.%s = $1;
+where u.%s = $1;
 `, column)
 }
 

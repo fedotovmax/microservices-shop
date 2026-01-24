@@ -14,7 +14,8 @@ func (u *usecases) checkActiveBypass(ctx context.Context, user *domain.SessionsU
 	const op = "usecases.security.checkActiveBypass"
 
 	if user.Bypass.IsCodeExpired() {
-		err := u.AddLoginIPBypass(ctx, user)
+		//TODO:change this maybe?? and send new code on demand
+		_, err := u.AddLoginIPBypass(ctx, user)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}

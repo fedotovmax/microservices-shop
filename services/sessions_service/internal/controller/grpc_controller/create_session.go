@@ -74,7 +74,7 @@ func (c *controller) handleCreateSessionError(locale string, fallback string, er
 
 	case errors.Is(err, errs.ErrBadBypassCode):
 
-		msg, i18nerr := i18n.Local.Get(locale, err.Error())
+		msg, i18nerr := i18n.Local.Get(locale, keys.InvalidCode)
 
 		if i18nerr != nil {
 			l.Warn("18n error", logger.Err(err))

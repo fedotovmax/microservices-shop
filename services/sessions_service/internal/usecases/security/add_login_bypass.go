@@ -14,7 +14,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
-func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUser) error {
+func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUser) (*time.Time, error) {
 
 	const op = "usecases.security.AddLoginIPBypass"
 
@@ -26,7 +26,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 
 	if err != nil {
 		l.Error("error when generate code for bypass", slog.String("uid", user.Info.UID), logger.Err(err))
-		return err
+		return nil, err
 	}
 
 	codeExpiresAt := time.Now().Add(u.cfg.LoginBypassExpDuration).UTC()
@@ -45,7 +45,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 
 	if err != nil {
 		l.Error("error when add/update bypass", slog.String("uid", user.Info.UID), logger.Err(err))
-		return err
+		return nil, err
 	}
 
 	eventPayload := events.SessionBypassAddedEventPayload{
@@ -58,7 +58,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 	eventPayloadBytes, err := json.Marshal(eventPayload)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	eventInput := inputs.NewCreateEventInput()
@@ -70,9 +70,9 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 	_, err = u.eventSender.CreateEvent(ctx, eventInput)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &codeExpiresAt, nil
 
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/keys"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/utils"
 )
 
@@ -42,18 +43,23 @@ func (u *usecases) handleSecurityMethods(ctx context.Context, params handleSecur
 
 	if !params.User.HasTwoFactor() {
 
-		hashedTrustToken := utils.HashToken(params.TrustToken)
+		isTrustTokenNotFound := true
 
-		trustTokenFromDB, err := u.findTrustToken(ctx, params.User.Info.UID, hashedTrustToken)
+		var trustTokenFromDB *domain.DeviceTrustToken
 
-		isTrustTokenNotFound := errors.Is(err, errs.ErrTrustTokenNotFound)
+		if params.TrustToken != "" {
+			hashedTrustToken := utils.HashToken(params.TrustToken)
 
-		if err != nil && !isTrustTokenNotFound {
-			return nil, true, fmt.Errorf("%s: %w", op, err)
+			trustTokenFromDB, err = u.findTrustToken(ctx, params.User.Info.UID, hashedTrustToken)
+
+			isTrustTokenNotFound = errors.Is(err, errs.ErrTrustTokenNotFound)
+
+			if err != nil && !isTrustTokenNotFound {
+				return nil, true, fmt.Errorf("%s: %w", op, err)
+			}
 		}
 
 		if isTrustTokenNotFound {
-
 			if params.User.HasBypass() {
 				err = u.checkActiveBypass(ctx, params.User, params.BypassCode)
 				if err != nil {
@@ -63,12 +69,15 @@ func (u *usecases) handleSecurityMethods(ctx context.Context, params handleSecur
 					return nil, true, fmt.Errorf("%s: %w", op, err)
 				}
 			} else {
-
-				err = u.AddLoginIPBypass(ctx, params.User)
+				var codeExpiresAt *time.Time
+				codeExpiresAt, err = u.AddLoginIPBypass(ctx, params.User)
 				if err != nil {
 					return nil, true, fmt.Errorf("%s: %w", op, err)
 				}
-				return nil, false, fmt.Errorf("%s: %w", op, errs.ErrLoginFromNewIPOrDevice)
+				return nil, false, fmt.Errorf("%s: %w", op, errs.NewLoginFromNewIPOrDeviceError(
+					keys.LoginFromNewIPOrDevice,
+					*codeExpiresAt,
+				))
 			}
 
 			newTrustToken, err := utils.CreateToken()
@@ -122,105 +131,41 @@ func (u *usecases) handleSecurityMethods(ctx context.Context, params handleSecur
 
 /*
 
+		isTrustTokenNotFound := true
 
-OLD create sessions security checks, do not delete!
+		var trustTokenFromDB *domain.DeviceTrustToken
 
+		if params.TrustToken != "" {
+			hashedTrustToken := utils.HashToken(params.TrustToken)
 
-if user.IsDeleted() {
-			return fmt.Errorf("%s: %w", op, errs.ErrUserDeleted)
-		}
+			trustTokenFromDB, err = u.findTrustToken(ctx, params.User.Info.UID, hashedTrustToken)
 
-		err = u.handleUserBlacklist(txCtx, user)
-
-		if err != nil {
-			if errors.Is(err, errs.ErrUserSessionsInBlackList) || errors.Is(err, errs.ErrBlacklistCodeExpired) {
-				independentTxErr = fmt.Errorf("%s: %w", op, err)
-				return nil
-			}
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
-		var preparedTrustToken *domain.PreparedTrustToken = nil
-
-		nowUTC := time.Now().UTC()
-
-		deviceTrustTokenFromInput := in.GetDeviceTrustToken()
-		bypassCode := in.GetBypassCode()
-
-		if !user.HasTwoFactor() {
-
-			hashedTrustToken := u.hashToken(deviceTrustTokenFromInput)
-
-			trustTokenFromDB, err := u.findTrustToken(txCtx, user.Info.UID, hashedTrustToken)
-
-			isTrustTokenNotFound := errors.Is(err, errs.ErrTrustTokenNotFound)
+			isTrustTokenNotFound = errors.Is(err, errs.ErrTrustTokenNotFound)
 
 			if err != nil && !isTrustTokenNotFound {
-				return fmt.Errorf("%s: %w", op, err)
-			}
-
-			if isTrustTokenNotFound {
-
-				if user.HasBypass() {
-					err = u.checkActiveBypass(txCtx, user, bypassCode)
-					if err != nil {
-						if errors.Is(err, errs.ErrBypassCodeExpired) {
-							independentTxErr = fmt.Errorf("%s: %w", op, err)
-							return nil
-						}
-						return fmt.Errorf("%s: %w", op, err)
-					}
-				} else {
-					err = u.AddLoginIPBypass(txCtx, user)
-					if err != nil {
-						return fmt.Errorf("%s: %w", op, err)
-					}
-					independentTxErr = fmt.Errorf("%s: %w", op, errs.ErrLoginFromNewIPOrDevice)
-					return nil
-				}
-
-				newTrustToken, err := u.createToken()
-
-				if err != nil {
-					return fmt.Errorf("%s: %w", op, err)
-				}
-
-				newExpires := nowUTC.Add(u.cfg.DeviceTrustTokenExpDuration)
-
-				preparedTrustToken = &domain.PreparedTrustToken{
-					UID:                     user.Info.UID,
-					DeviceTrustTokenValue:   newTrustToken.nohashed,
-					DeviceTrustTokenHash:    newTrustToken.hashed,
-					DeviceTrustTokenExpTime: newExpires,
-					Action:                  domain.TrustTokenCreated,
-				}
-
-			} else {
-				newExpires := u.extendTrustTokenTTL(trustTokenFromDB.ExpiresAt, nowUTC, u.cfg.DeviceTrustTokenThreshold, u.cfg.DeviceTrustTokenExpDuration)
-
-				preparedTrustToken = &domain.PreparedTrustToken{
-					UID:                     user.Info.UID,
-					DeviceTrustTokenValue:   deviceTrustTokenFromInput,
-					DeviceTrustTokenHash:    trustTokenFromDB.TokenHash,
-					DeviceTrustTokenExpTime: newExpires,
-					Action:                  domain.TrustTokenUpdated,
-				}
-			}
-		} else {
-			if user.HasBypass() && bypassCode != "" {
-
-				err = u.checkActiveBypass(txCtx, user, bypassCode)
-
-				if err != nil {
-					if errors.Is(err, errs.ErrBypassCodeExpired) {
-						independentTxErr = fmt.Errorf("%s: %w", op, err)
-						return nil
-					}
-					return fmt.Errorf("%s: %w", op, err)
-				}
-			} else {
-				//TODO: check otp two factor)
+				return nil, true, fmt.Errorf("%s: %w", op, err)
 			}
 		}
+
+			if isTrustTokenNotFound {
+				....
+			}
+
+
+=============================
+
+	hashedTrustToken := utils.HashToken(params.TrustToken)
+
+	trustTokenFromDB, err := u.findTrustToken(ctx, params.User.Info.UID, hashedTrustToken)
+
+	isTrustTokenNotFound := errors.Is(err, errs.ErrTrustTokenNotFound)
+
+	if err != nil && !isTrustTokenNotFound {
+		return nil, true, fmt.Errorf("%s: %w", op, err)
+	}
+
+				if isTrustTokenNotFound {
+				....
+			}
 
 */

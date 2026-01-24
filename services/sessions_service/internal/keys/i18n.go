@@ -19,8 +19,7 @@ const (
 	UserDeleted            = "user_deleted"
 	UserAlreadyExists      = "user_already_exists"
 	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
-	BadBypassCode          = "bad_bypass_code"
-	BadBlacklistCode       = "bad_blacklist_code"
+	InvalidCode            = "invalid_code"
 	UserInBlacklist        = "user_in_blacklist"
 )
 

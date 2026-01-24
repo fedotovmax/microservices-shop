@@ -4,16 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
 var ErrUserNotFound = errors.New("user not found")
 var ErrUserAlreadyExists = errors.New("user already exists")
 
-var ErrBadCredentials = errors.New(keys.UserBadCredentials)
-var ErrEmailNotVerified = errors.New(keys.UserEmailNotVerified)
-var ErrUserDeleted = errors.New(keys.UserDeleted)
+var ErrBadCredentials = errors.New("bad credentials")
+var ErrEmailNotVerified = errors.New("email not verified")
+var ErrUserDeleted = errors.New("user deleted")
 
 type UserDeletedError struct {
 	ErrCode           string

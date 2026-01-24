@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 
+	"github.com/fedotovmax/goutils/timeutils"
 	"github.com/fedotovmax/grpcutils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/userspb"
@@ -60,7 +61,16 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 	switch {
 
 	case errors.As(err, &deletedErr):
-		msg, i18nerr := i18n.Local.Get(locale, deletedErr.ErrCode)
+
+		var formattedTime string
+
+		if locale == keys.RuLocale {
+			formattedTime = timeutils.FormatDateRU(deletedErr.LastChanceRestore)
+		} else {
+			formattedTime = timeutils.TimeToString(keys.EnShortDateFormat, deletedErr.LastChanceRestore)
+		}
+
+		msg, i18nerr := i18n.Local.Get(locale, deletedErr.ErrCode, formattedTime)
 
 		if i18nerr != nil {
 			l.Warn("18n error", logger.Err(err))
@@ -78,7 +88,7 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 
 	case errors.Is(err, errs.ErrBadCredentials):
 
-		msg, i18nerr := i18n.Local.Get(locale, err.Error())
+		msg, i18nerr := i18n.Local.Get(locale, keys.UserBadCredentials)
 
 		if i18nerr != nil {
 			l.Warn("18n error", logger.Err(err))
@@ -93,7 +103,7 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 		}, nil
 
 	case errors.Is(err, errs.ErrEmailNotVerified):
-		msg, i18nerr := i18n.Local.Get(locale, err.Error())
+		msg, i18nerr := i18n.Local.Get(locale, keys.UserEmailNotVerified)
 
 		if i18nerr != nil {
 			l.Warn("18n error", logger.Err(err))

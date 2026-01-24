@@ -32,13 +32,14 @@ func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActi
 		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrBadCredentials, err)
 	}
 
-	if !user.IsEmailVerified {
-		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrEmailNotVerified, err)
+	if user.DeletedAt != nil {
+		//todo: change last chance to restore
+		deletedErr := errs.NewUserDeletedError(keys.UserDeleted, *user.DeletedAt, time.Now().UTC().Add(time.Hour*730))
+		return nil, fmt.Errorf("%s: %w", op, deletedErr)
 	}
 
-	if user.DeletedAt != nil {
-		deletedErr := errs.NewUserDeletedError(keys.UserDeleted, *user.DeletedAt, time.Now().UTC())
-		return nil, fmt.Errorf("%s: %w", op, deletedErr)
+	if !user.IsEmailVerified {
+		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrEmailNotVerified, err)
 	}
 
 	return &domain.UserOKResponse{

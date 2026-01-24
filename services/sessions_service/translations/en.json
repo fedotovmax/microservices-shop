@@ -12,5 +12,7 @@
 	"user_deleted": "user is deleted",
 	"user_already_exists": "user already exists",
 
-	"login_from_new_ip_or_device": "login from a new device or IP, a login link has been sent to your email"
+	"login_from_new_ip_or_device": "login from a new device or IP, a login link has been sent to your email",
+	"invalid_code": "invalid code",
+	"user_in_blacklist": "the account is on the stop list due to suspicious activity (hacking attempts, multiple login attempts), a link to unblock the account has been sent to the email associated with the account."
 }
