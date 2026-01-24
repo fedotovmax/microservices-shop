@@ -49,8 +49,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/sessionspb.CreateSessionResponse"
                         }
@@ -75,6 +75,12 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
                         "schema": {
                             "$ref": "#/definitions/httputils.ErrorResponse"
                         }
@@ -417,22 +423,9 @@ const docTemplate = `{
         },
         "sessionspb.CreateSessionResponse": {
             "type": "object",
-            "required": [
-                "access_token",
-                "refresh_token"
-            ],
             "properties": {
-                "access_exp_time": {
-                    "$ref": "#/definitions/timestamppb.Timestamp"
-                },
-                "access_token": {
-                    "type": "string"
-                },
-                "refresh_exp_time": {
-                    "$ref": "#/definitions/timestamppb.Timestamp"
-                },
-                "refresh_token": {
-                    "type": "string"
+                "payload": {
+                    "description": "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
                 }
             }
         },
@@ -627,46 +620,11 @@ const docTemplate = `{
         },
         "userspb.UserSessionActionResponse": {
             "type": "object",
-            "required": [
-                "user_session_action_status"
-            ],
             "properties": {
-                "email": {
-                    "type": "string",
-                    "format": "email"
-                },
-                "user_id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "user_session_action_status": {
-                    "description": "SESSION_STATUS_UNSPECIFIED = 0 Reserved for Proto, not a valid value\nSESSION_STATUS_DELETED = 1 User account is deleted\nSESSION_STATUS_EMAIL_NOT_VERIFIED = 2 User email address not verfied\nSESSION_STATUS_BAD_CREDENTIALS = 3 Invalid login or password\nSESSION_STATUS_OK = 4 Success value",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/userspb.UserSessionActionStatus"
-                        }
-                    ],
-                    "example": 2
+                "payload": {
+                    "description": "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
                 }
             }
-        },
-        "userspb.UserSessionActionStatus": {
-            "type": "integer",
-            "format": "int32",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4
-            ],
-            "x-enum-varnames": [
-                "UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED",
-                "UserSessionActionStatus_SESSION_STATUS_DELETED",
-                "UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED",
-                "UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS",
-                "UserSessionActionStatus_SESSION_STATUS_OK"
-            ]
         }
     },
     "securityDefinitions": {

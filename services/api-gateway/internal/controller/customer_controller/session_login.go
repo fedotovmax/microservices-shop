@@ -36,6 +36,7 @@ type handleSessionStatusParams struct {
 // @Failure      401  {object}  httputils.ErrorResponse
 // @Failure      403  {object}  userspb.UserSessionActionResponse
 // @Failure      404  {object}  httputils.ErrorResponse
+// @Failure      406  {object}  httputils.ErrorResponse
 // @Failure      500  {object}  httputils.ErrorResponse
 func (c *controller) sessionLogin(w http.ResponseWriter, r *http.Request) {
 	const op = "controller.customer.sessionLogin"

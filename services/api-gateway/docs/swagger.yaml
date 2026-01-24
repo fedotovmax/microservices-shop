@@ -94,17 +94,8 @@ definitions:
     type: object
   sessionspb.CreateSessionResponse:
     properties:
-      access_exp_time:
-        $ref: '#/definitions/timestamppb.Timestamp'
-      access_token:
-        type: string
-      refresh_exp_time:
-        $ref: '#/definitions/timestamppb.Timestamp'
-      refresh_token:
-        type: string
-    required:
-    - access_token
-    - refresh_token
+      payload:
+        description: "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
     type: object
   sessionspb.RefreshSessionRequest:
     properties:
@@ -259,40 +250,9 @@ definitions:
     type: object
   userspb.UserSessionActionResponse:
     properties:
-      email:
-        format: email
-        type: string
-      user_id:
-        format: uuid
-        type: string
-      user_session_action_status:
-        allOf:
-        - $ref: '#/definitions/userspb.UserSessionActionStatus'
-        description: |-
-          SESSION_STATUS_UNSPECIFIED = 0 Reserved for Proto, not a valid value
-          SESSION_STATUS_DELETED = 1 User account is deleted
-          SESSION_STATUS_EMAIL_NOT_VERIFIED = 2 User email address not verfied
-          SESSION_STATUS_BAD_CREDENTIALS = 3 Invalid login or password
-          SESSION_STATUS_OK = 4 Success value
-        example: 2
-    required:
-    - user_session_action_status
+      payload:
+        description: "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
     type: object
-  userspb.UserSessionActionStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    format: int32
-    type: integer
-    x-enum-varnames:
-    - UserSessionActionStatus_SESSION_STATUS_UNSPECIFIED
-    - UserSessionActionStatus_SESSION_STATUS_DELETED
-    - UserSessionActionStatus_SESSION_STATUS_EMAIL_NOT_VERIFIED
-    - UserSessionActionStatus_SESSION_STATUS_BAD_CREDENTIALS
-    - UserSessionActionStatus_SESSION_STATUS_OK
 info:
   contact:
     email: f3d0t0tvmax@yandex.ru
@@ -320,8 +280,8 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/sessionspb.CreateSessionResponse'
         "400":
@@ -338,6 +298,10 @@ paths:
             $ref: '#/definitions/userspb.UserSessionActionResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/httputils.ErrorResponse'
+        "406":
+          description: Not Acceptable
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
         "500":
