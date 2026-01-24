@@ -55,6 +55,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/sessionspb.CreateSessionResponse"
                         }
                     },
+                    "228": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -75,12 +81,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/httputils.ErrorResponse"
-                        }
-                    },
-                    "406": {
-                        "description": "Not Acceptable",
                         "schema": {
                             "$ref": "#/definitions/httputils.ErrorResponse"
                         }
