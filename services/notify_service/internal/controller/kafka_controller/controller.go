@@ -10,8 +10,6 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain/errs"
-	"github.com/fedotovmax/microservices-shop/notify_service/pkg/logger"
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
@@ -24,15 +22,22 @@ type Usecases interface {
 	IsNewEvent(ctx context.Context, eventID string) error
 }
 
+type Config struct {
+	CustomerSiteURL                string
+	CustomerSiteURLEmailVerifyPath string
+}
+
 type kafkaController struct {
 	log      *slog.Logger
 	usecases Usecases
+	cfg      *Config
 }
 
-func NewKafkaController(log *slog.Logger, usecases Usecases) *kafkaController {
+func NewKafkaController(log *slog.Logger, usecases Usecases, cfg *Config) *kafkaController {
 	return &kafkaController{
 		log:      log,
 		usecases: usecases,
+		cfg:      cfg,
 	}
 }
 
@@ -153,30 +158,17 @@ func (k *kafkaController) ConsumeClaim(s sarama.ConsumerGroupSession, c sarama.C
 				}
 				l.Info("Send Email", slog.String("email", p.Email), slog.String("code", p.Code))
 				commit()
+			case events.USER_EMAIL_VERIFY_LINK_ADDED:
+				err := k.handleEmailVerifyLinkAdded(ctx, eventID, payload)
+				if err != nil {
+					k.handleErrors(err, commit, l)
+					continue
+				}
+				commit()
 			default:
 				l.Error("invalid event type", slog.String("event_type", eventType))
 				commit()
 			}
 		}
-	}
-}
-
-func (k *kafkaController) handleErrors(err error, commit func(), l *slog.Logger) {
-
-	switch {
-	case errors.Is(err, ErrInvalidPayloadForEventType):
-		l.Error("invalid payload", logger.Err(err))
-		commit()
-	case errors.Is(err, errs.ErrEventAlreadyHandled):
-		l.Error("event was handled", logger.Err(err))
-		commit()
-	case errors.Is(err, errs.ErrChatIDNotFound):
-		l.Error("user are not subscribed for telegram notifications", logger.Err(err))
-		commit()
-	case errors.Is(err, errs.ErrSendTelegramMessage):
-		//no commit)
-		l.Error("cannot send message to telegram, will be retry later", logger.Err(err))
-	default:
-		commit()
 	}
 }

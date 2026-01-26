@@ -59,6 +59,33 @@ definitions:
         description: The localized error message in the above locale.
         type: string
     type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse:
+    properties:
+      message:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType'
+    required:
+    - message
+    - type
+    type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - LoginErrorResponseTypeUserDeleted
+    - LoginErrorResponseTypeBadCredentials
+    - LoginErrorResponseTypeEmailNotVerified
+    - LoginErrorResponseTypeBadBypassCode
+    - LoginErrorResponseTypeLoginFromNewDevice
+    - LoginErrorResponseTypeUserInBlacklist
   github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput:
     properties:
       bypass_code:
@@ -97,6 +124,15 @@ definitions:
       payload:
         description: "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
     type: object
+  sessionspb.CreatedTrustToken:
+    properties:
+      trust_token_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      trust_token_value:
+        type: string
+    required:
+    - trust_token_value
+    type: object
   sessionspb.RefreshSessionRequest:
     properties:
       ip:
@@ -113,6 +149,24 @@ definitions:
     - ip
     - refresh_token
     - user_agent
+    type: object
+  sessionspb.SessionCreated:
+    properties:
+      access_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      access_token:
+        type: string
+      refresh_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      refresh_token:
+        type: string
+      trust_token:
+        $ref: '#/definitions/sessionspb.CreatedTrustToken'
+    required:
+    - access_exp_time
+    - access_token
+    - refresh_exp_time
+    - refresh_token
     type: object
   timestamppb.Timestamp:
     properties:
@@ -248,11 +302,6 @@ definitions:
     - profile
     - updated_at
     type: object
-  userspb.UserSessionActionResponse:
-    properties:
-      payload:
-        description: "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
-    type: object
 info:
   contact:
     email: f3d0t0tvmax@yandex.ru
@@ -280,10 +329,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/sessionspb.CreateSessionResponse'
+            $ref: '#/definitions/sessionspb.SessionCreated'
         "400":
           description: Bad Request
           schema:
@@ -295,13 +344,9 @@ paths:
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/userspb.UserSessionActionResponse'
+            $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse'
         "404":
           description: Not Found
-          schema:
-            $ref: '#/definitions/httputils.ErrorResponse'
-        "406":
-          description: Not Acceptable
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
         "500":

@@ -47,6 +47,10 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
+		if user.IsDeleted() {
+			return fmt.Errorf("%s: %w", op, errs.ErrUserDeleted)
+		}
+
 		nowUTC := time.Now().UTC()
 
 		preparedTrustToken, shouldRollback, err := u.handleSecurityMethods(

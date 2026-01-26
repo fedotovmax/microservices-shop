@@ -14,7 +14,7 @@ import (
 
 func (k *kafkaController) handleUserProfileUpdated(ctx context.Context, eventID string, payload []byte) error {
 
-	const op = "controller.kafka_consumer.handleTgNotification"
+	const op = "controller.kafka_consumer.handleUserProfileUpdated"
 
 	l := k.log.With(slog.String("op", op))
 

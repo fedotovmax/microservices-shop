@@ -12,11 +12,11 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
 	eventspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/events_postgres"
 	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/users_postgres"
+	eventsender "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/event_sender"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
-	eventsUsecasesPkg "github.com/fedotovmax/microservices-shop/users_service/internal/usecases/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases/users"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 
@@ -80,13 +80,13 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventsUsecases := eventsUsecasesPkg.New(eventsPostgres, txManager)
+	eventSender := eventsender.New(eventsPostgres, txManager)
 
-	usersUsecases := users.New(usersPostgres, txManager, eventsUsecases, log, &users.Config{
+	usersUsecases := users.New(usersPostgres, txManager, eventSender, log, &users.Config{
 		EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
 	})
 
-	eventProcessor, err := outbox.New(log, producer, eventsUsecases, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, eventSender, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

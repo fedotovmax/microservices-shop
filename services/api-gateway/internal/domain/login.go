@@ -1,7 +1,24 @@
 package domain
 
-type LoginStatus string
+type LoginErrorResponseType uint8
 
-const ()
+const (
+	LoginErrorResponseTypeUserDeleted LoginErrorResponseType = iota
+	LoginErrorResponseTypeBadCredentials
+	LoginErrorResponseTypeEmailNotVerified
+	LoginErrorResponseTypeBadBypassCode
+	LoginErrorResponseTypeLoginFromNewDevice
+	LoginErrorResponseTypeUserInBlacklist
+)
 
-type LoginErrorResponse struct{}
+type LoginErrorResponse struct {
+	Type    LoginErrorResponseType `json:"type" validate:"required"`
+	Message string                 `json:"message" validate:"required"`
+}
+
+func NewLoginErrorResponse(t LoginErrorResponseType, m string) LoginErrorResponse {
+	return LoginErrorResponse{
+		Type:    t,
+		Message: m,
+	}
+}

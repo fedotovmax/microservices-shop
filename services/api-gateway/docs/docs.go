@@ -49,10 +49,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sessionspb.CreateSessionResponse"
+                            "$ref": "#/definitions/sessionspb.SessionCreated"
                         }
                     },
                     "400": {
@@ -70,17 +70,11 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/userspb.UserSessionActionResponse"
+                            "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/httputils.ErrorResponse"
-                        }
-                    },
-                    "406": {
-                        "description": "Not Acceptable",
                         "schema": {
                             "$ref": "#/definitions/httputils.ErrorResponse"
                         }
@@ -377,6 +371,41 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "type"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType"
+                }
+            }
+        },
+        "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "LoginErrorResponseTypeUserDeleted",
+                "LoginErrorResponseTypeBadCredentials",
+                "LoginErrorResponseTypeEmailNotVerified",
+                "LoginErrorResponseTypeBadBypassCode",
+                "LoginErrorResponseTypeLoginFromNewDevice",
+                "LoginErrorResponseTypeUserInBlacklist"
+            ]
+        },
         "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput": {
             "type": "object",
             "required": [
@@ -429,6 +458,20 @@ const docTemplate = `{
                 }
             }
         },
+        "sessionspb.CreatedTrustToken": {
+            "type": "object",
+            "required": [
+                "trust_token_value"
+            ],
+            "properties": {
+                "trust_token_exp_time": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "trust_token_value": {
+                    "type": "string"
+                }
+            }
+        },
         "sessionspb.RefreshSessionRequest": {
             "type": "object",
             "required": [
@@ -448,6 +491,32 @@ const docTemplate = `{
                 "user_agent": {
                     "type": "string",
                     "example": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+                }
+            }
+        },
+        "sessionspb.SessionCreated": {
+            "type": "object",
+            "required": [
+                "access_exp_time",
+                "access_token",
+                "refresh_exp_time",
+                "refresh_token"
+            ],
+            "properties": {
+                "access_exp_time": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_exp_time": {
+                    "$ref": "#/definitions/timestamppb.Timestamp"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "trust_token": {
+                    "$ref": "#/definitions/sessionspb.CreatedTrustToken"
                 }
             }
         },
@@ -615,14 +684,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "$ref": "#/definitions/timestamppb.Timestamp"
-                }
-            }
-        },
-        "userspb.UserSessionActionResponse": {
-            "type": "object",
-            "properties": {
-                "payload": {
-                    "description": "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
                 }
             }
         }

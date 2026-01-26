@@ -66,7 +66,10 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	usecases := usecase.New(log, redisAdapter, tgbot)
 
-	kafkaConsumerController := kafkacontroller.NewKafkaController(log, usecases)
+	kafkaConsumerController := kafkacontroller.NewKafkaController(log, usecases, &kafkacontroller.Config{
+		CustomerSiteURL:                c.CustomerSiteURL,
+		CustomerSiteURLEmailVerifyPath: c.CustomerSiteURLEmailVerifyPath,
+	})
 
 	tgBotController := tgbotcontroller.NewTgBotController(log, usecases, tgbot)
 

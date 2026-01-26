@@ -15,6 +15,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/openapiclient"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/router"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/pages/home"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/logger"
@@ -40,6 +41,49 @@ func setupLooger(env string) (*slog.Logger, error) {
 	default:
 		return nil, envconfig.ErrInvalidAppEnv
 	}
+}
+
+func testAPI(addr string) {
+
+	apiClientConfig := openapiclient.NewConfiguration()
+	apiClientConfig.Host = addr
+
+	apiClient := openapiclient.NewAPIClient(apiClientConfig)
+
+	ctx := context.WithValue(
+		context.Background(),
+		openapiclient.ContextAPIKeys,
+		map[string]openapiclient.APIKey{
+			"BearerAuth": {
+				Key:    "my-api-key",
+				Prefix: "Bearer", // опционально
+			},
+		},
+	)
+
+	response, _, err := apiClient.CustomersAPI.CustomersSessionLoginPost(ctx).Dto(openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginInput{}).Execute()
+
+	if err != nil {
+		var genericOpenAPIError *openapiclient.GenericOpenAPIError
+
+		if errors.As(err, &genericOpenAPIError) {
+
+			switch t := genericOpenAPIError.Model().(type) {
+			case openapiclient.ErrdetailsBadRequest:
+				slog.Error("validation errors (from grpc)", slog.Any("violations", t.FieldViolations))
+			case openapiclient.HttputilsErrorResponse:
+				slog.Error("http error", slog.Any("error", t.GetMessage()))
+			case openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginErrorResponse:
+				slog.Warn("login error response", slog.Any("current type", t))
+			default:
+				slog.Info("unknown http error", slog.Any("unknown error", err.Error()))
+			}
+
+		}
+	}
+
+	slog.Info("Session created", slog.Any("response", response))
+
 }
 
 func main() {

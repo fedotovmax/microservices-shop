@@ -13,6 +13,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
 	eventspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/events_postgres"
 	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/sessions_postgres"
+	eventsender "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/event_sender"
 	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
@@ -20,7 +21,6 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 	"github.com/fedotovmax/pgxtx"
 
-	eventsUsecasesPkg "github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases/security"
 )
 
@@ -78,7 +78,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventsUsecases := eventsUsecasesPkg.New(eventsPostgres, txManager)
+	eventsUsecases := eventsender.New(eventsPostgres, txManager)
 
 	securityUsecases := security.New(
 		sessionsPostgres,

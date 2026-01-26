@@ -13,7 +13,8 @@ definitions:
         description: A description of why the request element is bad.
         type: string
       field:
-        description: "A path that leads to a field in the request body. The value
+        description:
+          "A path that leads to a field in the request body. The value
           will be a\nsequence of dot-separated identifiers that identify a protocol
           buffer\nfield.\n\nConsider the following:\n\n\tmessage CreateContactRequest
           {\n\t  message EmailAddress {\n\t    enum Type {\n\t      TYPE_UNSPECIFIED
@@ -33,7 +34,7 @@ definitions:
         type: string
       localized_message:
         allOf:
-        - $ref: '#/definitions/errdetails.LocalizedMessage'
+          - $ref: '#/definitions/errdetails.LocalizedMessage'
         description: |-
           Provides a localized error message for field-level errors that is safe to
           return to the API consumer.
@@ -59,6 +60,33 @@ definitions:
         description: The localized error message in the above locale.
         type: string
     type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse:
+    properties:
+      message:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType'
+    required:
+      - message
+      - type
+    type: object
+  github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType:
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+    format: int32
+    type: integer
+    x-enum-varnames:
+      - LoginErrorResponseTypeUserDeleted
+      - LoginErrorResponseTypeBadCredentials
+      - LoginErrorResponseTypeEmailNotVerified
+      - LoginErrorResponseTypeBadBypassCode
+      - LoginErrorResponseTypeLoginFromNewDevice
+      - LoginErrorResponseTypeUserInBlacklist
   github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput:
     properties:
       bypass_code:
@@ -78,14 +106,15 @@ definitions:
       password:
         type: string
       user_agent:
-        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+        example:
+          Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
           (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
         type: string
     required:
-    - email
-    - ip
-    - password
-    - user_agent
+      - email
+      - ip
+      - password
+      - user_agent
     type: object
   httputils.ErrorResponse:
     properties:
@@ -97,6 +126,15 @@ definitions:
       payload:
         description: "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
     type: object
+  sessionspb.CreatedTrustToken:
+    properties:
+      trust_token_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      trust_token_value:
+        type: string
+    required:
+      - trust_token_value
+    type: object
   sessionspb.RefreshSessionRequest:
     properties:
       ip:
@@ -106,13 +144,32 @@ definitions:
       refresh_token:
         type: string
       user_agent:
-        example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+        example:
+          Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
           (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
         type: string
     required:
-    - ip
-    - refresh_token
-    - user_agent
+      - ip
+      - refresh_token
+      - user_agent
+    type: object
+  sessionspb.SessionCreated:
+    properties:
+      access_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      access_token:
+        type: string
+      refresh_exp_time:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      refresh_token:
+        type: string
+      trust_token:
+        $ref: '#/definitions/sessionspb.CreatedTrustToken'
+    required:
+      - access_exp_time
+      - access_token
+      - refresh_exp_time
+      - refresh_token
     type: object
   timestamppb.Timestamp:
     properties:
@@ -140,8 +197,8 @@ definitions:
       password:
         type: string
     required:
-    - email
-    - password
+      - email
+      - password
     type: object
   userspb.CreateUserResponse:
     properties:
@@ -149,42 +206,41 @@ definitions:
         format: uuid
         type: string
     required:
-    - id
+      - id
     type: object
   userspb.GenderValue:
     enum:
-    - 0
-    - 1
-    - 2
-    - 3
+      - 0
+      - 1
+      - 2
+      - 3
     format: int32
     type: integer
     x-enum-varnames:
-    - GenderValue_GENDER_UNSPECIFIED
-    - GenderValue_GENDER_UNSELECTED
-    - GenderValue_GENDER_MALE
-    - GenderValue_GENDER_FEMALE
+      - GenderValue_GENDER_UNSPECIFIED
+      - GenderValue_GENDER_UNSELECTED
+      - GenderValue_GENDER_MALE
+      - GenderValue_GENDER_FEMALE
   userspb.Profile:
     properties:
       avatar_url:
         example: /avatars/photo.jpg
         type: string
       birth_date:
-        example: "2001-11-23"
+        example: '2001-11-23'
         type: string
       first_name:
         example: Ivan
         type: string
       gender:
         allOf:
-        - $ref: '#/definitions/userspb.GenderValue'
+          - $ref: '#/definitions/userspb.GenderValue'
         description: |-
           GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
           GENDER_UNSELECTED = 1 User has not selected a gender
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
-        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string
@@ -194,8 +250,8 @@ definitions:
       updated_at:
         $ref: '#/definitions/timestamppb.Timestamp'
     required:
-    - gender
-    - updated_at
+      - gender
+      - updated_at
     type: object
   userspb.UpdateUserProfileData:
     properties:
@@ -203,21 +259,20 @@ definitions:
         example: /avatars/photo.jpg
         type: string
       birth_date:
-        example: "2001-11-23"
+        example: '2001-11-23'
         type: string
       first_name:
         example: Ivan
         type: string
       gender_value:
         allOf:
-        - $ref: '#/definitions/userspb.GenderValue'
+          - $ref: '#/definitions/userspb.GenderValue'
         description: |-
           GENDER_UNSPECIFIED = 0 Reserved for Proto, not a valid value
           GENDER_UNSELECTED = 1 User has not selected a gender
           GENDER_MALE = 2 Represents male gender
           GENDER_FEMALE = 3 Represents female gender
         example: 1
-        x-enum-varnames: GENDER_UNSPECIFIED
       last_name:
         example: Ivanov
         type: string
@@ -237,23 +292,18 @@ definitions:
         format: uuid
         type: string
       phone:
-        example: "+79517735133"
+        example: '+79517735133'
         type: string
       profile:
         $ref: '#/definitions/userspb.Profile'
       updated_at:
         $ref: '#/definitions/timestamppb.Timestamp'
     required:
-    - created_at
-    - email
-    - id
-    - profile
-    - updated_at
-    type: object
-  userspb.UserSessionActionResponse:
-    properties:
-      payload:
-        description: "Types that are valid to be assigned to Payload:\n\n\t*UserSessionActionResponse_Deleted\n\t*UserSessionActionResponse_EmailNotVerified\n\t*UserSessionActionResponse_BadCredentials\n\t*UserSessionActionResponse_Ok"
+      - created_at
+      - email
+      - id
+      - profile
+      - updated_at
     type: object
 info:
   contact:
@@ -261,210 +311,206 @@ info:
     name: Fedotv Maxim (developer)
   description: Swagger Documentation for API Gateway of microservices shop project
   title: Swagger Documentation for microservices shop API Gateway
-  version: "1.0"
+  version: '1.0'
 paths:
   /customers/session/login:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Login in account
       parameters:
-      - description: Dto for login in account
-        in: body
-        name: dto
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput'
-      - description: Locale
-        in: header
-        name: X-Request-Locale
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
+        - description: Dto for login in account
+          in: body
+          name: dto
+          required: true
           schema:
-            $ref: '#/definitions/sessionspb.CreateSessionResponse'
-        "400":
+            $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginInput'
+        - description: Locale
+          in: header
+          name: X-Request-Locale
+          type: string
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/sessionspb.SessionCreated'
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "403":
+        '403':
           description: Forbidden
           schema:
-            $ref: '#/definitions/userspb.UserSessionActionResponse'
-        "404":
+            $ref: '#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse'
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "406":
-          description: Not Acceptable
-          schema:
-            $ref: '#/definitions/httputils.ErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
       summary: Login in account
       tags:
-      - customers
+        - customers
   /customers/session/refresh-session:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Refresh session by refresh token from headers
       parameters:
-      - description: Refresh session dto
-        in: body
-        name: dto
-        required: true
-        schema:
-          $ref: '#/definitions/sessionspb.RefreshSessionRequest'
-      - description: Locale
-        in: header
-        name: X-Request-Locale
-        type: string
+        - description: Refresh session dto
+          in: body
+          name: dto
+          required: true
+          schema:
+            $ref: '#/definitions/sessionspb.RefreshSessionRequest'
+        - description: Locale
+          in: header
+          name: X-Request-Locale
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
-        "201":
+        '201':
           description: Created
           schema:
             $ref: '#/definitions/sessionspb.CreateSessionResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
       summary: Refresh session
       tags:
-      - customers
+        - customers
   /customers/users:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create new user account
       parameters:
-      - description: Create user account with body dto
-        in: body
-        name: dto
-        required: true
-        schema:
-          $ref: '#/definitions/userspb.CreateUserRequest'
-      - description: Locale
-        in: header
-        name: X-Request-Locale
-        type: string
+        - description: Create user account with body dto
+          in: body
+          name: dto
+          required: true
+          schema:
+            $ref: '#/definitions/userspb.CreateUserRequest'
+        - description: Locale
+          in: header
+          name: X-Request-Locale
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
-        "201":
+        '201':
           description: Created
           schema:
             $ref: '#/definitions/userspb.CreateUserResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
-        "403":
+        '403':
           description: Forbidden
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
       summary: Create user account
       tags:
-      - customers
+        - customers
   /customers/users/profile:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get user base profile
       parameters:
-      - description: Locale
-        in: header
-        name: X-Request-Locale
-        type: string
+        - description: Locale
+          in: header
+          name: X-Request-Locale
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/userspb.User'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "404":
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get user profile
       tags:
-      - customers
+        - customers
     patch:
       consumes:
-      - application/json
+        - application/json
       description: Update user profile
       parameters:
-      - description: Update user profile with body dto
-        in: body
-        name: dto
-        required: true
-        schema:
-          $ref: '#/definitions/userspb.UpdateUserProfileData'
-      - description: Locale
-        in: header
-        name: X-Request-Locale
-        type: string
+        - description: Update user profile with body dto
+          in: body
+          name: dto
+          required: true
+          schema:
+            $ref: '#/definitions/userspb.UpdateUserProfileData'
+        - description: Locale
+          in: header
+          name: X-Request-Locale
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/errdetails.BadRequest'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputils.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Update user profile
       tags:
-      - customers
+        - customers
 securityDefinitions:
   BearerAuth:
     in: header
     name: Authorization
     type: apiKey
-swagger: "2.0"
+swagger: '2.0'

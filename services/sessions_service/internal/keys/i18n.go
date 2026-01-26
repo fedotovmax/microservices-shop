@@ -21,6 +21,7 @@ const (
 	LoginFromNewIPOrDevice = "login_from_new_ip_or_device"
 	InvalidCode            = "invalid_code"
 	UserInBlacklist        = "user_in_blacklist"
+	UserAgentLooksLikeBot  = "user_agent_like_bot"
 )
 
 const (

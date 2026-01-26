@@ -2,12 +2,10 @@ package users
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
@@ -55,27 +53,23 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		userCreatedPayload := events.UserCreatedEventPayload{
-			ID:                       createUserResult.ID,
-			EmailVerifyLink:          link.Link,
-			EmailVerifyLinkExpiresAt: link.LinkExpiresAt,
-			Email:                    createUserResult.Email,
-			Locale:                   locale,
-		}
-
-		userCreatedPayloadBytes, err := json.Marshal(userCreatedPayload)
+		err = u.SendUserCreatedEvent(txCtx, &sendUserCreatedEventParams{
+			ID:     createUserResult.ID,
+			Email:  createUserResult.Email,
+			Locale: locale,
+		})
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		userCreatedEventIn := inputs.NewCreateEventInput()
-		userCreatedEventIn.SetAggregateID(createUserResult.ID)
-		userCreatedEventIn.SetTopic(events.USER_EVENTS)
-		userCreatedEventIn.SetType(events.USER_CREATED)
-		userCreatedEventIn.SetPayload(userCreatedPayloadBytes)
-
-		_, err = u.eventSender.CreateEvent(txCtx, userCreatedEventIn)
+		err = u.SendEmalVerifyLinkAddedEvent(txCtx, &sendEmalVerifyLinkAddedEventParams{
+			ID:            createUserResult.ID,
+			Email:         createUserResult.Email,
+			Link:          link.Link,
+			LinkExpiresAt: link.LinkExpiresAt,
+			Locale:        locale,
+		})
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

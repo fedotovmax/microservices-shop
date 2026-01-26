@@ -47,6 +47,8 @@ github.com/fedotovmax/microservices-shop-protos v1.0.43 h1:ZjqCplpRdsczaF2hIiX/x
 github.com/fedotovmax/microservices-shop-protos v1.0.43/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/microservices-shop-protos v1.0.44 h1:6i4LguBx4JlulelfqrNj6EHa5X9tNPeudqWLNQd8UQo=
 github.com/fedotovmax/microservices-shop-protos v1.0.44/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
+github.com/fedotovmax/microservices-shop-protos v1.0.49 h1:uRFm0mjAiDFQxcdlkkr1t3H7VWztqlH4p3D7Pa5AcV8=
+github.com/fedotovmax/microservices-shop-protos v1.0.49/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/pgxtx v1.0.2 h1:a5gC09SgU5I4S1bgIKDBbk+bnlB05woKNAtiqiCWOkM=
 github.com/fedotovmax/pgxtx v1.0.2/go.mod h1:dmpWyvxt9rqplUIG3F1LB6iiid5dNtYE7ZEPYL12aFM=
 github.com/fedotovmax/validation v1.0.2 h1:kG2D+4c+tmIA4rYhlSiZA3UshR3GHfnL36dLNgj2TtM=

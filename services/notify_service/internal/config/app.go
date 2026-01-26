@@ -10,12 +10,14 @@ import (
 )
 
 type AppConfig struct {
-	KafkaBrokers    []string
-	Env             string
-	TranslationPath string
-	TgBotToken      string
-	RedisAddr       string
-	RedisPassword   string
+	KafkaBrokers                   []string
+	Env                            string
+	TranslationPath                string
+	TgBotToken                     string
+	RedisAddr                      string
+	RedisPassword                  string
+	CustomerSiteURL                string
+	CustomerSiteURLEmailVerifyPath string
 }
 
 type appFlags struct {
@@ -86,20 +88,35 @@ func LoadAppConfig() (*AppConfig, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
+	customerSiteURL, err := envconfig.GetEnv("CUSTOMER_SITE_URL")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	customerSiteURLEmailVerifyPath, err := envconfig.GetEnv("CUSTOMER_SITE_URL_EMAIL_VERIFY_PATH")
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	config := &AppConfig{
-		Env:             appEnv,
-		KafkaBrokers:    kafkaBrokers,
-		TranslationPath: translationPath,
-		TgBotToken:      tgBotToken,
-		RedisAddr:       redisAddr,
-		RedisPassword:   redisPassword,
+		Env:                            appEnv,
+		KafkaBrokers:                   kafkaBrokers,
+		TranslationPath:                translationPath,
+		TgBotToken:                     tgBotToken,
+		RedisAddr:                      redisAddr,
+		RedisPassword:                  redisPassword,
+		CustomerSiteURL:                customerSiteURL,
+		CustomerSiteURLEmailVerifyPath: customerSiteURLEmailVerifyPath,
 	}
 
 	return config, nil
 }
+
+//TODO: validate config
 
 func loadAppConfigFlags() (*appFlags, error) {
 

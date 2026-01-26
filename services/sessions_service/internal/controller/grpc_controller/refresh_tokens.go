@@ -33,10 +33,9 @@ func (c *controller) RefreshSession(ctx context.Context, req *sessionspb.Refresh
 	response, err := c.usecases.RefreshSession(ctx, input)
 
 	if err != nil {
-		return nil, c.handleError(locale, keys.RefreshSessionInternal, err)
+		return c.handleCreateSessionError(locale, keys.RefreshSessionInternal, err)
 	}
 
-	//TODO:replace maybe??
 	return &sessionspb.CreateSessionResponse{
 		Payload: &sessionspb.CreateSessionResponse_SessionCreated{
 			SessionCreated: &sessionspb.SessionCreated{
