@@ -7,6 +7,7 @@ import (
 	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
+	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
@@ -19,8 +20,11 @@ import (
 // @Produce      json
 // @Param dto body sessionspb.RefreshSessionRequest true "Refresh session dto"
 // @Param X-Request-Locale header string false "Locale"
-// @Success      201  {object}  sessionspb.CreateSessionResponse
+// @Success      201  {object}  sessionspb.SessionCreated
 // @Failure      400  {object}  errdetails.BadRequest
+// @Failure      401  {object}  httputils.ErrorResponse
+// @Failure      403  {object} 	domain.LoginErrorResponse
+// @Failure      404  {object}  httputils.ErrorResponse
 // @Failure      500  {object}  httputils.ErrorResponse
 func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 	const op = "controller.customer.refreshSession"
@@ -33,7 +37,7 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	var refreshReq sessionspb.RefreshSessionRequest
+	var refreshReq domain.RefreshInput
 
 	err := httputils.DecodeJSON(r.Body, &refreshReq)
 
@@ -55,13 +59,17 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 
 	ctx := metadata.NewOutgoingContext(r.Context(), md)
 
-	response, err := c.sessions.RefreshSession(ctx, &refreshReq)
+	response, err := c.sessions.RefreshSession(ctx, &sessionspb.RefreshSessionRequest{
+		RefreshToken: refreshReq.RefreshToken,
+		UserAgent:    refreshReq.UserAgent,
+		Ip:           refreshReq.IP,
+	})
 
 	if err != nil {
 		httputils.HandleErrorFromGrpc(w, err)
 		return
 	}
 
-	httputils.WriteJSON(w, http.StatusCreated, response)
+	c.handleCreateSessionResponse(w, response)
 
 }

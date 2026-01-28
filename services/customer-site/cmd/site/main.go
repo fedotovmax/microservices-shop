@@ -1,35 +1,24 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/fedotovmax/envconfig"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/config"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/controller"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
 	"github.com/fedotovmax/microservices-shop/customer-site/internal/middlewares"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/openapiclient"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/router"
-	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/pages/home"
 	"github.com/fedotovmax/microservices-shop/customer-site/pkg/logger"
-	"github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
 	"github.com/go-chi/chi/v5"
-	"github.com/starfederation/datastar-go/datastar"
 )
 
 func Static(dir string) http.Handler {
 	return http.StripPrefix("/public/", http.FileServer(http.Dir(dir)))
-}
-
-type Store struct {
-	Message string `json:"new_message"`
 }
 
 func setupLooger(env string) (*slog.Logger, error) {
@@ -41,49 +30,6 @@ func setupLooger(env string) (*slog.Logger, error) {
 	default:
 		return nil, envconfig.ErrInvalidAppEnv
 	}
-}
-
-func testAPI(addr string) {
-
-	apiClientConfig := openapiclient.NewConfiguration()
-	apiClientConfig.Host = addr
-
-	apiClient := openapiclient.NewAPIClient(apiClientConfig)
-
-	ctx := context.WithValue(
-		context.Background(),
-		openapiclient.ContextAPIKeys,
-		map[string]openapiclient.APIKey{
-			"BearerAuth": {
-				Key:    "my-api-key",
-				Prefix: "Bearer", // опционально
-			},
-		},
-	)
-
-	response, _, err := apiClient.CustomersAPI.CustomersSessionLoginPost(ctx).Dto(openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginInput{}).Execute()
-
-	if err != nil {
-		var genericOpenAPIError *openapiclient.GenericOpenAPIError
-
-		if errors.As(err, &genericOpenAPIError) {
-
-			switch t := genericOpenAPIError.Model().(type) {
-			case openapiclient.ErrdetailsBadRequest:
-				slog.Error("validation errors (from grpc)", slog.Any("violations", t.FieldViolations))
-			case openapiclient.HttputilsErrorResponse:
-				slog.Error("http error", slog.Any("error", t.GetMessage()))
-			case openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginErrorResponse:
-				slog.Warn("login error response", slog.Any("current type", t))
-			default:
-				slog.Info("unknown http error", slog.Any("unknown error", err.Error()))
-			}
-
-		}
-	}
-
-	slog.Info("Session created", slog.Any("response", response))
-
 }
 
 func main() {
@@ -117,80 +63,10 @@ func main() {
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir(publicDir))))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	routeController := controller.New(r)
 
-		csrf := utils.NewCSRF()
-		csrfCookie := utils.CreateCSRFCookie(keys.CookieCsrf, csrf)
-		http.SetCookie(w, csrfCookie)
-
-		err := utils.Render(w, r, home.Home(&home.Props{CSRF: csrf}))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-
-	r.Post(router.TOAST_ROUTE, func(w http.ResponseWriter, r *http.Request) {
-
-		log.Info(r.Header.Get("X-Csrf-Token"))
-
-		sse := datastar.NewSSE(w, r)
-
-		err := sse.PatchElementTempl(home.TestNotification(), datastar.WithSelectorID(dom.RandomToastContainerID()), datastar.WithModeAppend())
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-	})
-
-	r.Get("/updates", func(w http.ResponseWriter, r *http.Request) {
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		patchedRequest := r.WithContext(ctx)
-
-		sse := datastar.NewSSE(w, patchedRequest)
-
-		ticker := time.NewTicker(time.Second * 3)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-r.Context().Done():
-				sse.PatchElements("<div>клиент вышел</div>", datastar.WithSelectorID("updates"), datastar.WithModeAppend())
-				cancel()
-				return
-			case <-ticker.C:
-				currentTime := time.Now().String()
-				sse.PatchElements(fmt.Sprintf("<div>%s</div>", currentTime), datastar.WithSelectorID("updates"), datastar.WithModeAppend())
-			}
-		}
-
-	})
-
-	r.Post("/messages", func(w http.ResponseWriter, r *http.Request) {
-
-		store := &Store{}
-
-		err := datastar.ReadSignals(r, store)
-		if err != nil {
-			log.Error(err.Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		sse := datastar.NewSSE(w, r)
-
-		sse.PatchElements(fmt.Sprintf("<div>%s</div>", store.Message), datastar.WithSelectorID("messages"), datastar.WithModeAppend())
-
-		store.Message = ""
-
-		sse.MarshalAndPatchSignals(store)
-
-	})
+	routeController.RegisterPublic()
+	routeController.RegisterProtected()
 
 	port := fmt.Sprintf(":%d", cfg.Port)
 

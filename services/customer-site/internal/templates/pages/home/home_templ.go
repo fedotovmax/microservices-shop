@@ -8,28 +8,28 @@ package home
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/accordion"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/theme"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/input"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/templates/layouts"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
-
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/router"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/sheet"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/popover"
-import "github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/label"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/tooltip"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/dropdown"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/selectbox"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/components/rating"
-import "fmt"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
-import "github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+import (
+	"fmt"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/accordion"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/button"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/dialog"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/dropdown"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/icon"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/input"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/label"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/popover"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/rating"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/selectbox"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/sheet"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/theme"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/toast"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/components/tooltip"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/dom"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/keys"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/resources"
+	"github.com/fedotovmax/microservices-shop/customer-site/internal/templates/layouts"
+	"github.com/fedotovmax/microservices-shop/customer-site/pkg/utils"
+)
 
 type Props struct {
 	CSRF string
@@ -348,7 +348,7 @@ func Home(props *Props) templ.Component {
 			templ_7745c5c3_Err = button.Button(&button.Props{
 				Variant: button.VariantOutline,
 				Attributes: templ.Attributes{
-					"data-on:click": utils.DatastarSseWithOptions("post", router.TOAST_ROUTE, fmt.Sprintf(`
+					"data-on:click": utils.DatastarSseWithOptions("post", keys.ROUTE_TOAST, fmt.Sprintf(`
 					{
     				headers: {
         			'%s': document.getElementById('%s').content,

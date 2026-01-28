@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
+	eventspostgres "github.com/fedotovmax/kafka-lib/adapters/db/postgres/events_postgres"
+	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
-	eventspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/events_postgres"
+
 	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/sessions_postgres"
-	eventsender "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/event_sender"
 	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
@@ -78,11 +79,11 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventsUsecases := eventsender.New(eventsPostgres, txManager)
+	eventSender := eventsender.New(eventsPostgres, txManager)
 
 	securityUsecases := security.New(
 		sessionsPostgres,
-		eventsUsecases,
+		eventSender,
 		txManager,
 		log,
 		&security.Config{
@@ -101,7 +102,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	kafkaConsumerController := kafkacontroller.New(log, securityUsecases)
 
-	eventProcessor, err := outbox.New(log, producer, eventsUsecases, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, eventSender, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
@@ -26,7 +27,7 @@ type Config struct {
 }
 
 type EventSender interface {
-	CreateEvent(ctx context.Context, d *inputs.CreateEvent) (string, error)
+	CreateEvent(ctx context.Context, d *outbox.CreateEvent) (string, error)
 }
 
 type usecases struct {

@@ -36,6 +36,7 @@ func setupLooger(env string) (*slog.Logger, error) {
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+// @description Введите "Bearer [ваш JWT токен]"
 func main() {
 
 	cfg, err := config.LoadAppConfig()

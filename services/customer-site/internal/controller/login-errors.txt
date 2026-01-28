@@ -1,0 +1,22 @@
+CustomersAPI.CustomersSessionLoginPost(ctx).Dto(openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginInput{}).
+		Execute()
+
+	if err != nil {
+		var genericOpenAPIError *openapiclient.GenericOpenAPIError
+
+		if errors.As(err, &genericOpenAPIError) {
+
+			switch t := genericOpenAPIError.Model().(type) {
+			case openapiclient.ErrdetailsBadRequest:
+				slog.Error("validation errors (from grpc)", slog.Any("violations", t.FieldViolations))
+			case openapiclient.HttputilsErrorResponse:
+				slog.Error("http error", slog.Any("error", t.GetMessage()))
+			case openapiclient.GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginErrorResponse:
+				slog.Warn("login error response", slog.Any("current type", t))
+			default:
+				slog.Info("unknown http error", slog.Any("unknown error", err.Error()))
+			}
+		}
+	}
+
+	slog.Info("Session created", slog.Any("response", response))

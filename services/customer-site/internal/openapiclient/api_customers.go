@@ -217,7 +217,7 @@ func (r ApiCustomersSessionRefreshSessionPostRequest) XRequestLocale(xRequestLoc
 	return r
 }
 
-func (r ApiCustomersSessionRefreshSessionPostRequest) Execute() (*SessionspbCreateSessionResponse, *http.Response, error) {
+func (r ApiCustomersSessionRefreshSessionPostRequest) Execute() (*SessionspbSessionCreated, *http.Response, error) {
 	return r.ApiService.CustomersSessionRefreshSessionPostExecute(r)
 }
 
@@ -237,13 +237,13 @@ func (a *CustomersAPIService) CustomersSessionRefreshSessionPost(ctx context.Con
 }
 
 // Execute executes the request
-//  @return SessionspbCreateSessionResponse
-func (a *CustomersAPIService) CustomersSessionRefreshSessionPostExecute(r ApiCustomersSessionRefreshSessionPostRequest) (*SessionspbCreateSessionResponse, *http.Response, error) {
+//  @return SessionspbSessionCreated
+func (a *CustomersAPIService) CustomersSessionRefreshSessionPostExecute(r ApiCustomersSessionRefreshSessionPostRequest) (*SessionspbSessionCreated, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *SessionspbCreateSessionResponse
+		localVarReturnValue  *SessionspbSessionCreated
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CustomersAPIService.CustomersSessionRefreshSessionPost")
@@ -306,6 +306,39 @@ func (a *CustomersAPIService) CustomersSessionRefreshSessionPostExecute(r ApiCus
 		}
 		if localVarHTTPResponse.StatusCode == 400 {
 			var v ErrdetailsBadRequest
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v HttputilsErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v GithubComFedotovmaxMicroservicesShopApiGatewayInternalDomainLoginErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v HttputilsErrorResponse
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
 type sendEmalVerifyLinkAddedEventParams struct {
@@ -39,7 +39,7 @@ func (u *usecases) SendEmalVerifyLinkAddedEvent(
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	linkAddedEventIn := inputs.NewCreateEventInput()
+	linkAddedEventIn := outbox.NewCreateEventInput()
 	linkAddedEventIn.SetAggregateID(params.ID)
 	linkAddedEventIn.SetTopic(events.USER_EVENTS)
 	linkAddedEventIn.SetType(events.USER_EMAIL_VERIFY_LINK_ADDED)

@@ -7,12 +7,13 @@ import (
 	"sync"
 	"time"
 
+	eventspostgres "github.com/fedotovmax/kafka-lib/adapters/db/postgres/events_postgres"
+	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
-	eventspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/events_postgres"
+
 	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/users_postgres"
-	eventsender "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/event_sender"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
@@ -64,6 +65,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	ex := txManager.GetExtractor()
 
 	usersPostgres := userspostgres.New(ex, log)
+
 	eventsPostgres := eventspostgres.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig

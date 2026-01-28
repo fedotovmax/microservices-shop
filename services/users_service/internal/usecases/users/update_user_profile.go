@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
@@ -51,7 +52,7 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserI
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		userProfileUpdatedIn := inputs.NewCreateEventInput()
+		userProfileUpdatedIn := outbox.NewCreateEventInput()
 		userProfileUpdatedIn.SetAggregateID(user.ID)
 		userProfileUpdatedIn.SetTopic(events.USER_EVENTS)
 		userProfileUpdatedIn.SetType(events.USER_PROFILE_UPDATED)

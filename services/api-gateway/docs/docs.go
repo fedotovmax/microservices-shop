@@ -122,13 +122,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sessionspb.CreateSessionResponse"
+                            "$ref": "#/definitions/sessionspb.SessionCreated"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
                         }
                     },
                     "500": {
@@ -450,14 +468,6 @@ const docTemplate = `{
                 }
             }
         },
-        "sessionspb.CreateSessionResponse": {
-            "type": "object",
-            "properties": {
-                "payload": {
-                    "description": "Types that are valid to be assigned to Payload:\n\n\t*CreateSessionResponse_SessionCreated\n\t*CreateSessionResponse_UserInBlacklist\n\t*CreateSessionResponse_BadBypassCode\n\t*CreateSessionResponse_LoginFromNewDevice"
-                }
-            }
-        },
         "sessionspb.CreatedTrustToken": {
             "type": "object",
             "required": [
@@ -690,6 +700,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BearerAuth": {
+            "description": "Введите \"Bearer [ваш JWT токен]\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

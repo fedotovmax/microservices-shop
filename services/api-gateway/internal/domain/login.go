@@ -22,3 +22,9 @@ func NewLoginErrorResponse(t LoginErrorResponseType, m string) LoginErrorRespons
 		Message: m,
 	}
 }
+
+type RefreshInput struct {
+	RefreshToken string `json:"refresh_token"`
+	UserAgent    string `json:"user_agent"`
+	IP           string `json:"ip"`
+}

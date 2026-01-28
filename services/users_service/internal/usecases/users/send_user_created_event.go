@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
 type sendUserCreatedEventParams struct {
@@ -34,7 +34,7 @@ func (u *usecases) SendUserCreatedEvent(
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	userCreatedEventIn := inputs.NewCreateEventInput()
+	userCreatedEventIn := outbox.NewCreateEventInput()
 	userCreatedEventIn.SetAggregateID(params.ID)
 	userCreatedEventIn.SetTopic(events.USER_EVENTS)
 	userCreatedEventIn.SetType(events.USER_CREATED)

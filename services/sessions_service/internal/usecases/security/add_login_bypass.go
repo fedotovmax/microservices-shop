@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
@@ -61,7 +62,7 @@ func (u *usecases) AddLoginIPBypass(ctx context.Context, user *domain.SessionsUs
 		return nil, err
 	}
 
-	eventInput := inputs.NewCreateEventInput()
+	eventInput := outbox.NewCreateEventInput()
 	eventInput.SetAggregateID(user.Info.UID)
 	eventInput.SetTopic(events.SESSION_EVENTS)
 	eventInput.SetType(events.SESSION_BYPASS_ADDED)

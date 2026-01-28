@@ -54,6 +54,7 @@ func (c *controller) Register() {
 		customersRouter.Route("/session", func(sessionRouter chi.Router) {
 			sessionRouter.Post("/login", c.sessionLogin)
 			sessionRouter.Post("/refresh-session", c.refreshSession)
+			sessionRouter.With(authMiddleware).Get("/check", c.checkSession)
 		})
 	})
 }

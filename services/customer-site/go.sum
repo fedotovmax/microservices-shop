@@ -12,6 +12,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fedotovmax/envconfig v1.0.2 h1:1zQ3RsV/eLyQpitXcj4yeeE57xx4XPaRs/oVcsIB7MA=
 github.com/fedotovmax/envconfig v1.0.2/go.mod h1:1501oSJgcyOaNqMaAFLb0jPDup8q+2BWwu35X9xNfZI=
+github.com/fedotovmax/singlecall v1.0.2 h1:0iOmS55pcmTxPKSw5CvM70+0zZ1N8Sj2C3WWbZ6jAdo=
+github.com/fedotovmax/singlecall v1.0.2/go.mod h1:P+vp9in9O6ooAx6CDrFsiimhHedQzgL701YmNK3TJok=
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
 github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
 github.com/google/brotli/go/cbrotli v0.0.0-20230829110029-ed738e842d2f h1:jopqB+UTSdJGEJT8tEqYyE29zN91fi2827oLET8tl7k=

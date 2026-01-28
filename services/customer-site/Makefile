@@ -45,3 +45,5 @@ openapi:
 
 	rm -rf ./internal/openapiclient/test
 
+	@echo "Openapi client generated successfully! ✅"
+
