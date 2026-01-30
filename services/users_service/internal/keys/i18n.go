@@ -38,6 +38,13 @@ const (
 	CreateUserInternal        = "create_user_internal"
 	UpdateUserProfileInternal = "update_user_profile_internal"
 	UserSessionActionInternal = "user_session_action_internal"
+	//todo:
+	VerifyEmailInternal = "verify_email_internal"
+)
+
+const (
+	VerifyEmailLinkExpired   = "verify_email_link_expired"
+	UserEmailAlreadyVerified = "user_email_already_verified"
 )
 
 const (

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/fedotovmax/httputils"
+	_ "github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/utils"
 )
 

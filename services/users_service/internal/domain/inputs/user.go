@@ -215,7 +215,7 @@ func (i *FindUserByIDInput) SetUserID(id string) {
 	i.userID = id
 }
 
-func (i *FindUserByIDInput) GetUserID(id string) string {
+func (i *FindUserByIDInput) GetUserID() string {
 	return i.userID
 }
 
@@ -226,6 +226,39 @@ func (i *FindUserByIDInput) Validate(locale string) error {
 
 	if err != nil {
 		validationErrors = append(validationErrors, addValidationError("UserID", locale, msg, err))
+	}
+
+	if len(validationErrors) > 0 {
+		return validationErrors
+	}
+
+	return nil
+
+}
+
+type UUIDInput struct {
+	uuid string
+}
+
+func NewUUIDInput() *UUIDInput {
+	return &UUIDInput{}
+}
+
+func (i *UUIDInput) SetUUID(uuid string) {
+	i.uuid = uuid
+}
+
+func (i *UUIDInput) GetUUID() string {
+	return i.uuid
+}
+
+func (i *UUIDInput) Validate(locale string, fieldName string) error {
+	var validationErrors violations.ValidationErrors
+
+	msg, err := validateUUID(i.uuid, locale)
+
+	if err != nil {
+		validationErrors = append(validationErrors, addValidationError(fieldName, locale, msg, err))
 	}
 
 	if len(validationErrors) > 0 {

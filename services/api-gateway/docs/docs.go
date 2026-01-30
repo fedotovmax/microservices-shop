@@ -18,6 +18,54 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/customers/session/check": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Checking session auth for protected client routing",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Check session auth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LocalSession"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/session/login": {
             "post": {
                 "description": "Login in account",
@@ -336,6 +384,120 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/customers/users/send-new-verify-email-link": {
+            "patch": {
+                "description": "Send new email verification link on demand",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Send new email verify link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Send new email verification link with body dto",
+                        "name": "dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userspb.SendNewEmailVerifyLinkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errdetails.BadRequest"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/users/verify-email/{link}": {
+            "get": {
+                "description": "Verify email by verification link from user email address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Verify email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Locale",
+                        "name": "X-Request-Locale",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Verification link",
+                        "name": "link",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.EmailVerifiedSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.VerifyEmailLinkExpired"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/userspb.VerifyEmailLinkNotFound"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputils.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -389,6 +551,17 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LocalSession": {
+            "type": "object",
+            "properties": {
+                "sid": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponse": {
             "type": "object",
             "required": [
@@ -401,6 +574,9 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/github_com_fedotovmax_microservices-shop_api-gateway_internal_domain.LoginErrorResponseType"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -572,6 +748,14 @@ const docTemplate = `{
                 }
             }
         },
+        "userspb.EmailVerifiedSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "userspb.GenderValue": {
             "type": "integer",
             "format": "int32",
@@ -626,6 +810,14 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "$ref": "#/definitions/timestamppb.Timestamp"
+                }
+            }
+        },
+        "userspb.SendNewEmailVerifyLinkRequest": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -694,6 +886,25 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "$ref": "#/definitions/timestamppb.Timestamp"
+                }
+            }
+        },
+        "userspb.VerifyEmailLinkExpired": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "userspb.VerifyEmailLinkNotFound": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
                 }
             }
         }

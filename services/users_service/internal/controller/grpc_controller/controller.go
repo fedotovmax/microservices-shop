@@ -15,6 +15,8 @@ type Usecases interface {
 	FindUserByID(ctx context.Context, id string) (*domain.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserOKResponse, error)
+	VerifyEmail(ctx context.Context, link string) error
+	SendNewEmailVerifyLink(ctx context.Context, uid string, locale string) error
 }
 
 type controller struct {

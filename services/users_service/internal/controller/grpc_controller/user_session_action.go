@@ -57,6 +57,7 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 	l := c.log.With(slog.String("op", op))
 
 	var deletedErr *errs.UserDeletedError
+	var emailNotVerifiedErr *errs.EmailNotVerifiedError
 
 	switch {
 
@@ -102,8 +103,8 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 			},
 		}, nil
 
-	case errors.Is(err, errs.ErrEmailNotVerified):
-		msg, i18nerr := i18n.Local.Get(locale, keys.UserEmailNotVerified)
+	case errors.As(err, &emailNotVerifiedErr):
+		msg, i18nerr := i18n.Local.Get(locale, emailNotVerifiedErr.ErrCode)
 
 		if i18nerr != nil {
 			l.Warn("18n error", logger.Err(err))
@@ -113,6 +114,7 @@ func (c *controller) handleSessionActionError(locale string, fallbackMsg string,
 			Payload: &userspb.UserSessionActionResponse_EmailNotVerified{
 				EmailNotVerified: &userspb.UserEmailNotVerified{
 					Message: msg,
+					UserId:  emailNotVerifiedErr.UID,
 				},
 			},
 		}, nil

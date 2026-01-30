@@ -29,3 +29,28 @@ func IsUserEntityField(f UserEntityFields) error {
 
 	return fmt.Errorf("%s: %w", op, ErrUserEntityField)
 }
+
+type VerifyEmailLinkEntityFields string
+
+func (le VerifyEmailLinkEntityFields) String() string {
+	return string(le)
+}
+
+const (
+	VerifyEmailLinkUserIDField  VerifyEmailLinkEntityFields = "user_id"
+	VerifyEmailLinkPrimaryField VerifyEmailLinkEntityFields = "link"
+)
+
+var ErrVerifyEmailLinkEntityField = errors.New("the passed field does not belong to the veriffy email link entity")
+
+func IsVerifyEmailEntityField(f VerifyEmailLinkEntityFields) error {
+
+	const op = "db.IsUserEntityField"
+
+	switch f {
+	case VerifyEmailLinkPrimaryField, VerifyEmailLinkUserIDField:
+		return nil
+	}
+
+	return fmt.Errorf("%s: %w", op, ErrVerifyEmailLinkEntityField)
+}

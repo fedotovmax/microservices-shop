@@ -23,24 +23,26 @@ func (c *controller) handleUserSessionActionResponse(
 
 	switch t := params.Response.Payload.(type) {
 	case *userspb.UserSessionActionResponse_Deleted:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeUserDeleted,
-			t.Deleted.GetMessage(),
-		)
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeUserDeleted,
+			Message: t.Deleted.GetMessage(),
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	case *userspb.UserSessionActionResponse_BadCredentials:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeBadCredentials,
-			t.BadCredentials.GetMessage(),
-		)
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeBadCredentials,
+			Message: t.BadCredentials.GetMessage(),
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	case *userspb.UserSessionActionResponse_EmailNotVerified:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeEmailNotVerified,
-			t.EmailNotVerified.GetMessage(),
-		)
+
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeEmailNotVerified,
+			Message: t.EmailNotVerified.GetMessage(),
+			UserId:  &t.EmailNotVerified.UserId,
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	case *userspb.UserSessionActionResponse_Ok:
@@ -80,27 +82,27 @@ func (c *controller) handleCreateSessionResponse(w http.ResponseWriter, res *ses
 	switch t := res.Payload.(type) {
 
 	case *sessionspb.CreateSessionResponse_BadBypassCode:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeBadBypassCode,
-			t.BadBypassCode.GetMessage(),
-		)
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeBadBypassCode,
+			Message: t.BadBypassCode.GetMessage(),
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	case *sessionspb.CreateSessionResponse_LoginFromNewDevice:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeLoginFromNewDevice,
-			t.LoginFromNewDevice.GetMessage(),
-		)
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeLoginFromNewDevice,
+			Message: t.LoginFromNewDevice.GetMessage(),
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	case *sessionspb.CreateSessionResponse_SessionCreated:
 		httputils.WriteJSON(w, http.StatusCreated, t.SessionCreated)
 		return
 	case *sessionspb.CreateSessionResponse_UserInBlacklist:
-		r := domain.NewLoginErrorResponse(
-			domain.LoginErrorResponseTypeUserInBlacklist,
-			t.UserInBlacklist.GetMessage(),
-		)
+		r := domain.LoginErrorResponse{
+			Type:    domain.LoginErrorResponseTypeUserInBlacklist,
+			Message: t.UserInBlacklist.GetMessage(),
+		}
 		httputils.WriteJSON(w, http.StatusForbidden, r)
 		return
 	default:
@@ -113,5 +115,6 @@ func (c *controller) handleCreateSessionResponse(w http.ResponseWriter, res *ses
 			http.StatusInternalServerError,
 			httputils.NewError("unknown create session response"),
 		)
+		return
 	}
 }

@@ -24,8 +24,6 @@ type controller struct {
 	cfg      *Config
 }
 
-//issuer: fmt.Sprintf("%s.customer_controller", keys.APP_NAME)
-
 func New(router chi.Router, log *slog.Logger, usersrpc userspb.UserServiceClient, sessionsrpc sessionspb.SessionsServiceClient, cfg *Config) *controller {
 	return &controller{router: router, users: usersrpc, sessions: sessionsrpc, log: log, cfg: cfg}
 }
@@ -43,6 +41,8 @@ func (c *controller) Register() {
 		customersRouter.Route("/users", func(userRouter chi.Router) {
 
 			userRouter.Post("/", c.createUser)
+			userRouter.Get("/verify-email/{link}", c.verifyEmail)
+			userRouter.Patch("/send-new-verify-email-link", c.sendNewEmailVerifyLink)
 
 			userRouter.With(authMiddleware).Route("/profile", func(profileRouter chi.Router) {
 				profileRouter.Get("/", c.getMe)

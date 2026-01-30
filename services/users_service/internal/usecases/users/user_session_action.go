@@ -39,7 +39,10 @@ func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActi
 	}
 
 	if !user.IsEmailVerified {
-		return nil, fmt.Errorf("%s: %w: %v", op, errs.ErrEmailNotVerified, err)
+		return nil, fmt.Errorf("%s: %w: %v", op, errs.NewEmailNotVerifiedErrorError(
+			keys.UserEmailNotVerified,
+			user.ID,
+		), err)
 	}
 
 	return &domain.UserOKResponse{

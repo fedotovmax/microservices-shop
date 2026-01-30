@@ -30,6 +30,9 @@ func (c *controller) handleError(locale string, fallback string, err error) erro
 	case errors.Is(err, errs.ErrUserAlreadyExists):
 		code = codes.AlreadyExists
 		msgKey = keys.UserAlreadyExists
+	case errors.Is(err, errs.ErrUserEmailAlreadyVerified):
+		code = codes.AlreadyExists
+		msgKey = keys.UserEmailAlreadyVerified
 	default:
 		l.Warn(err.Error())
 		code = codes.Internal

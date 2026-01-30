@@ -7,7 +7,7 @@ import (
 	"github.com/fedotovmax/httputils"
 	"github.com/fedotovmax/i18n"
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/sessionspb"
-	"github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
+	_ "github.com/fedotovmax/microservices-shop/api-gateway/internal/domain"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/keys"
 	"google.golang.org/grpc/metadata"
 )
@@ -37,7 +37,7 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 		locale = keys.FallbackLocale
 	}
 
-	var refreshReq domain.RefreshInput
+	var refreshReq sessionspb.RefreshSessionRequest
 
 	err := httputils.DecodeJSON(r.Body, &refreshReq)
 
@@ -62,7 +62,7 @@ func (c *controller) refreshSession(w http.ResponseWriter, r *http.Request) {
 	response, err := c.sessions.RefreshSession(ctx, &sessionspb.RefreshSessionRequest{
 		RefreshToken: refreshReq.RefreshToken,
 		UserAgent:    refreshReq.UserAgent,
-		Ip:           refreshReq.IP,
+		Ip:           refreshReq.Ip,
 	})
 
 	if err != nil {

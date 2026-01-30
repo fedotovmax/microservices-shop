@@ -18,8 +18,12 @@ type Storage interface {
 	FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
 
 	CreateEmailVerifyLink(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
-	FindEmailVerifyLink(ctx context.Context, link string) (*domain.EmailVerifyLink, error)
-	UpdateEmailVerifyLinkByUserID(ctx context.Context, userID string) (*domain.EmailVerifyLink, error)
+
+	FindEmailVerifyLinkBy(ctx context.Context, column db.VerifyEmailLinkEntityFields, value string) (*domain.EmailVerifyLink, error)
+
+	UpdateEmailVerifyLinkByUserID(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
+	SetIsEmailVerified(ctx context.Context, uid string, flag bool) error
+	DeleteEmailVerifyLink(ctx context.Context, link string) error
 }
 
 type Config struct {
