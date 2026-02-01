@@ -9,13 +9,13 @@ func (u *usecases) SaveChatUserPair(ctx context.Context, chatID int64, userID st
 
 	const op = "usecase.SaveChatUserPair"
 
-	err := u.storage.SaveChatIDByUserID(ctx, chatID, userID)
+	err := u.chatStorage.SaveChatIDByUserID(ctx, chatID, userID)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.storage.SaveUserIDByChatID(ctx, chatID, userID)
+	err = u.usersStorage.SaveUserIDByChatID(ctx, chatID, userID)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

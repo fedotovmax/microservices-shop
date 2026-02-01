@@ -112,16 +112,6 @@ type Profile struct {
 	Gender     GenderValue
 }
 
-type EmailVerifyLink struct {
-	Link          string
-	UserID        string
-	LinkExpiresAt time.Time
-}
-
-func (l *EmailVerifyLink) IsExpired() bool {
-	return time.Now().After(l.LinkExpiresAt)
-}
-
 type UserPrimaryFields struct {
 	ID    string
 	Email string

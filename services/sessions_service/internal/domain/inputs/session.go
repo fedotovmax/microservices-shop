@@ -130,12 +130,6 @@ func (i *PrepareSessionInput) GetDeviceTrustToken() string {
 	return ""
 }
 
-type SecurityInput struct {
-	UID           string
-	Code          string
-	CodeExpiresAt time.Time
-}
-
 type CreateSessionInput struct {
 	SID string
 
@@ -151,11 +145,5 @@ type CreateSessionInput struct {
 	Device string
 
 	IP        string
-	ExpiresAt time.Time
-}
-
-type CreateTrustTokenInput struct {
-	TokenHash string
-	UID       string
 	ExpiresAt time.Time
 }

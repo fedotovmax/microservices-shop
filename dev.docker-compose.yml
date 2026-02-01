@@ -13,6 +13,20 @@ services:
       - "${USER_SERVICE_POSTGRES_DB_PORT}:5432"
     networks:
       - app-net
+  assortiment_service_db:
+    container_name: assortiment_service_db
+    restart: always
+    image: postgres:17.6-alpine
+    volumes:
+      - assortiment-service-pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${ASSORTIMENT_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${ASSORTIMENT_SERVICE_POSTGRES_LOGIN}
+      - POSTGRES_DB=${ASSORTIMENT_SERVICE_POSTGRES_DB_NAME}
+    ports:
+      - "${ASSORTIMENT_SERVICE_POSTGRES_DB_PORT}:5432"
+    networks:
+      - app-net
   sessions_service_db:
     container_name: sessions_service_db
     restart: always
@@ -179,6 +193,7 @@ services:
 volumes:
   user-service-pgdata:
   sessions_service_db-pgdata:
+  assortiment-service-pgdata:
   notify-service-redis-data:
   apps-auth-service-redis-data:
   kafka-1-data:

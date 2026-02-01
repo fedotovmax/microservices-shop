@@ -11,14 +11,15 @@ import (
 	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases"
 
-	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/db/postgres/users_postgres"
-	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapter/grpc"
+	emailverifypostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/email_verify_postgres"
+	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/users_postgres"
+	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
-	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases/users"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 
 	"github.com/fedotovmax/pgxtx"
@@ -66,6 +67,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	usersPostgres := userspostgres.New(ex, log)
 
+	emailVerifyPostgres := emailverifypostgres.New(ex, log)
+
 	eventsPostgres := eventspostgres.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
@@ -84,9 +87,16 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	eventSender := eventsender.New(eventsPostgres, txManager)
 
-	usersUsecases := users.New(usersPostgres, txManager, eventSender, log, &users.Config{
-		EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
-	})
+	usersUsecases := usecases.New(
+		usersPostgres,
+		emailVerifyPostgres,
+		txManager,
+		eventSender,
+		log,
+		&usecases.Config{
+			EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
+		},
+	)
 
 	eventProcessor, err := outbox.New(log, producer, eventSender, &outboxConfig)
 
@@ -98,14 +108,18 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	kafkaConsumerController := kafkacontroller.New(log, &ku{})
 
-	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
-		Brokers: c.KafkaBrokers,
-		//TODO:change topics for real
-		Topics:              []string{"permissions.events"},
-		GroupID:             "users-service-app",
-		SleepAfterRebalance: time.Second * 2,
-		AutoCommit:          true,
-	}, log, kafkaConsumerController)
+	consumerGroup, err := kafka.NewConsumerGroup(
+		&kafka.ConsumerGroupConfig{
+			Brokers: c.KafkaBrokers,
+			//TODO:change topics for real
+			Topics:              []string{"permissions.events"},
+			GroupID:             "users-service-app",
+			SleepAfterRebalance: time.Second * 2,
+			AutoCommit:          true,
+		},
+		log,
+		kafkaConsumerController,
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapters"
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/domain/errs"
 )
 
@@ -13,10 +13,10 @@ func (u *usecases) IsNewEvent(ctx context.Context, eventID string) error {
 
 	const op = "usecases.IsNewEvent"
 
-	_, err := u.storage.FindEvent(ctx, eventID)
+	_, err := u.eventsStorage.FindEvent(ctx, eventID)
 
 	if err != nil {
-		if errors.Is(err, adapter.ErrNotFound) {
+		if errors.Is(err, adapters.ErrNotFound) {
 			return nil
 		}
 		return fmt.Errorf("%s: %w", op, err)

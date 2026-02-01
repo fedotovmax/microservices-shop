@@ -8,8 +8,11 @@ import (
 
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	redisadapter "github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/db/redis"
-	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapter/telegram"
+	redisadapter "github.com/fedotovmax/microservices-shop/notify_service/internal/adapters/db/redis"
+	chatredis "github.com/fedotovmax/microservices-shop/notify_service/internal/adapters/db/redis/chat_redis"
+	eventsredis "github.com/fedotovmax/microservices-shop/notify_service/internal/adapters/db/redis/events_redis"
+	usersredis "github.com/fedotovmax/microservices-shop/notify_service/internal/adapters/db/redis/users_redis"
+	"github.com/fedotovmax/microservices-shop/notify_service/internal/adapters/telegram"
 	"github.com/fedotovmax/microservices-shop/notify_service/internal/config"
 	"github.com/go-telegram/bot"
 
@@ -64,7 +67,13 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	usecases := usecase.New(log, redisAdapter, tgbot)
+	redisClient := redisAdapter.GetClient()
+
+	usersRedis := usersredis.New(log, redisClient)
+	chatRedis := chatredis.New(log, redisClient)
+	eventsRedis := eventsredis.New(log, redisClient)
+
+	usecases := usecase.New(log, usersRedis, chatRedis, eventsRedis, tgbot)
 
 	kafkaConsumerController := kafkacontroller.NewKafkaController(log, usecases, &kafkacontroller.Config{
 		CustomerSiteURL:                c.CustomerSiteURL,

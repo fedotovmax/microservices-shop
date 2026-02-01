@@ -12,17 +12,17 @@ import (
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
-	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases"
 
-	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/db/postgres/sessions_postgres"
-	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapter/grpc"
+	securitypostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/security_postgres"
+	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/sessions_postgres"
+	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/kafka_controller"
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 	"github.com/fedotovmax/pgxtx"
-
-	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases/security"
 )
 
 type App struct {
@@ -63,6 +63,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	ex := txManager.GetExtractor()
 
 	sessionsPostgres := sessionspostgres.New(ex, log)
+	securityPostgres := securitypostgres.New(ex, log)
+
 	eventsPostgres := eventspostgres.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
@@ -81,12 +83,13 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	eventSender := eventsender.New(eventsPostgres, txManager)
 
-	securityUsecases := security.New(
+	securityUsecases := usecases.New(
 		sessionsPostgres,
+		securityPostgres,
 		eventSender,
 		txManager,
 		log,
-		&security.Config{
+		&usecases.Config{
 			RefreshExpiresDuration:   c.RefreshTokenExpDuration,
 			AccessExpiresDuration:    c.AccessTokenExpDuration,
 			BlacklistCodeLength:      c.BlacklistCodeLength,
