@@ -14,6 +14,19 @@ type UserOKResponse struct {
 	Email string
 }
 
+type User struct {
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       *time.Time
+	Profile         Profile
+	Phone           *string
+	ID              string
+	Email           string
+	PasswordHash    string
+	IsEmailVerified bool
+	IsPhoneVerified bool
+}
+
 func (u *User) ToProto() *userspb.User {
 	return &userspb.User{
 		CreatedAt: timestamppb.New(u.CreatedAt),
@@ -31,19 +44,6 @@ func (u *User) ToProto() *userspb.User {
 			Gender:     u.Profile.Gender.ToProto(),
 		},
 	}
-}
-
-type User struct {
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       *time.Time
-	Profile         Profile
-	Phone           *string
-	ID              string
-	Email           string
-	PasswordHash    string
-	IsEmailVerified bool
-	IsPhoneVerified bool
 }
 
 type GenderValue int8

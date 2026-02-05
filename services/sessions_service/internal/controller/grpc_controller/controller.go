@@ -10,8 +10,8 @@ import (
 )
 
 type Usecases interface {
-	CreateSession(ctx context.Context, in *inputs.PrepareSessionInput) (*domain.SessionResponse, error)
-	RefreshSession(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error)
+	CreateSession(ctx context.Context, in *inputs.PrepareSession) (*domain.SessionResponse, error)
+	RefreshSession(ctx context.Context, in *inputs.RefreshSession) (*domain.SessionResponse, error)
 }
 
 type controller struct {

@@ -33,7 +33,7 @@ func (u *usecases) VerifyEmail(ctx context.Context, link string) error {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.emailVerifyStorage.DeleteEmailVerifyLink(txctx, linkEntity.Link)
+		err = u.emailVerifyStorage.Delete(txctx, linkEntity.Link)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

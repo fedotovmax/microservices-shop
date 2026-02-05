@@ -24,7 +24,7 @@ func (c *controller) UserSessionAction(ctx context.Context, req *userspb.UserSes
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	userSessionActionInput := inputs.NewSessionActionInput()
+	userSessionActionInput := inputs.NewSessionAction()
 	userSessionActionInput.SetEmail(req.GetEmail())
 	userSessionActionInput.SetPassword(req.GetPassword())
 

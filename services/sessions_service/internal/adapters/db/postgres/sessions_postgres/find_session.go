@@ -29,9 +29,9 @@ func findSessionQuery(column db.SessionEntityFields) string {
 	`, column)
 }
 
-func (p *postgres) FindSession(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error) {
+func (p *postgres) FindBy(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error) {
 
-	const op = "adapter.db.postgres.FindSession"
+	const op = "adapter.db.postgres.sessions.FindBy"
 
 	err := db.IsSessionEntityField(column)
 

@@ -2,23 +2,23 @@ package inputs
 
 import "github.com/fedotovmax/grpcutils/violations"
 
-type UUIDInput struct {
+type UUID struct {
 	uuid string
 }
 
-func NewUUIDInput() *UUIDInput {
-	return &UUIDInput{}
+func NewUUIDInput() *UUID {
+	return &UUID{}
 }
 
-func (i *UUIDInput) SetUUID(uuid string) {
+func (i *UUID) SetUUID(uuid string) {
 	i.uuid = uuid
 }
 
-func (i *UUIDInput) GetUUID() string {
+func (i *UUID) GetUUID() string {
 	return i.uuid
 }
 
-func (i *UUIDInput) Validate(locale string, fieldName string) error {
+func (i *UUID) Validate(locale string, fieldName string) error {
 	var validationErrors violations.ValidationErrors
 
 	msg, err := validateUUID(i.uuid, locale)

@@ -1,4 +1,4 @@
-package assortimentpostgres
+package brandspostgres
 
 import (
 	"log/slog"

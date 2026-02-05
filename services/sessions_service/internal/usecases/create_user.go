@@ -22,7 +22,7 @@ func (u *usecases) CreateUser(ctx context.Context, uid string, email string) err
 		return fmt.Errorf("%s: %w", op, errs.ErrUserAlreadyExists)
 	}
 
-	err = u.sessionsStorage.CreateUser(ctx, uid, email)
+	err = u.usersStorage.Create(ctx, uid, email)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w: %v", op, errs.ErrInternalCreateUser, err)

@@ -10,9 +10,9 @@ import (
 
 const revokeSessionQuery = "update sessions set revoked_at = $1 where id = any($2) and revoked_at is null;"
 
-func (p *postgres) RevokeSessions(ctx context.Context, sids []string) error {
+func (p *postgres) Revoke(ctx context.Context, sids []string) error {
 
-	const op = "adapter.db.postgres.RevokeSessions"
+	const op = "adapter.db.postgres.sessions.Revoke"
 
 	if len(sids) == 0 {
 		return nil

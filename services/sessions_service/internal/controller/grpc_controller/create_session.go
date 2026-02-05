@@ -19,7 +19,7 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	input := inputs.NewPrepareSessionInput(
+	input := inputs.NewPrepareSession(
 		req.Uid, req.UserAgent, req.Ip, req.BypassCode, req.DeviceTrustToken,
 	)
 

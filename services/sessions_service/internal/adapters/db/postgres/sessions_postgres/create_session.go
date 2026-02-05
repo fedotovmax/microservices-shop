@@ -14,9 +14,9 @@ insert into sessions
 (id, uid, refresh_hash, ip, browser, browser_version, os, device, expires_at, created_at, updated_at)
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning id;`
 
-func (p *postgres) CreateSession(ctx context.Context, in *inputs.CreateSessionInput) (string, error) {
+func (p *postgres) Create(ctx context.Context, in *inputs.CreateSession) (string, error) {
 
-	const op = "adapter.db.postgres.CreateSession"
+	const op = "adapter.db.postgres.sessions.Create"
 
 	tx := p.ex.ExtractTx(ctx)
 

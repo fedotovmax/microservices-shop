@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_events_new_unreserved_created_at;

@@ -12,7 +12,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
-func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserInput, locale string) error {
+func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUser, locale string) error {
 
 	const op = "usecase.users.UpdateUserProfile"
 
@@ -24,7 +24,7 @@ func (u *usecases) UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserI
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.usersStorage.UpdateUserProfile(txCtx, user.ID, in)
+		err = u.usersStorage.UpdateProfile(txCtx, user.ID, in)
 
 		if err != nil && !errors.Is(err, adapters.ErrNoFieldsToUpdate) {
 			return fmt.Errorf("%s: %w", op, err)

@@ -9,18 +9,18 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/events"
 )
 
-type sendUserCreatedEventParams struct {
+type createUserCreatedEventParams struct {
 	ID     string
 	Email  string
 	Locale string
 }
 
-func (u *usecases) SendUserCreatedEvent(
+func (u *usecases) createUserCreatedEvent(
 	ctx context.Context,
-	params *sendUserCreatedEventParams,
+	params *createUserCreatedEventParams,
 ) error {
 
-	const op = "usecases.users.SendUserCreatedEvent"
+	const op = "usecases.users.createUserCreatedEvent"
 
 	userCreatedPayload := events.UserCreatedEventPayload{
 		ID:     params.ID,

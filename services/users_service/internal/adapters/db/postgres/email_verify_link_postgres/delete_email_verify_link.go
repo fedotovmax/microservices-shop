@@ -1,4 +1,4 @@
-package emailverifypostgres
+package emailverifylinkpostgres
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 
 const deleteEmailVerifiedQuery = "delete from email_verification where link = $1;"
 
-func (p *postgres) DeleteEmailVerifyLink(ctx context.Context, link string) error {
+func (p *postgres) Delete(ctx context.Context, link string) error {
 
-	const op = "adapters.db.postgres.DeleteEmailVerifyLink"
+	const op = "adapters.db.postgres.email_verify_link.Delete"
 
 	tx := p.ex.ExtractTx(ctx)
 

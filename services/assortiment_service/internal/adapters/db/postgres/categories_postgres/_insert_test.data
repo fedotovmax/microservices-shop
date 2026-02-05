@@ -1,0 +1,125 @@
+WITH
+electronics AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    VALUES (gen_random_uuid(), NULL, 'electronics', NULL, true, now(), now())
+    RETURNING id
+),
+home_appliances AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    VALUES (gen_random_uuid(), NULL, 'home-appliances', NULL, true, now(), now())
+    RETURNING id
+),
+smartphones AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    SELECT gen_random_uuid(), id, 'smartphones', NULL, true, now(), now()
+    FROM electronics
+    RETURNING id
+),
+laptops AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    SELECT gen_random_uuid(), id, 'laptops', NULL, true, now(), now()
+    FROM electronics
+    RETURNING id
+),
+accessories AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    SELECT gen_random_uuid(), id, 'smartphone-accessories', NULL, true, now(), now()
+    FROM smartphones
+    RETURNING id
+),
+fridges AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    SELECT gen_random_uuid(), id, 'fridges', NULL, true, now(), now()
+    FROM home_appliances
+    RETURNING id
+),
+washing_machines AS (
+    INSERT INTO categories (id, parent_id, slug, logo_url, is_active, created_at, updated_at)
+    SELECT gen_random_uuid(), id, 'washing-machines', NULL, true, now(), now()
+    FROM home_appliances
+    RETURNING id
+)
+SELECT 1;
+
+
+
+INSERT INTO category_translations (id, category_id, language_code, title, description)
+SELECT gen_random_uuid(), c.id, t.lang, t.title, t.description
+FROM categories c
+JOIN (
+    VALUES
+    ('electronics', 'ru', 'Электроника', 'Смартфоны, ноутбуки и другая электроника'),
+    ('electronics', 'en', 'Electronics', 'Smartphones, laptops and other electronics'),
+
+    ('smartphones', 'ru', 'Смартфоны', 'Современные смартфоны и мобильные телефоны'),
+    ('smartphones', 'en', 'Smartphones', 'Modern smartphones and mobile phones'),
+
+    ('smartphone-accessories', 'ru', 'Аксессуары', 'Чехлы, зарядки и аксессуары для смартфонов'),
+    ('smartphone-accessories', 'en', 'Accessories', 'Cases, chargers and smartphone accessories'),
+
+    ('laptops', 'ru', 'Ноутбуки', 'Ноутбуки для работы, учёбы и игр'),
+    ('laptops', 'en', 'Laptops', 'Laptops for work, study and gaming'),
+
+    ('home-appliances', 'ru', 'Бытовая техника', 'Техника для дома и кухни'),
+    ('home-appliances', 'en', 'Home Appliances', 'Appliances for home and kitchen'),
+
+    ('fridges', 'ru', 'Холодильники', 'Холодильники и морозильные камеры'),
+    ('fridges', 'en', 'Refrigerators', 'Refrigerators and freezers'),
+
+    ('washing-machines', 'ru', 'Стиральные машины', 'Стиральные и сушильные машины'),
+    ('washing-machines', 'en', 'Washing Machines', 'Washing and drying machines')
+) AS t(slug, lang, title, description)
+ON c.slug = t.slug;
+
+
+
+
+ВЫБОРКА
+
+with recursive category_tree as (
+    select
+        c.id,
+        c.parent_id,
+        c.slug,
+        c.logo_url,
+        c.is_active,
+        c.created_at,
+        c.updated_at,
+        c.deleted_at
+    from categories as c
+    where c.slug = 'electronics'
+      and c.deleted_at is null
+
+    union all
+
+    select
+        child.id,
+        child.parent_id,
+        child.slug,
+        child.logo_url,
+        child.is_active,
+        child.created_at,
+        child.updated_at,
+        child.deleted_at
+    from categories as child
+    inner join category_tree as parent
+        on child.parent_id = parent.id
+    where child.deleted_at is null
+)
+select
+    c.id           as c_id,
+    c.parent_id    as c_parent_id,
+    c.slug         as c_slug,
+    c.logo_url     as c_logo_url,
+    c.is_active    as c_is_active,
+    c.created_at   as c_created_at,
+    c.updated_at   as c_updated_at,
+    c.deleted_at   as c_deleted_at,
+
+    ct.id            as ct_id,
+    ct.title         as ct_title,
+    ct.description   as ct_description,
+    ct.language_code as ct_language_code
+from category_tree as c
+inner join category_translations as ct
+    on ct.category_id = c.id;

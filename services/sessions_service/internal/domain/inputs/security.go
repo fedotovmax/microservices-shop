@@ -2,13 +2,13 @@ package inputs
 
 import "time"
 
-type CreateTrustTokenInput struct {
+type CreateTrustToken struct {
 	TokenHash string
 	UID       string
 	ExpiresAt time.Time
 }
 
-type SecurityInput struct {
+type Security struct {
 	UID           string
 	Code          string
 	CodeExpiresAt time.Time

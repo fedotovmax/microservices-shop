@@ -14,24 +14,27 @@ import (
 )
 
 type SessionsStorage interface {
-	CreateSession(ctx context.Context, in *inputs.CreateSessionInput) (string, error)
-	RevokeSessions(ctx context.Context, sids []string) error
-	FindSession(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error)
-	UpdateSession(ctx context.Context, in *inputs.CreateSessionInput) error
+	Create(ctx context.Context, in *inputs.CreateSession) (string, error)
+	Revoke(ctx context.Context, sids []string) error
+	FindBy(ctx context.Context, column db.SessionEntityFields, value string) (*domain.Session, error)
+	Update(ctx context.Context, in *inputs.CreateSession) error
 
-	FindUser(ctx context.Context, uid string) (*domain.SessionsUser, error)
-	FindUserSessions(ctx context.Context, uid string) ([]*domain.Session, error)
-	CreateUser(ctx context.Context, uid string, email string) error
+	FindAllByUserID(ctx context.Context, uid string) ([]*domain.Session, error)
+}
+
+type UsersStorage interface {
+	Find(ctx context.Context, uid string) (*domain.SessionsUser, error)
+	Create(ctx context.Context, uid string, email string) error
 }
 
 type SecurityStorage interface {
 	RevokeTrustTokens(ctx context.Context, hashes []string) error
-	UpdateTrustToken(ctx context.Context, in *inputs.CreateTrustTokenInput) error
+	UpdateTrustToken(ctx context.Context, in *inputs.CreateTrustToken) error
 	FindUserTrustTokens(ctx context.Context, uid string) ([]*domain.DeviceTrustToken, error)
 	FindTrustToken(ctx context.Context, uid, tokenHash string) (*domain.DeviceTrustToken, error)
-	CreateTrustToken(ctx context.Context, in *inputs.CreateTrustTokenInput) error
+	CreateTrustToken(ctx context.Context, in *inputs.CreateTrustToken) error
 
-	AddSecurityBlock(ctx context.Context, operation db.Operation, table db.SecurityTable, in *inputs.SecurityInput) error
+	AddSecurityBlock(ctx context.Context, operation db.Operation, table db.SecurityTable, in *inputs.Security) error
 	RemoveSecurityBlock(ctx context.Context, table db.SecurityTable, uid string) error
 }
 
@@ -61,6 +64,7 @@ type Config struct {
 
 type usecases struct {
 	sessionsStorage SessionsStorage
+	usersStorage    UsersStorage
 	securityStorage SecurityStorage
 	eventSender     EventSender
 	uaparser        *useragent.Parser
@@ -72,6 +76,7 @@ type usecases struct {
 func New(
 	sessionsStorage SessionsStorage,
 	securityStorage SecurityStorage,
+	usersStorage UsersStorage,
 	eventSender EventSender,
 	txm pgxtx.Manager,
 	log *slog.Logger,
@@ -79,6 +84,7 @@ func New(
 ) *usecases {
 	return &usecases{
 		sessionsStorage: sessionsStorage,
+		usersStorage:    usersStorage,
 		securityStorage: securityStorage,
 		eventSender:     eventSender,
 		uaparser:        useragent.NewParser(),

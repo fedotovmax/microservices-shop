@@ -8,6 +8,8 @@ drop table if exists trust_tokens;
 drop table if exists sessions;
 drop table if exists sessions_users;
 
+drop index concurrently if exists idx_events_new_unreserved_created_at;
+
 drop table if exists events;
 
 drop domain if exists email_d;

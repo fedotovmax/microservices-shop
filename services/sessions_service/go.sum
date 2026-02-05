@@ -40,6 +40,8 @@ github.com/fedotovmax/i18n v1.0.2 h1:7ZxzWd5ek76+p6GSuA0QU4E0QqKq8h0Of61sbh9UTnk
 github.com/fedotovmax/i18n v1.0.2/go.mod h1:Dx84qgsZfbVTxxyAaR/X4qDqgb8zHDVhY2w+UK6T+l8=
 github.com/fedotovmax/kafka-lib v1.0.14 h1:6sCIzzg0tss9odh2A6V3iJJ6OPuFPCor8BNOE8itRrA=
 github.com/fedotovmax/kafka-lib v1.0.14/go.mod h1:M3vn3x842gVEtVOiaWiWA9/h/CnPm9+w+YcbUgbZ9o4=
+github.com/fedotovmax/kafka-lib v1.0.16 h1:i5rRcDSXOLlGy4TnE+7X2fijwG9I//bdR2sW+DWQDgM=
+github.com/fedotovmax/kafka-lib v1.0.16/go.mod h1:M3vn3x842gVEtVOiaWiWA9/h/CnPm9+w+YcbUgbZ9o4=
 github.com/fedotovmax/microservices-shop-protos v1.0.45 h1:MBuA3RFzOKtx2zi8XSRrqtSEouFpaBP2+VJC6ghwDqw=
 github.com/fedotovmax/microservices-shop-protos v1.0.45/go.mod h1:joCPQr/qICGrStXyHEj8Aoxe/FUY/SAYAw42o0Uh1BM=
 github.com/fedotovmax/passport v1.0.3 h1:nWNCddyjhrxKxmydCN1y+H4h2D/8ZtTMaTQXKU2GCxU=

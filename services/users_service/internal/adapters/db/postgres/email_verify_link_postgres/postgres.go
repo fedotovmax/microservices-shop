@@ -1,4 +1,4 @@
-package emailverifypostgres
+package emailverifylinkpostgres
 
 import (
 	"log/slog"

@@ -19,7 +19,7 @@ func (c *controller) UpdateUserProfile(ctx context.Context, req *userspb.UpdateU
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	updateUserProfileInput := inputs.NewUpdateUserInput()
+	updateUserProfileInput := inputs.NewUpdateUser()
 
 	updateUserProfileInput.SetFromProto(req)
 

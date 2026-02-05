@@ -12,7 +12,7 @@ import (
 const createTrustToken = `
 insert into trust_tokens (token_hash, uid, last_used_at, expires_at) values ($1, $2, $3, $4);`
 
-func (p *postgres) CreateTrustToken(ctx context.Context, in *inputs.CreateTrustTokenInput) error {
+func (p *postgres) CreateTrustToken(ctx context.Context, in *inputs.CreateTrustToken) error {
 
 	const op = "adapter.db.postgres.CreateTrustToken"
 

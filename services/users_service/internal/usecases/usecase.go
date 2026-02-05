@@ -13,17 +13,17 @@ import (
 )
 
 type UsersStorage interface {
-	CreateUser(ctx context.Context, d *inputs.CreateUserInput) (*domain.UserPrimaryFields, error)
-	UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error
-	FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
+	Create(ctx context.Context, d *inputs.CreateUser) (*domain.UserPrimaryFields, error)
+	UpdateProfile(ctx context.Context, id string, in *inputs.UpdateUser) error
+	FindBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error)
 	SetIsEmailVerified(ctx context.Context, uid string, flag bool) error
 }
 
 type EmailVerifyStorage interface {
-	CreateEmailVerifyLink(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
-	FindEmailVerifyLinkBy(ctx context.Context, column db.VerifyEmailLinkEntityFields, value string) (*domain.EmailVerifyLink, error)
-	UpdateEmailVerifyLinkByUserID(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
-	DeleteEmailVerifyLink(ctx context.Context, link string) error
+	Create(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
+	FindBy(ctx context.Context, column db.VerifyEmailLinkEntityFields, value string) (*domain.EmailVerifyLink, error)
+	UpdateByUserID(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error)
+	Delete(ctx context.Context, link string) error
 }
 
 type Config struct {

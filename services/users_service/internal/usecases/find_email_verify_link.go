@@ -15,7 +15,7 @@ func (u *usecases) FindEmailVerifyLinkByUserID(ctx context.Context, uid string) 
 
 	const op = "FindEmailVerifyLinkByUserID"
 
-	linkEntity, err := u.emailVerifyStorage.FindEmailVerifyLinkBy(ctx, db.VerifyEmailLinkUserIDField, uid)
+	linkEntity, err := u.emailVerifyStorage.FindBy(ctx, db.VerifyEmailLinkUserIDField, uid)
 
 	if err != nil {
 		if errors.Is(err, adapters.ErrNotFound) {
@@ -31,7 +31,7 @@ func (u *usecases) FindEmailVerifyLinkByPrimary(ctx context.Context, link string
 
 	const op = "FindEmailVerifyLinkByPrimary"
 
-	linkEntity, err := u.emailVerifyStorage.FindEmailVerifyLinkBy(ctx, db.VerifyEmailLinkPrimaryField, link)
+	linkEntity, err := u.emailVerifyStorage.FindBy(ctx, db.VerifyEmailLinkPrimaryField, link)
 
 	if err != nil {
 		if errors.Is(err, adapters.ErrNotFound) {

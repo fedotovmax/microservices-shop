@@ -7,27 +7,27 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
-type SessionActionInput struct {
-	*CreateUserInput
+type SessionAction struct {
+	*CreateUser
 }
 
-func NewSessionActionInput() *SessionActionInput {
-	return &SessionActionInput{
-		CreateUserInput: NewCreateUserInput(),
+func NewSessionAction() *SessionAction {
+	return &SessionAction{
+		CreateUser: NewCreateUser(),
 	}
 }
 
-type CreateUserInput struct {
+type CreateUser struct {
 	email    string
 	password string
 }
 
-func NewCreateUserInput() *CreateUserInput {
+func NewCreateUser() *CreateUser {
 
-	return &CreateUserInput{}
+	return &CreateUser{}
 }
 
-func (i *CreateUserInput) Validate(locale string) error {
+func (i *CreateUser) Validate(locale string) error {
 	var validationErrors violations.ValidationErrors
 
 	msg, err := validateEmail(i.email, locale)
@@ -50,23 +50,23 @@ func (i *CreateUserInput) Validate(locale string) error {
 	return nil
 }
 
-func (i *CreateUserInput) GetEmail() string {
+func (i *CreateUser) GetEmail() string {
 	return i.email
 }
 
-func (i *CreateUserInput) GetPassword() string {
+func (i *CreateUser) GetPassword() string {
 	return i.password
 }
 
-func (i *CreateUserInput) SetEmail(email string) {
+func (i *CreateUser) SetEmail(email string) {
 	i.email = email
 }
 
-func (i *CreateUserInput) SetPassword(password string) {
+func (i *CreateUser) SetPassword(password string) {
 	i.password = password
 }
 
-type UpdateUserInput struct {
+type UpdateUser struct {
 	userID     string
 	birthDate  *string
 	lastName   *string
@@ -76,11 +76,11 @@ type UpdateUserInput struct {
 	gender     *domain.GenderValue
 }
 
-func NewUpdateUserInput() *UpdateUserInput {
-	return &UpdateUserInput{}
+func NewUpdateUser() *UpdateUser {
+	return &UpdateUser{}
 }
 
-func (i *UpdateUserInput) Validate(locale string) error {
+func (i *UpdateUser) Validate(locale string) error {
 
 	var validationErrors violations.ValidationErrors
 
@@ -138,35 +138,35 @@ func (i *UpdateUserInput) Validate(locale string) error {
 	return nil
 }
 
-func (i *UpdateUserInput) GetBirthDate() *string {
+func (i *UpdateUser) GetBirthDate() *string {
 	return i.birthDate
 }
 
-func (i *UpdateUserInput) GetFirstName() *string {
+func (i *UpdateUser) GetFirstName() *string {
 	return i.firstName
 }
 
-func (i *UpdateUserInput) GetLastName() *string {
+func (i *UpdateUser) GetLastName() *string {
 	return i.lastName
 }
 
-func (i *UpdateUserInput) GetMiddleName() *string {
+func (i *UpdateUser) GetMiddleName() *string {
 	return i.middleName
 }
 
-func (i *UpdateUserInput) GetAvatarURL() *string {
+func (i *UpdateUser) GetAvatarURL() *string {
 	return i.avatarURL
 }
 
-func (i *UpdateUserInput) GetGender() *domain.GenderValue {
+func (i *UpdateUser) GetGender() *domain.GenderValue {
 	return i.gender
 }
 
-func (i *UpdateUserInput) GetUserID() string {
+func (i *UpdateUser) GetUserID() string {
 	return i.userID
 }
 
-func (i *UpdateUserInput) SetFromProto(req *userspb.UpdateUserProfileRequest) {
+func (i *UpdateUser) SetFromProto(req *userspb.UpdateUserProfileRequest) {
 
 	if req != nil && req.Data != nil {
 		i.avatarURL = req.Data.AvatarUrl
@@ -179,59 +179,26 @@ func (i *UpdateUserInput) SetFromProto(req *userspb.UpdateUserProfileRequest) {
 	}
 }
 
-func (i *UpdateUserInput) SetBirthDate(b *string) {
+func (i *UpdateUser) SetBirthDate(b *string) {
 	i.birthDate = b
 }
 
-func (i *UpdateUserInput) SetFirstName(f *string) {
+func (i *UpdateUser) SetFirstName(f *string) {
 	i.firstName = f
 }
 
-func (i *UpdateUserInput) SetLastName(l *string) {
+func (i *UpdateUser) SetLastName(l *string) {
 	i.lastName = l
 }
 
-func (i *UpdateUserInput) SetMiddleName(m *string) {
+func (i *UpdateUser) SetMiddleName(m *string) {
 	i.middleName = m
 }
 
-func (i *UpdateUserInput) SetAvatarURL(url *string) {
+func (i *UpdateUser) SetAvatarURL(url *string) {
 	i.avatarURL = url
 }
 
-func (i *UpdateUserInput) SetGender(g *domain.GenderValue) {
+func (i *UpdateUser) SetGender(g *domain.GenderValue) {
 	i.gender = g
-}
-
-type FindUserByIDInput struct {
-	userID string
-}
-
-func NewFindUserByIDInput() *FindUserByIDInput {
-	return &FindUserByIDInput{}
-}
-
-func (i *FindUserByIDInput) SetUserID(id string) {
-	i.userID = id
-}
-
-func (i *FindUserByIDInput) GetUserID() string {
-	return i.userID
-}
-
-func (i *FindUserByIDInput) Validate(locale string) error {
-	var validationErrors violations.ValidationErrors
-
-	msg, err := validateUUID(i.userID, locale)
-
-	if err != nil {
-		validationErrors = append(validationErrors, addValidationError("UserID", locale, msg, err))
-	}
-
-	if len(validationErrors) > 0 {
-		return validationErrors
-	}
-
-	return nil
-
 }

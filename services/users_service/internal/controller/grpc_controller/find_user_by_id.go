@@ -18,10 +18,10 @@ func (c *controller) FindUserByID(ctx context.Context, req *userspb.FindUserByID
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	findUserByIdInput := inputs.NewFindUserByIDInput()
-	findUserByIdInput.SetUserID(req.GetId())
+	findUserByIdInput := inputs.NewUUIDInput()
+	findUserByIdInput.SetUUID(req.GetId())
 
-	err := findUserByIdInput.Validate(locale)
+	err := findUserByIdInput.Validate(locale, "UserID")
 
 	if err != nil {
 		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)

@@ -32,7 +32,7 @@ func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser
 
 	codeExpiresAt := time.Now().Add(u.cfg.BlacklistCodeExpDuration).UTC()
 
-	blacklistInput := &inputs.SecurityInput{
+	blacklistInput := &inputs.Security{
 		UID:           user.Info.UID,
 		Code:          code,
 		CodeExpiresAt: codeExpiresAt,

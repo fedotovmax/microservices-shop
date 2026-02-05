@@ -15,7 +15,7 @@ func (u *usecases) findSession(ctx context.Context, column db.SessionEntityField
 
 	const op = "usecases.security.findSession"
 
-	session, err := u.sessionsStorage.FindSession(ctx, column, value)
+	session, err := u.sessionsStorage.FindBy(ctx, column, value)
 
 	if err != nil {
 		if errors.Is(err, adapters.ErrNotFound) {

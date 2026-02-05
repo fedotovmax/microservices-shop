@@ -1,4 +1,4 @@
-package emailverifypostgres
+package emailverifylinkpostgres
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 
 const createEmailVerifyLinkQuery = "insert into email_verification (user_id, link_expires_at) values ($1, $2) returning link, user_id, link_expires_at;"
 
-func (p *postgres) CreateEmailVerifyLink(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error) {
+func (p *postgres) Create(ctx context.Context, userID string, expiresAt time.Time) (*domain.EmailVerifyLink, error) {
 
-	const op = "adapters.db.postgres.CreateEmailVerifyLink"
+	const op = "adapters.db.postgres.email_verify_link.Create"
 
 	tx := p.ex.ExtractTx(ctx)
 

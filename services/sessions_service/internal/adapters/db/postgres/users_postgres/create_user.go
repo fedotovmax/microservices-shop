@@ -1,4 +1,4 @@
-package sessionspostgres
+package userspostgres
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 const createUserQuery = `
 insert into sessions_users (uid, email) values ($1, $2);`
 
-func (p *postgres) CreateUser(ctx context.Context, uid string, email string) error {
+func (p *postgres) Create(ctx context.Context, uid string, email string) error {
 
-	const op = "adapter.db.postgres.CreateUser"
+	const op = "adapter.db.postgres.users.Create"
 
 	tx := p.ex.ExtractTx(ctx)
 

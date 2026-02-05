@@ -11,7 +11,9 @@ import (
 	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
+	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres"
+	categoriespostgres "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres/categories_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/assortiment_service/internal/controllers/grpc_controller"
@@ -57,8 +59,6 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	_ = ex
-
 	outboxConfig := outbox.SmallBatchConfig
 
 	flushConfig := outboxConfig.GetKafkaFlushConfig()
@@ -74,6 +74,26 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	}
 
 	eventsPostgres := eventspostgres.New(ex, log)
+
+	categoriesPostgres := categoriespostgres.New(ex, log)
+
+	_, err = categoriesPostgres.FindAll(context.Background(), &db.FindAllCategoriesParams{
+		Locale:         "ru",
+		WithAllLocales: true,
+		OnlyActive:     false,
+	})
+	// _, err = categoriesPostgres.FindBy(context.Background(), &db.FindCategoryByFieldParams{
+	// 	SearchColumn:   db.CategoryFieldID,
+	// 	SearchValue:    "a4e6cf8f-b847-4e30-be01-a9553c425e91",
+	// 	Locale:         "ru",
+	// 	Recursive:      true,
+	// 	WithAllLocales: true,
+	// 	OnlyActive:     false,
+	// })
+
+	if err != nil {
+		return nil, err
+	}
 
 	eventSender := eventsender.New(eventsPostgres, txManager)
 

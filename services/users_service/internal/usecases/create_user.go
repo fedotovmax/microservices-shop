@@ -11,7 +11,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
 )
 
-func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, locale string) (string, error) {
+func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale string) (string, error) {
 
 	const op = "usecase.users.CreateUser"
 
@@ -39,7 +39,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 
 		in.SetPassword(hashedPassword)
 
-		createUserResult, err = u.usersStorage.CreateUser(txCtx, in)
+		createUserResult, err = u.usersStorage.Create(txCtx, in)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -47,13 +47,13 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 
 		expiresAt := time.Now().Add(u.cfg.EmailVerifyLinkExpiresDuration).UTC()
 
-		link, err := u.emailVerifyStorage.CreateEmailVerifyLink(txCtx, createUserResult.ID, expiresAt)
+		link, err := u.emailVerifyStorage.Create(txCtx, createUserResult.ID, expiresAt)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.SendUserCreatedEvent(txCtx, &sendUserCreatedEventParams{
+		err = u.createUserCreatedEvent(txCtx, &createUserCreatedEventParams{
 			ID:     createUserResult.ID,
 			Email:  createUserResult.Email,
 			Locale: locale,
@@ -63,7 +63,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUserInput, l
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.SendEmalVerifyLinkAddedEvent(txCtx, &sendEmalVerifyLinkAddedEventParams{
+		err = u.createEmalVerifyLinkAddedEvent(txCtx, &createEmalVerifyLinkAddedEventParams{
 			ID:            createUserResult.ID,
 			Email:         createUserResult.Email,
 			Link:          link.Link,

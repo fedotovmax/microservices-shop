@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
@@ -14,7 +15,7 @@ type buildQueryResult struct {
 	Args  []any
 }
 
-func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*buildQueryResult, error) {
+func buildUpdateUserProfileQuery(input *inputs.UpdateUser, id string) (*buildQueryResult, error) {
 
 	queryParts := make([]string, 0)
 
@@ -51,7 +52,9 @@ func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*bui
 
 	if len(queryParts) > 0 {
 
-		queryParts = append(queryParts, "updated_at = now()")
+		add("updated_at = $%d", time.Now().UTC())
+
+		//queryParts = append(queryParts, "updated_at = now()")
 
 		query := fmt.Sprintf("update profiles set %s where user_id = $%d;", strings.Join(queryParts, ", "),
 			len(args)+1)
@@ -68,9 +71,9 @@ func buildUpdateUserProfileQuery(input *inputs.UpdateUserInput, id string) (*bui
 	return nil, adapters.ErrNoFieldsToUpdate
 }
 
-func (p *postgres) UpdateUserProfile(ctx context.Context, id string, in *inputs.UpdateUserInput) error {
+func (p *postgres) UpdateProfile(ctx context.Context, id string, in *inputs.UpdateUser) error {
 
-	const op = "adapters.db.postgres.UpdateUserProfile"
+	const op = "adapters.db.postgres.UpdateProfile"
 
 	bqr, err := buildUpdateUserProfileQuery(in, id)
 

@@ -18,7 +18,7 @@ func (c *controller) CreateUser(ctx context.Context, req *userspb.CreateUserRequ
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	createUserInput := inputs.NewCreateUserInput()
+	createUserInput := inputs.NewCreateUser()
 	createUserInput.SetEmail(req.GetEmail())
 	createUserInput.SetPassword(req.GetPassword())
 

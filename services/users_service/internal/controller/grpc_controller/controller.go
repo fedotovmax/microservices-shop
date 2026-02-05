@@ -10,11 +10,11 @@ import (
 )
 
 type Usecases interface {
-	CreateUser(ctx context.Context, in *inputs.CreateUserInput, locale string) (string, error)
-	UpdateUserProfile(ctx context.Context, in *inputs.UpdateUserInput, locale string) error
+	CreateUser(ctx context.Context, in *inputs.CreateUser, locale string) (string, error)
+	UpdateUserProfile(ctx context.Context, in *inputs.UpdateUser, locale string) error
 	FindUserByID(ctx context.Context, id string) (*domain.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*domain.User, error)
-	UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (*domain.UserOKResponse, error)
+	UserSessionAction(ctx context.Context, in *inputs.SessionAction) (*domain.UserOKResponse, error)
 	VerifyEmail(ctx context.Context, link string) error
 	SendNewEmailVerifyLink(ctx context.Context, uid string, locale string) error
 }

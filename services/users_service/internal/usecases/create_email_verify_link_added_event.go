@@ -10,7 +10,7 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/events"
 )
 
-type sendEmalVerifyLinkAddedEventParams struct {
+type createEmalVerifyLinkAddedEventParams struct {
 	ID            string
 	Email         string
 	Link          string
@@ -18,12 +18,12 @@ type sendEmalVerifyLinkAddedEventParams struct {
 	Locale        string
 }
 
-func (u *usecases) SendEmalVerifyLinkAddedEvent(
+func (u *usecases) createEmalVerifyLinkAddedEvent(
 	ctx context.Context,
-	params *sendEmalVerifyLinkAddedEventParams,
+	params *createEmalVerifyLinkAddedEventParams,
 ) error {
 
-	const op = "usecases.users.SendEmalVerifyLinkAddedEvent"
+	const op = "usecases.users.createEmalVerifyLinkAddedEvent"
 
 	linkAddedPayload := events.UserEmailVerifyLinkAdded{
 		ID:                       params.ID,

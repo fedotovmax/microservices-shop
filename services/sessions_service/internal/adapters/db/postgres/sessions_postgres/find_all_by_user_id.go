@@ -24,9 +24,9 @@ const findUserSessionsQuery = `
   where su.uid = $1 order by s.updated_at desc;
 `
 
-func (p *postgres) FindUserSessions(ctx context.Context, uid string) ([]*domain.Session, error) {
+func (p *postgres) FindAllByUserID(ctx context.Context, uid string) ([]*domain.Session, error) {
 
-	const op = "adapter.db.postgres.FindUserSessions"
+	const op = "adapter.db.postgres.sessions.FindAllByUserID"
 
 	tx := p.ex.ExtractTx(ctx)
 

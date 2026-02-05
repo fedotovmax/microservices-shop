@@ -23,7 +23,7 @@ type createSessionData struct {
 	ip             string
 }
 
-func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSessionInput) (*domain.SessionResponse, error) {
+func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession) (*domain.SessionResponse, error) {
 
 	const op = "usecases.security.CreateSession"
 
@@ -102,7 +102,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		_, err = u.sessionsStorage.CreateSession(txCtx, &inputs.CreateSessionInput{
+		_, err = u.sessionsStorage.Create(txCtx, &inputs.CreateSession{
 			SID:            sid,
 			UID:            data.uid,
 			RefreshHash:    refreshToken.Hashed,
@@ -123,7 +123,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 		if preparedTrustToken != nil {
 			switch preparedTrustToken.Action {
 			case domain.TrustTokenCreated:
-				err = u.securityStorage.CreateTrustToken(txCtx, &inputs.CreateTrustTokenInput{
+				err = u.securityStorage.CreateTrustToken(txCtx, &inputs.CreateTrustToken{
 					TokenHash: preparedTrustToken.DeviceTrustTokenHash,
 					UID:       user.Info.UID,
 					ExpiresAt: preparedTrustToken.DeviceTrustTokenExpTime,
@@ -137,7 +137,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 					DeviceTrustTokenValue:   preparedTrustToken.DeviceTrustTokenValue,
 				}
 			case domain.TrustTokenUpdated:
-				err = u.securityStorage.UpdateTrustToken(txCtx, &inputs.CreateTrustTokenInput{
+				err = u.securityStorage.UpdateTrustToken(txCtx, &inputs.CreateTrustToken{
 					TokenHash: preparedTrustToken.DeviceTrustTokenHash,
 					UID:       preparedTrustToken.UID,
 					ExpiresAt: preparedTrustToken.DeviceTrustTokenExpTime,

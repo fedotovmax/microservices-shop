@@ -22,7 +22,7 @@ const updateIPBypassQuery = `
 update bypass 
 set code = $1, code_expires_at = $2 where uid = $3;`
 
-func (p *postgres) AddSecurityBlock(ctx context.Context, operation db.Operation, table db.SecurityTable, in *inputs.SecurityInput) error {
+func (p *postgres) AddSecurityBlock(ctx context.Context, operation db.Operation, table db.SecurityTable, in *inputs.Security) error {
 
 	const op = "adapter.db.postgres.AddSecurityBlock"
 

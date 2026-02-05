@@ -16,7 +16,7 @@ where token_hash = $3
   and revoked_at is null
   and expires_at > $1;`
 
-func (p *postgres) UpdateTrustToken(ctx context.Context, in *inputs.CreateTrustTokenInput) error {
+func (p *postgres) UpdateTrustToken(ctx context.Context, in *inputs.CreateTrustToken) error {
 	const op = "adapter.db.postgres.UpdateTrustToken"
 
 	tx := p.ex.ExtractTx(ctx)

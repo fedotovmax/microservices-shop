@@ -23,9 +23,9 @@ where u.%s = $1;
 `, column)
 }
 
-func (p *postgres) FindUserBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error) {
+func (p *postgres) FindBy(ctx context.Context, column db.UserEntityFields, value string) (*domain.User, error) {
 
-	const op = "adapters.db.postgres.FindUserBy"
+	const op = "adapters.db.postgres.FindBy"
 
 	err := db.IsUserEntityField(column)
 

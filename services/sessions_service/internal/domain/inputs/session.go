@@ -6,32 +6,32 @@ import (
 	"github.com/fedotovmax/grpcutils/violations"
 )
 
-type RefreshSessionInput struct {
+type RefreshSession struct {
 	userAgent    string
 	ip           string
 	refreshToken string
 }
 
-func NewRefreshSessionInput(refreshToken, userAgent, ip string) *RefreshSessionInput {
-	return &RefreshSessionInput{
+func NewRefreshSession(refreshToken, userAgent, ip string) *RefreshSession {
+	return &RefreshSession{
 		refreshToken: refreshToken,
 		userAgent:    userAgent,
 		ip:           ip,
 	}
 }
 
-func (i *RefreshSessionInput) GetRefreshToken() string {
+func (i *RefreshSession) GetRefreshToken() string {
 	return i.refreshToken
 }
-func (i *RefreshSessionInput) GetIP() string {
+func (i *RefreshSession) GetIP() string {
 	return i.ip
 }
 
-func (i *RefreshSessionInput) GetUserAgent() string {
+func (i *RefreshSession) GetUserAgent() string {
 	return i.userAgent
 }
 
-func (i *RefreshSessionInput) Validate(locale string) error {
+func (i *RefreshSession) Validate(locale string) error {
 	var validationErrors violations.ValidationErrors
 
 	msg, err := validateIP(i.ip, locale)
@@ -59,7 +59,7 @@ func (i *RefreshSessionInput) Validate(locale string) error {
 	return nil
 }
 
-type PrepareSessionInput struct {
+type PrepareSession struct {
 	uid              string
 	userAgent        string
 	ip               string
@@ -67,8 +67,8 @@ type PrepareSessionInput struct {
 	deviceTrustToken *string
 }
 
-func NewPrepareSessionInput(uid, userAgent, ip string, code, token *string) *PrepareSessionInput {
-	return &PrepareSessionInput{
+func NewPrepareSession(uid, userAgent, ip string, code, token *string) *PrepareSession {
+	return &PrepareSession{
 		uid:              uid,
 		userAgent:        userAgent,
 		ip:               ip,
@@ -77,7 +77,7 @@ func NewPrepareSessionInput(uid, userAgent, ip string, code, token *string) *Pre
 	}
 }
 
-func (i *PrepareSessionInput) Validate(locale string) error {
+func (i *PrepareSession) Validate(locale string) error {
 	var validationErrors violations.ValidationErrors
 
 	msg, err := validateIP(i.ip, locale)
@@ -105,32 +105,32 @@ func (i *PrepareSessionInput) Validate(locale string) error {
 	return nil
 }
 
-func (i *PrepareSessionInput) GetUID() string {
+func (i *PrepareSession) GetUID() string {
 	return i.uid
 }
-func (i *PrepareSessionInput) GetIP() string {
+func (i *PrepareSession) GetIP() string {
 	return i.ip
 }
 
-func (i *PrepareSessionInput) GetUserAgent() string {
+func (i *PrepareSession) GetUserAgent() string {
 	return i.userAgent
 }
 
-func (i *PrepareSessionInput) GetBypassCode() string {
+func (i *PrepareSession) GetBypassCode() string {
 	if i.bypassCode != nil {
 		return *i.bypassCode
 	}
 	return ""
 }
 
-func (i *PrepareSessionInput) GetDeviceTrustToken() string {
+func (i *PrepareSession) GetDeviceTrustToken() string {
 	if i.deviceTrustToken != nil {
 		return *i.deviceTrustToken
 	}
 	return ""
 }
 
-type CreateSessionInput struct {
+type CreateSession struct {
 	SID string
 
 	UID string

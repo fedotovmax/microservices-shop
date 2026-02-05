@@ -12,7 +12,7 @@ import (
 	"github.com/fedotovmax/passport"
 )
 
-func (u *usecases) RefreshSession(ctx context.Context, in *inputs.RefreshSessionInput) (*domain.SessionResponse, error) {
+func (u *usecases) RefreshSession(ctx context.Context, in *inputs.RefreshSession) (*domain.SessionResponse, error) {
 
 	const op = "usecases.security.RefreshSession"
 
@@ -48,7 +48,7 @@ func (u *usecases) RefreshSession(ctx context.Context, in *inputs.RefreshSession
 
 	refreshExpTime := time.Now().Add(u.cfg.RefreshExpiresDuration).UTC()
 
-	err = u.sessionsStorage.UpdateSession(ctx, &inputs.CreateSessionInput{
+	err = u.sessionsStorage.Update(ctx, &inputs.CreateSession{
 		SID:            session.ID,
 		UID:            session.User.Info.UID,
 		RefreshHash:    newRefreshToken.Hashed,

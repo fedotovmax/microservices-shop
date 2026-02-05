@@ -14,7 +14,7 @@ func (u *usecases) FindUserByID(ctx context.Context, uid string) (*domain.Sessio
 
 	const op = "usecases.security.FindUserByID"
 
-	user, err := u.sessionsStorage.FindUser(ctx, uid)
+	user, err := u.usersStorage.Find(ctx, uid)
 
 	if err != nil {
 		if errors.Is(err, adapters.ErrNotFound) {

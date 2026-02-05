@@ -20,7 +20,7 @@ func (c *controller) RefreshSession(ctx context.Context, req *sessionspb.Refresh
 
 	locale := grpcutils.GetFromMetadata(ctx, keys.MetadataLocaleKey, keys.FallbackLocale)[0]
 
-	input := inputs.NewRefreshSessionInput(
+	input := inputs.NewRefreshSession(
 		req.RefreshToken, req.UserAgent, req.Ip,
 	)
 

@@ -35,26 +35,8 @@ type PostgresPool interface {
 	Stop(ctx context.Context) error
 }
 
-func (p *postgresPool) Stop(ctx context.Context) error {
-	op := "adapter.postgres.Stop"
-
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		p.Pool.Close()
-	}()
-
-	select {
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		return fmt.Errorf("%s: %w: %v", op, ErrCloseTimeout, ctx.Err())
-	}
-}
-
 func New(ctx context.Context, newCfg *Config) (PostgresPool, error) {
-	const op = "db.postgres.New"
+	const op = "adapters.db.postgres.New"
 	syncOnce.Do(func() {
 
 		poolcfg, err := pgxpool.ParseConfig(newCfg.DSN)
@@ -94,4 +76,22 @@ func New(ctx context.Context, newCfg *Config) (PostgresPool, error) {
 	return &postgresPool{
 		Pool: pool,
 	}, nil
+}
+
+func (p *postgresPool) Stop(ctx context.Context) error {
+	op := "adapters.db.postgres.Stop"
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		p.Pool.Close()
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("%s: %w: %v", op, ErrCloseTimeout, ctx.Err())
+	}
 }

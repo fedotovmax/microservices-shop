@@ -12,7 +12,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 )
 
-func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionActionInput) (
+func (u *usecases) UserSessionAction(ctx context.Context, in *inputs.SessionAction) (
 	*domain.UserOKResponse, error) {
 
 	const op = "usecases.users.UserSessionAction"

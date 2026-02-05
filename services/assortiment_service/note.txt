@@ -1,7 +1,0 @@
-
-assortiment
- ├── products
- ├── models
- ├── attributes
- ├── categories
- └── brands

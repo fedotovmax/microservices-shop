@@ -14,8 +14,8 @@ const createUserQuery = "insert into users (email, password_hash, created_at, up
 
 const createProfileQuery = "insert into profiles (user_id, updated_at) values ($1, $2);"
 
-func (p *postgres) CreateUser(ctx context.Context, in *inputs.CreateUserInput) (*domain.UserPrimaryFields, error) {
-	const op = "adapters.db.postgres.CreateUser"
+func (p *postgres) Create(ctx context.Context, in *inputs.CreateUser) (*domain.UserPrimaryFields, error) {
+	const op = "adapters.db.postgres.Create"
 
 	tx := p.ex.ExtractTx(ctx)
 

@@ -1,0 +1,13 @@
+{
+	"validation_uuid": "invalid uuid format",
+	"validation_num_range": "value must be between %v and %v inclusive",
+	"validation_num_min": "value must be at least %v",
+	"validation_num_max": "value must not exceed %v",
+	"validation_num_between": "value must be between %v and %v",
+	"validation_str_filepath": "Invalid file path format",
+	"validation_str_symbols_range": "symbols count must be between %v and %v characters inclusive",
+	"validation_str_symbols_max": "symbols count must not exceed %v",
+	"validation_str_symbols_min": "symbols count must be at least %v",
+	"validation_date_format": "invalid date format",
+	"validation_failed": "validation failed"
+}

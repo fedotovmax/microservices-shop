@@ -17,6 +17,7 @@ import (
 
 	securitypostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/security_postgres"
 	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/sessions_postgres"
+	userspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/users_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/config"
 	grpccontroller "github.com/fedotovmax/microservices-shop/sessions_service/internal/controller/grpc_controller"
@@ -63,6 +64,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	ex := txManager.GetExtractor()
 
 	sessionsPostgres := sessionspostgres.New(ex, log)
+	usersPostgres := userspostgres.New(ex, log)
 	securityPostgres := securitypostgres.New(ex, log)
 
 	eventsPostgres := eventspostgres.New(ex, log)
@@ -86,6 +88,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	securityUsecases := usecases.New(
 		sessionsPostgres,
 		securityPostgres,
+		usersPostgres,
 		eventSender,
 		txManager,
 		log,

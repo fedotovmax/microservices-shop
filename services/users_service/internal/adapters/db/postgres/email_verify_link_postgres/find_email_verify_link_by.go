@@ -1,4 +1,4 @@
-package emailverifypostgres
+package emailverifylinkpostgres
 
 import (
 	"context"
@@ -15,9 +15,9 @@ func findEmailVerifyLinkQuery(column db.VerifyEmailLinkEntityFields) string {
 	return fmt.Sprintf("select link, user_id, link_expires_at from email_verification where %s = $1;", column)
 }
 
-func (p *postgres) FindEmailVerifyLinkBy(ctx context.Context, column db.VerifyEmailLinkEntityFields, value string) (*domain.EmailVerifyLink, error) {
+func (p *postgres) FindBy(ctx context.Context, column db.VerifyEmailLinkEntityFields, value string) (*domain.EmailVerifyLink, error) {
 
-	const op = "adapters.db.postgres.FindEmailVerifyLink"
+	const op = "adapters.db.postgres.email_verify_link.FindBy"
 
 	err := db.IsVerifyEmailEntityField(column)
 

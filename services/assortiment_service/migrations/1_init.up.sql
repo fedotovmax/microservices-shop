@@ -135,84 +135,16 @@ create table if not exists product_model_attributes (
 create index idx_pma_attr_value on product_model_attributes(attribute_id, attribute_value_id);
 
 
-
-/*
-Запрос с выбором fallback локали
-
-SELECT 
-    COALESCE(t.name, d.name) AS attribute_name
-FROM attributes a
-LEFT JOIN attribute_translations t
-    ON t.attribute_id = a.id AND t.language = 'fr'
-LEFT JOIN attribute_translations d
-    ON d.attribute_id = a.id AND d.language = 'en'  -- fallback
-WHERE a.id = :attribute_id;
-*/
+create table if not exists events (
+  id uuid primary key default gen_random_uuid(),
+  aggregate_id varchar(100) not null,
+  event_topic varchar(100) not null,
+  event_type varchar(100) not null, 
+  payload jsonb not null,
+  status varchar not null default 'new' check(status in ('new', 'done')),
+  created_at timestamp not null,
+  reserved_to timestamp default null
+);
 
 
-
-
- --=========================
-/*
-WITH desired AS (
-    SELECT 
-        (SELECT code FROM languages WHERE is_default = TRUE) AS default_lang,
-        'fr'::varchar AS lang  -- язык, который хотим показать
-)
-
-SELECT 
-    pm.id AS product_model_id,
-    pm.sku,
-    pm.slug,
-    
-    -- атрибут
-    a.id AS attribute_id,
-    COALESCE(at_desired.name, at_default.name) AS attribute_name,
-    a.is_variant,
-    a.data_type AS attribute_data_type,
-
-    -- значение атрибута
-    av.id AS attribute_value_id,
-    COALESCE(avt_desired.value, avt_default.value, av.value) AS attribute_value,
-    av.meta,
-    av.meta_type
-
-FROM product_models pm
-JOIN product_model_attributes pma 
-    ON pm.id = pma.product_model_id
-JOIN attributes a 
-    ON pma.attribute_id = a.id
-JOIN attribute_values av 
-    ON pma.attribute_value_id = av.id
-
--- переводы атрибутов
-LEFT JOIN attribute_translations at_desired
-    ON at_desired.attribute_id = a.id
-    AND at_desired.language_code = (SELECT lang FROM desired)
-LEFT JOIN attribute_translations at_default
-    ON at_default.attribute_id = a.id
-    AND at_default.language_code = (SELECT default_lang FROM desired)
-
--- переводы значений атрибутов
-LEFT JOIN attribute_value_translations avt_desired
-    ON avt_desired.attribute_value_id = av.id
-    AND avt_desired.language_code = (SELECT lang FROM desired)
-LEFT JOIN attribute_value_translations avt_default
-    ON avt_default.attribute_value_id = av.id
-    AND avt_default.language_code = (SELECT default_lang FROM desired)
-
-WHERE pm.id = :product_model_id
-ORDER BY a.is_variant DESC, a.id;
-
-
-Результат
-
-| product_model_id | sku      | attribute_name | is_variant | attribute_value | meta    | meta_type |
-| ---------------- | -------- | -------------- | ---------- | --------------- | ------- | --------- |
-| 101              | SHIRT-RM | Цвет           | true       | Красный         | #FF0000 | color   |
-| 101              | SHIRT-RM | Размер         | true       | M               | 48      | number    |
-| 101              | SHIRT-RM | Материал       | false      | Хлопок          | NULL    | string    |
-
-
-*/
 

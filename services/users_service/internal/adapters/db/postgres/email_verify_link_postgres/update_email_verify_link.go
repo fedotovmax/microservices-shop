@@ -1,4 +1,4 @@
-package emailverifypostgres
+package emailverifylinkpostgres
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 
 const updateEmailVerifyLinkByUserIDQuery = "update email_verification set link = gen_random_uuid(), link_expires_at = $1 where user_id = $2 returning link, user_id, link_expires_at;"
 
-func (p *postgres) UpdateEmailVerifyLinkByUserID(ctx context.Context, uid string, expiresAt time.Time) (*domain.EmailVerifyLink, error) {
+func (p *postgres) UpdateByUserID(ctx context.Context, uid string, expiresAt time.Time) (*domain.EmailVerifyLink, error) {
 
-	const op = "adapters.db.postgres.UpdateEmailVerifyLinkByUserID"
+	const op = "adapters.db.postgres.email_verify_link.UpdateByUserID"
 
 	tx := p.ex.ExtractTx(ctx)
 

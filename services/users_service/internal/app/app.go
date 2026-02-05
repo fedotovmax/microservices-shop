@@ -14,7 +14,7 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases"
 
-	emailverifypostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/email_verify_postgres"
+	emailverifylinkpostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/email_verify_link_postgres"
 	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/users_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
@@ -67,7 +67,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	usersPostgres := userspostgres.New(ex, log)
 
-	emailVerifyPostgres := emailverifypostgres.New(ex, log)
+	emailVerifyLinkPostgres := emailverifylinkpostgres.New(ex, log)
 
 	eventsPostgres := eventspostgres.New(ex, log)
 
@@ -89,7 +89,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	usersUsecases := usecases.New(
 		usersPostgres,
-		emailVerifyPostgres,
+		emailVerifyLinkPostgres,
 		txManager,
 		eventSender,
 		log,

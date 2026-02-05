@@ -1,4 +1,4 @@
-package sessionspostgres
+package userspostgres
 
 import (
 	"context"
@@ -19,9 +19,9 @@ left join blacklist as bl on su.uid = bl.uid
 left join bypass as bp on su.uid = bp.uid
 where su.uid = $1;`
 
-func (p *postgres) FindUser(ctx context.Context, uid string) (*domain.SessionsUser, error) {
+func (p *postgres) Find(ctx context.Context, uid string) (*domain.SessionsUser, error) {
 
-	const op = "adapter.db.postgres.FindUser"
+	const op = "adapter.db.postgres.users.Find"
 
 	tx := p.ex.ExtractTx(ctx)
 

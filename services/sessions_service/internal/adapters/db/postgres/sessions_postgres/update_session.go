@@ -14,9 +14,9 @@ refresh_hash = $1, ip = $2, browser = $3, browser_version = $4,
 os = $5, device = $6, expires_at = $7, updated_at = $8
 where id = $9;`
 
-func (p *postgres) UpdateSession(ctx context.Context, in *inputs.CreateSessionInput) error {
+func (p *postgres) Update(ctx context.Context, in *inputs.CreateSession) error {
 
-	const op = "adapter.db.postgres.UpdateSession"
+	const op = "adapter.db.postgres.sessions.Update"
 
 	tx := p.ex.ExtractTx(ctx)
 
