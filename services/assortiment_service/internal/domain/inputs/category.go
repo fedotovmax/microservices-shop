@@ -3,17 +3,22 @@ package inputs
 type CreateCategory struct {
 	ParentID     *string
 	LogoURL      *string
-	Translations []CategoryTranslate
+	Translations []AddCategoryTranslate
 }
 
-type CategoryTranslate struct {
+type AddCategoryTranslate struct {
 	LanguageCode string
 	Title        string
 	Description  *string
 }
 
+type UpdateCategoryTranslate struct {
+	ID          string
+	Title       string
+	Description *string
+}
+
 type UpdateCategory struct {
-	Title    *string
 	LogoURL  *string
 	IsActive *bool
 }

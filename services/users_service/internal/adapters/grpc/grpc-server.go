@@ -17,16 +17,26 @@ type Config struct {
 }
 
 type Server struct {
-	addr string
-	svc  userspb.UserServiceServer
-	grpc *grpc.Server
+	addr                  string
+	usersSvc              userspb.UserServiceServer
+	sessionActionSvc      userspb.SessionActionServiceServer
+	verificationActionSvc userspb.VerificationServiceServer
+	grpc                  *grpc.Server
 }
 
-func New(cfg Config, svc userspb.UserServiceServer, opt ...grpc.ServerOption) *Server {
+func New(
+	cfg Config,
+	usersSvc userspb.UserServiceServer,
+	sessionActionSvc userspb.SessionActionServiceServer,
+	verificationActionSvc userspb.VerificationServiceServer,
+	opt ...grpc.ServerOption,
+) *Server {
 	return &Server{
-		addr: cfg.Addr,
-		svc:  svc,
-		grpc: grpc.NewServer(opt...),
+		addr:                  cfg.Addr,
+		usersSvc:              usersSvc,
+		sessionActionSvc:      sessionActionSvc,
+		verificationActionSvc: verificationActionSvc,
+		grpc:                  grpc.NewServer(opt...),
 	}
 }
 
@@ -40,7 +50,9 @@ func (s *Server) Start() error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	userspb.RegisterUserServiceServer(s.grpc, s.svc)
+	userspb.RegisterUserServiceServer(s.grpc, s.usersSvc)
+	userspb.RegisterSessionActionServiceServer(s.grpc, s.sessionActionSvc)
+	userspb.RegisterVerificationServiceServer(s.grpc, s.verificationActionSvc)
 
 	if err := s.grpc.Serve(listener); err != nil {
 		return fmt.Errorf("%s: %w", op, err)

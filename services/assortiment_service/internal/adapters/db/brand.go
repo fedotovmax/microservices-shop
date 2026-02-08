@@ -38,3 +38,9 @@ type UpdateBrandParams struct {
 	SearchColumn BrandEntityFields
 	SearchValue  string
 }
+
+type FindBrandByParams struct {
+	SearchColumn BrandEntityFields
+	SearchValue  string
+	OnlyActive   bool
+}

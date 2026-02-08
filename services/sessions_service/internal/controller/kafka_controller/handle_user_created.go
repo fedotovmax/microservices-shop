@@ -19,7 +19,7 @@ func (k *kafkaController) handleUserCreated(ctx context.Context, payload []byte)
 		return fmt.Errorf("%s: %w: %v", op, ErrInvalidPayloadForEventType, err)
 	}
 
-	err = k.usecases.CreateUser(ctx, userCreatedEventPayload.ID, userCreatedEventPayload.Email)
+	err = k.createUser.Execute(ctx, userCreatedEventPayload.ID, userCreatedEventPayload.Email)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

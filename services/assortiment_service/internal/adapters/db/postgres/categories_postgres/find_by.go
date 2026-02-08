@@ -251,8 +251,8 @@ func (p *postgres) _findCategoryByRecursive(
 	var lookingForKey string
 
 	for rows.Next() {
-		var cID, cSlug string
-		var parentID, logoURL *string
+		var cID string
+		var parentID, logoURL, cSlug *string
 		var createdAt, updatedAt time.Time
 		var deletedAt *time.Time
 		var isActive bool
@@ -288,7 +288,6 @@ func (p *postgres) _findCategoryByRecursive(
 				DeletedAt: deletedAt,
 				IsActive:  isActive,
 			}
-			//pushTranslation(cat)
 			catMap[cID] = cat
 
 			if parentID != nil {
@@ -298,7 +297,6 @@ func (p *postgres) _findCategoryByRecursive(
 					lookingForKey = cID
 				}
 			}
-			//continue
 		}
 
 		pushTranslationInArr(cat, trID, trTitle, trLang, descr)

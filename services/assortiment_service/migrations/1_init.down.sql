@@ -19,4 +19,7 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS category_translations;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS brands;
+drop table if exists model_badges;
+drop table if exists badge_translations;
+drop table if exists badges;
 DROP TABLE IF EXISTS languages;

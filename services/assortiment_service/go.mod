@@ -6,7 +6,7 @@ require (
 	github.com/IBM/sarama v1.46.3
 	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/kafka-lib v1.0.16
-	github.com/fedotovmax/microservices-shop-protos v1.0.54
+	github.com/fedotovmax/microservices-shop-protos v1.0.55
 	github.com/fedotovmax/pgxtx v1.0.2
 	github.com/fedotovmax/validation v1.0.2
 	github.com/golang-migrate/migrate/v4 v4.19.1
@@ -15,6 +15,8 @@ require (
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.10
 )
+
+require github.com/gosimple/unidecode v1.0.1 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -25,6 +27,7 @@ require (
 	github.com/fedotovmax/i18n v1.0.2
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gosimple/slug v1.15.0
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

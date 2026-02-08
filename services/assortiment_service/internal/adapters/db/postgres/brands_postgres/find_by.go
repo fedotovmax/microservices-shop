@@ -11,16 +11,26 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func findByQuery(column db.BrandEntityFields) string {
-	return fmt.Sprintf("select id, title, slug, description, logo_url, is_active, created_at, updated_at, deleted_at from brands where %s = $1;", column)
+func findByQuery(column db.BrandEntityFields, onlyActive bool) string {
+	activeFilter := ""
+	if onlyActive {
+		activeFilter = "and is_active = true"
+	}
+	return fmt.Sprintf(`
+	select id, title, slug, description, logo_url, is_active,
+	created_at, updated_at, deleted_at from brands
+	where %s = $1
+	%s
+	;
+	`, column, activeFilter)
 }
 
-func (p *postgres) FindBy(ctx context.Context, column db.BrandEntityFields, searchValue string) (
+func (p *postgres) FindBy(ctx context.Context, params *db.FindBrandByParams) (
 	*domain.Brand, error,
 ) {
 	const op = "adapters.db.postgres.brands.FindBy"
 
-	err := db.IsBrandEntityField(column)
+	err := db.IsBrandEntityField(params.SearchColumn)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -28,7 +38,9 @@ func (p *postgres) FindBy(ctx context.Context, column db.BrandEntityFields, sear
 
 	tx := p.ex.ExtractTx(ctx)
 
-	row := tx.QueryRow(ctx, findByQuery(column), searchValue)
+	q := findByQuery(params.SearchColumn, params.OnlyActive)
+
+	row := tx.QueryRow(ctx, q, params.SearchValue)
 
 	b := &domain.Brand{}
 

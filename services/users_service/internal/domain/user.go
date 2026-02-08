@@ -49,32 +49,20 @@ func (u *User) ToProto() *userspb.User {
 type GenderValue int8
 
 var (
-	GenderInvalid    GenderValue = -1
 	GenderUnselected GenderValue = 1
 	GenderMale       GenderValue = 2
 	GenderFemale     GenderValue = 3
 )
 
-func GenderFromProto(g *userspb.GenderValue) *GenderValue {
+func GenderFromProto(fromProto *userspb.GenderValue) *GenderValue {
 
-	if g == nil {
+	if fromProto == nil {
 		return nil
 	}
 
-	switch *g {
-	case userspb.GenderValue_GENDER_MALE:
-		male := GenderMale
-		return &male
-	case userspb.GenderValue_GENDER_FEMALE:
-		female := GenderFemale
-		return &female
-	case userspb.GenderValue_GENDER_UNSELECTED:
-		unselected := GenderUnselected
-		return &unselected
-	default:
-		invalid := GenderInvalid
-		return &invalid
-	}
+	g := GenderValue(*fromProto)
+
+	return &g
 }
 
 func (g GenderValue) ToProto() userspb.GenderValue {

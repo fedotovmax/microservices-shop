@@ -13,7 +13,7 @@ const createTranslationQuery = "insert into category_translations (category_id, 
 func (p *postgres) AddTranslation(
 	ctx context.Context,
 	categoryID string,
-	in *inputs.CategoryTranslate,
+	in *inputs.AddCategoryTranslate,
 ) error {
 	const op = "adapters.db.postgres.categories.AddTranslation"
 

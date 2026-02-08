@@ -1,7 +1,6 @@
 package kafkacontroller
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,25 +9,22 @@ import (
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases"
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
 var ErrKafkaMessagesChannelClosed = errors.New("messages channel was closed")
 var ErrInvalidPayloadForEventType = errors.New("invalid payload for current event type")
 
-type Usecases interface {
-	CreateUser(ctx context.Context, uid string, email string) error
-}
-
 type kafkaController struct {
-	log      *slog.Logger
-	usecases Usecases
+	log        *slog.Logger
+	createUser *usecases.CreateUserUsecase
 }
 
-func New(log *slog.Logger, usecases Usecases) *kafkaController {
+func New(log *slog.Logger, createUser *usecases.CreateUserUsecase) *kafkaController {
 	return &kafkaController{
-		log:      log,
-		usecases: usecases,
+		log:        log,
+		createUser: createUser,
 	}
 }
 

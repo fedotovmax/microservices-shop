@@ -39,7 +39,8 @@ const (
 	UpdateUserProfileInternal = "update_user_profile_internal"
 	UserSessionActionInternal = "user_session_action_internal"
 	//todo:
-	VerifyEmailInternal = "verify_email_internal"
+	VerifyEmailInternal        = "verify_email_internal"
+	SendNewVerifyEmailInternal = "send_new_verify_email_internal"
 )
 
 const (

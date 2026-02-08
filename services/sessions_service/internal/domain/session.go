@@ -20,7 +20,7 @@ type SessionsUser struct {
 	Info      User
 	BlackList *BlackList
 	Bypass    *Bypass
-	//TODO:
+	//TODO: add two factor!
 	twoFactor bool
 }
 

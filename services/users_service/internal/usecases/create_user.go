@@ -4,16 +4,52 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
+	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/utils"
+	"github.com/fedotovmax/pgxtx"
 )
 
-func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale string) (string, error) {
+type CreateUserUsecase struct {
+	txm               pgxtx.Manager
+	log               *slog.Logger
+	cfg               *EmailConfig
+	usersStorage      ports.UsersStorage
+	verifyLinkStorage ports.EmailVerifyStorage
+	publisher         eventspublisher.Publisher
+	query             queries.Users
+}
 
-	const op = "usecase.users.CreateUser"
+func NewCreateUserUsecase(
+	txm pgxtx.Manager,
+	log *slog.Logger,
+	cfg *EmailConfig,
+	usersStorage ports.UsersStorage,
+	verifyLinkStorage ports.EmailVerifyStorage,
+	publisher eventspublisher.Publisher,
+	query queries.Users,
+) *CreateUserUsecase {
+	return &CreateUserUsecase{
+		txm:               txm,
+		log:               log,
+		cfg:               cfg,
+		usersStorage:      usersStorage,
+		verifyLinkStorage: verifyLinkStorage,
+		publisher:         publisher,
+		query:             query,
+	}
+}
+
+func (u *CreateUserUsecase) Execute(ctx context.Context, in *inputs.CreateUser, locale string) (string, error) {
+
+	const op = "usecases.create_user"
 
 	var createUserResult *domain.UserPrimaryFields
 
@@ -21,7 +57,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale
 
 		var err error
 
-		_, err = u.FindUserByEmail(txCtx, in.GetEmail())
+		_, err = u.query.FindByEmail(txCtx, in.GetEmail())
 
 		if err != nil && !errors.Is(err, errs.ErrUserNotFound) {
 			return fmt.Errorf("%s: %w", op, err)
@@ -31,7 +67,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale
 			return fmt.Errorf("%s: %w", op, errs.ErrUserAlreadyExists)
 		}
 
-		hashedPassword, err := hashPassword(in.GetPassword())
+		hashedPassword, err := utils.HashPassword(in.GetPassword())
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -47,13 +83,13 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale
 
 		expiresAt := time.Now().Add(u.cfg.EmailVerifyLinkExpiresDuration).UTC()
 
-		link, err := u.emailVerifyStorage.Create(txCtx, createUserResult.ID, expiresAt)
+		link, err := u.verifyLinkStorage.Create(txCtx, createUserResult.ID, expiresAt)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.createUserCreatedEvent(txCtx, &createUserCreatedEventParams{
+		err = u.publisher.UserCreated(txCtx, &eventspublisher.UserCreatedParams{
 			ID:     createUserResult.ID,
 			Email:  createUserResult.Email,
 			Locale: locale,
@@ -63,7 +99,7 @@ func (u *usecases) CreateUser(ctx context.Context, in *inputs.CreateUser, locale
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.createEmalVerifyLinkAddedEvent(txCtx, &createEmalVerifyLinkAddedEventParams{
+		err = u.publisher.UserEmalVerifyLinkAdded(txCtx, &eventspublisher.UserEmalVerifyLinkAddedParams{
 			ID:            createUserResult.ID,
 			Email:         createUserResult.Email,
 			Link:          link.Link,

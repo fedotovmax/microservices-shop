@@ -8,14 +8,10 @@ import (
 
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db"
+	postgresPkg "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres"
 )
 
-type buildUpdateQueryResult struct {
-	Query string
-	Args  []any
-}
-
-func updateQuery(params *db.UpdateBrandParams) (*buildUpdateQueryResult, error) {
+func updateQuery(params *db.UpdateBrandParams) (*postgresPkg.BuildUpdateQueryResult, error) {
 
 	err := db.IsBrandEntityField(params.SearchColumn)
 
@@ -65,7 +61,7 @@ func updateQuery(params *db.UpdateBrandParams) (*buildUpdateQueryResult, error) 
 
 		args = append(args, params.SearchValue)
 
-		r := &buildUpdateQueryResult{
+		r := &postgresPkg.BuildUpdateQueryResult{
 			Query: q,
 			Args:  args,
 		}

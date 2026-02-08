@@ -3,15 +3,19 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/queries"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/utils"
 	"github.com/fedotovmax/passport"
-
+	"github.com/fedotovmax/pgxtx"
 	"github.com/google/uuid"
+	"github.com/medama-io/go-useragent"
 )
 
 type createSessionData struct {
@@ -23,11 +27,44 @@ type createSessionData struct {
 	ip             string
 }
 
-func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession) (*domain.SessionResponse, error) {
+type CreateSessionUsecase struct {
+	log                     *slog.Logger
+	cfg                     *TokenConfig
+	txm                     pgxtx.Manager
+	uaParser                *useragent.Parser
+	checkAllSecurityMethods *CheckAllSecurityMethodsUsecase
+	sessionsStorage         ports.SessionsStorage
+	securityStorage         ports.SecurityStorage
+	usersQuery              queries.User
+}
+
+func NewCreateSessionUsecase(
+	log *slog.Logger,
+	cfg *TokenConfig,
+	txm pgxtx.Manager,
+	uaParser *useragent.Parser,
+	checkAllSecurityMethods *CheckAllSecurityMethodsUsecase,
+	sessionsStorage ports.SessionsStorage,
+	securityStorage ports.SecurityStorage,
+	usersQuery queries.User,
+) *CreateSessionUsecase {
+	return &CreateSessionUsecase{
+		log:                     log,
+		cfg:                     cfg,
+		txm:                     txm,
+		uaParser:                uaParser,
+		checkAllSecurityMethods: checkAllSecurityMethods,
+		sessionsStorage:         sessionsStorage,
+		securityStorage:         securityStorage,
+		usersQuery:              usersQuery,
+	}
+}
+
+func (u *CreateSessionUsecase) Execute(pctx context.Context, in *inputs.PrepareSession) (*domain.SessionResponse, error) {
 
 	const op = "usecases.security.CreateSession"
 
-	agent := u.uaparser.Parse(in.GetUserAgent())
+	agent := u.uaParser.Parse(in.GetUserAgent())
 
 	if agent.IsBot() {
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrAgentLooksLikeBot)
@@ -41,7 +78,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 
 	basedTxErr = u.txm.Wrap(pctx, func(txCtx context.Context) error {
 
-		user, err := u.FindUserByID(txCtx, in.GetUID())
+		user, err := u.usersQuery.FindByID(txCtx, in.GetUID())
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -53,7 +90,7 @@ func (u *usecases) CreateSession(pctx context.Context, in *inputs.PrepareSession
 
 		nowUTC := time.Now().UTC()
 
-		preparedTrustToken, shouldRollback, err := u.handleSecurityMethods(
+		preparedTrustToken, shouldRollback, err := u.checkAllSecurityMethods.Execute(
 			txCtx,
 			handleSecurityMethodsParams{
 				User:       user,

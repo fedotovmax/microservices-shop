@@ -3,18 +3,50 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
+	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
+	"github.com/fedotovmax/pgxtx"
 )
 
-func (u *usecases) VerifyEmail(ctx context.Context, link string) error {
+type VerifyEmailUsecase struct {
+	txm               pgxtx.Manager
+	log               *slog.Logger
+	usersStorage      ports.UsersStorage
+	verifyLinkStorage ports.EmailVerifyStorage
+	publisher         eventspublisher.Publisher
+	query             queries.EmailVerifyLink
+}
 
-	const op = "usecase.users.VerifyEmail"
+func NewVerifyEmailUsecase(
+	txm pgxtx.Manager,
+	log *slog.Logger,
+	usersStorage ports.UsersStorage,
+	verifyLinkStorage ports.EmailVerifyStorage,
+	publisher eventspublisher.Publisher,
+	query queries.EmailVerifyLink,
+) *VerifyEmailUsecase {
+	return &VerifyEmailUsecase{
+		txm:               txm,
+		log:               log,
+		usersStorage:      usersStorage,
+		verifyLinkStorage: verifyLinkStorage,
+		publisher:         publisher,
+		query:             query,
+	}
+}
+
+func (u *VerifyEmailUsecase) Execute(ctx context.Context, link string) error {
+
+	const op = "usecase.verify_email"
 
 	err := u.txm.Wrap(ctx, func(txctx context.Context) error {
 
-		linkEntity, err := u.FindEmailVerifyLinkByPrimary(txctx, link)
+		linkEntity, err := u.query.Find(txctx, link)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -33,7 +65,7 @@ func (u *usecases) VerifyEmail(ctx context.Context, link string) error {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.emailVerifyStorage.Delete(txctx, linkEntity.Link)
+		err = u.verifyLinkStorage.Delete(txctx, linkEntity.Link)
 
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)

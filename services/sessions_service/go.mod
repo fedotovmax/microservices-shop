@@ -6,7 +6,7 @@ require (
 	github.com/IBM/sarama v1.46.3
 	github.com/fedotovmax/envconfig v1.0.2
 	github.com/fedotovmax/grpcutils v1.0.9
-	github.com/fedotovmax/kafka-lib v1.0.16
+	github.com/fedotovmax/kafka-lib v1.0.18
 	github.com/fedotovmax/microservices-shop-protos v1.0.45
 	github.com/fedotovmax/passport v1.0.3
 	github.com/fedotovmax/validation v1.0.2

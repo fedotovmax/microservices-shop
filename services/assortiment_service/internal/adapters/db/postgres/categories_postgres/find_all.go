@@ -109,8 +109,8 @@ func (p *postgres) FindAll(
 	var rootIDs []string // сохраняем порядок корней
 
 	for rows.Next() {
-		var cID, cSlug string
-		var parentID, logoURL *string
+		var cID string
+		var parentID, logoURL, cSlug *string
 		var createdAt, updatedAt time.Time
 		var deletedAt *time.Time
 		var isActive bool

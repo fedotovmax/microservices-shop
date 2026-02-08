@@ -8,14 +8,10 @@ import (
 
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db"
+	postgresPkg "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres"
 )
 
-type buildUpdateQueryResult struct {
-	Query string
-	Args  []any
-}
-
-func updateQuery(params *db.UpdateCategoryParams) (*buildUpdateQueryResult, error) {
+func updateQuery(params *db.UpdateCategoryParams) (*postgresPkg.BuildUpdateQueryResult, error) {
 
 	err := db.IsCategoryEntityField(params.SearchColumn)
 
@@ -30,10 +26,6 @@ func updateQuery(params *db.UpdateCategoryParams) (*buildUpdateQueryResult, erro
 	add := func(expr string, arg any) {
 		queryParts = append(queryParts, fmt.Sprintf(expr, len(args)+1))
 		args = append(args, arg)
-	}
-
-	if params.Input.Title != nil {
-		add("title = $%d", *params.Input.Title)
 	}
 
 	if params.NewSlug != nil {
@@ -61,7 +53,7 @@ func updateQuery(params *db.UpdateCategoryParams) (*buildUpdateQueryResult, erro
 
 		args = append(args, params.SearchValue)
 
-		r := &buildUpdateQueryResult{
+		r := &postgresPkg.BuildUpdateQueryResult{
 			Query: q,
 			Args:  args,
 		}

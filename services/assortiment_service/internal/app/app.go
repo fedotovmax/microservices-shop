@@ -11,12 +11,12 @@ import (
 	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
+	"github.com/fedotovmax/microservices-shop-protos/gen/go/assortimentpb"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres"
 	categoriespostgres "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres/categories_postgres"
 	grpcadapter "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/config"
-	grpccontroller "github.com/fedotovmax/microservices-shop/assortiment_service/internal/controllers/grpc_controller"
 	kafkacontroller "github.com/fedotovmax/microservices-shop/assortiment_service/internal/controllers/kafka_controller"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/pkg/logger"
 	"github.com/fedotovmax/pgxtx"
@@ -106,7 +106,6 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	//TODO:remove
 	type fakeUsecase struct{}
 	var a fakeUsecase
-	grpcController := grpccontroller.New(log, a)
 
 	kafkaController := kafkacontroller.New(log, a)
 
@@ -127,7 +126,9 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		grpcadapter.Config{
 			Addr: fmt.Sprintf(":%d", c.Port),
 		},
-		grpcController,
+		//TODO:
+		assortimentpb.UnimplementedBrandServiceServer{},
+		assortimentpb.UnimplementedCategoryServiceServer{},
 	)
 
 	return &App{

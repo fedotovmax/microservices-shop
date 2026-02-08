@@ -2,22 +2,43 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
+	eventspublisher "github.com/fedotovmax/microservices-shop/sessions_service/internal/events_publisher"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/ports"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/utils"
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
 
-func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser) error {
+type AddToBlacklistUsecase struct {
+	log             *slog.Logger
+	cfg             *SecurityConfig
+	securityStorage ports.SecurityStorage
+	publisher       eventspublisher.Publisher
+}
 
-	const op = "usecases.security.AddToBlackList"
+func NewAddToBlacklistUsecase(
+	log *slog.Logger,
+	cfg *SecurityConfig,
+	securityStorage ports.SecurityStorage,
+	publisher eventspublisher.Publisher,
+) *AddToBlacklistUsecase {
+	return &AddToBlacklistUsecase{
+		cfg:             cfg,
+		log:             log,
+		securityStorage: securityStorage,
+		publisher:       publisher,
+	}
+}
+
+func (u *AddToBlacklistUsecase) Execute(ctx context.Context, user *domain.SessionsUser) error {
+	const op = "usecases.add_to_blacklist"
 
 	l := u.log.With(slog.String("op", op))
 
@@ -27,7 +48,7 @@ func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser
 
 	if err != nil {
 		l.Error("error when generate code for blacklist", slog.String("uid", user.Info.UID), logger.Err(err))
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	codeExpiresAt := time.Now().Add(u.cfg.BlacklistCodeExpDuration).UTC()
@@ -46,32 +67,18 @@ func (u *usecases) AddToBlacklist(ctx context.Context, user *domain.SessionsUser
 
 	if err != nil {
 		l.Error("error when add/update blacklist", slog.String("uid", user.Info.UID), logger.Err(err))
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventPayload := events.SessionBlacklistAddedEventPayload{
+	err = u.publisher.SessionBlacklistAdded(ctx, events.SessionBlacklistAddedEventPayload{
 		UID:           user.Info.UID,
 		Email:         user.Info.Email,
 		Code:          blacklistInput.Code,
 		CodeExpiresAt: blacklistInput.CodeExpiresAt,
-	}
-
-	eventPayloadBytes, err := json.Marshal(eventPayload)
+	})
 
 	if err != nil {
-		return err
-	}
-
-	eventInput := outbox.NewCreateEventInput()
-	eventInput.SetAggregateID(user.Info.UID)
-	eventInput.SetTopic(events.SESSION_EVENTS)
-	eventInput.SetType(events.SESSION_BLACKLIST_ADDED)
-	eventInput.SetPayload(eventPayloadBytes)
-
-	_, err = u.eventSender.CreateEvent(ctx, eventInput)
-
-	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

@@ -11,9 +11,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSessionRequest) (*sessionspb.CreateSessionResponse, error) {
+func (c *session) CreateSession(ctx context.Context, req *sessionspb.CreateSessionRequest) (*sessionspb.CreateSessionResponse, error) {
 
-	const op = "grpc_controller.CreateSession"
+	const op = "grpc_controller.session.CreateSession"
 
 	l := c.log.With(slog.String("op", op))
 
@@ -29,10 +29,10 @@ func (c *controller) CreateSession(ctx context.Context, req *sessionspb.CreateSe
 		return nil, grpcutils.ReturnGRPCBadRequest(l, keys.ValidationFailed, err)
 	}
 
-	newSession, err := c.usecases.CreateSession(ctx, input)
+	newSession, err := c.createSession.Execute(ctx, input)
 
 	if err != nil {
-		return c.handleCreateSessionError(locale, keys.CreateSessionInternal, err)
+		return handleCreateSessionError(l, locale, keys.CreateSessionInternal, err)
 	}
 
 	var trustToken *sessionspb.CreatedTrustToken

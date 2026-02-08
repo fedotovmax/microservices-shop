@@ -8,12 +8,15 @@ import (
 	"time"
 
 	eventspostgres "github.com/fedotovmax/kafka-lib/adapters/db/postgres/events_postgres"
-	eventsender "github.com/fedotovmax/kafka-lib/event_sender"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
+	outboxsender "github.com/fedotovmax/kafka-lib/outbox_sender"
 	"github.com/fedotovmax/microservices-shop-protos/events"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres"
+	eventspublisher "github.com/fedotovmax/microservices-shop/sessions_service/internal/events_publisher"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/queries"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/usecases"
+	"github.com/medama-io/go-useragent"
 
 	securitypostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/security_postgres"
 	sessionspostgres "github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db/postgres/sessions_postgres"
@@ -83,30 +86,109 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	eventSender := eventsender.New(eventsPostgres, txManager)
+	eventSender := outboxsender.New(eventsPostgres, txManager)
 
-	securityUsecases := usecases.New(
-		sessionsPostgres,
-		securityPostgres,
-		usersPostgres,
-		eventSender,
-		txManager,
+	usersQuery := queries.NewUser(usersPostgres)
+
+	sessionsQuery := queries.NewSession(sessionsPostgres)
+
+	trustTokenQuery := queries.NewTrustToken(securityPostgres)
+
+	publisher := eventspublisher.New(eventSender)
+
+	securityCfg := &usecases.SecurityConfig{
+		BlacklistCodeExpDuration: c.BlacklistCodeExpDuration,
+		LoginBypassExpDuration:   c.LoginBypassExpDuration,
+		BlacklistCodeLength:      c.BlacklistCodeLength,
+		LoginBypassCodeLength:    c.LoginBypassCodeLength,
+		//TODO: Change this values!!!
+		DeviceTrustTokenExpDuration: time.Hour,
+		DeviceTrustTokenThreshold:   time.Hour,
+	}
+
+	tokensCfg := &usecases.TokenConfig{
+		TokenIssuer:            c.TokenIssuer,
+		TokenSecret:            c.AccessTokenSecret,
+		RefreshExpiresDuration: c.RefreshTokenExpDuration,
+		AccessExpiresDuration:  c.AccessTokenExpDuration,
+	}
+
+	uaParser := useragent.NewParser()
+
+	addLoginBypassUsecase := usecases.NewAddLoginBypassUsecase(
 		log,
-		&usecases.Config{
-			RefreshExpiresDuration:   c.RefreshTokenExpDuration,
-			AccessExpiresDuration:    c.AccessTokenExpDuration,
-			BlacklistCodeLength:      c.BlacklistCodeLength,
-			BlacklistCodeExpDuration: c.BlacklistCodeExpDuration,
-			LoginBypassCodeLength:    c.LoginBypassCodeLength,
-			LoginBypassExpDuration:   c.LoginBypassExpDuration,
-			TokenIssuer:              c.TokenIssuer,
-			TokenSecret:              c.AccessTokenSecret,
-		},
+		securityCfg,
+		securityPostgres,
+		publisher,
 	)
 
-	grpcController := grpccontroller.New(log, securityUsecases)
+	addToBlacklistUsecase := usecases.NewAddToBlacklistUsecase(
+		log,
+		securityCfg,
+		securityPostgres,
+		publisher,
+	)
 
-	kafkaConsumerController := kafkacontroller.New(log, securityUsecases)
+	checkBypassUsecase := usecases.NewCheckBypassUsecase(
+		log,
+		securityPostgres,
+		addLoginBypassUsecase,
+	)
+
+	isSessionRevokedUsecase := usecases.NewIsSessionRevokedUsecase(
+		log,
+		addToBlacklistUsecase,
+	)
+
+	isUserInBlacklistUsecase := usecases.NewIsUserInBlacklistUsecase(
+		log,
+		addToBlacklistUsecase,
+	)
+
+	//revokeSessionsUsecase := usecases.NewRevokeSessionsUsecase(log, sessionsPostgres)
+
+	createUserUsecase := usecases.NewCreateUserUsecase(
+		log, usersPostgres, usersQuery,
+	)
+
+	refreshSessionUsecase := usecases.NewRefreshSessionUsecase(
+		log,
+		tokensCfg,
+		isUserInBlacklistUsecase,
+		isSessionRevokedUsecase,
+		uaParser,
+		sessionsPostgres,
+		sessionsQuery,
+	)
+
+	checkAllSecurityMethodsUsecase := usecases.NewCheckAllSecurityMethodsUsecase(
+		log,
+		securityCfg,
+		isSessionRevokedUsecase,
+		isUserInBlacklistUsecase,
+		checkBypassUsecase,
+		addLoginBypassUsecase,
+		trustTokenQuery,
+	)
+
+	createSessionUsecase := usecases.NewCreateSessionUsecase(
+		log,
+		tokensCfg,
+		txManager,
+		uaParser,
+		checkAllSecurityMethodsUsecase,
+		sessionsPostgres,
+		securityPostgres,
+		usersQuery,
+	)
+
+	sessionController := grpccontroller.NewSession(
+		log,
+		createSessionUsecase,
+		refreshSessionUsecase,
+	)
+
+	kafkaConsumerController := kafkacontroller.New(log, createUserUsecase)
 
 	eventProcessor, err := outbox.New(log, producer, eventSender, &outboxConfig)
 
@@ -130,7 +212,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		grpcadapter.Config{
 			Addr: fmt.Sprintf(":%d", c.Port),
 		},
-		grpcController,
+		sessionController,
 	)
 
 	return &App{

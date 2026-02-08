@@ -2,23 +2,16 @@ package domain
 
 import "time"
 
-type Translation struct {
-	ID           string
-	Title        string
-	LanguageCode string
-	Description  *string
-}
-
 type Category struct {
-	ID           string
-	Slug         string
-	ParentID     *string
-	LogoURL      *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    *time.Time
 	Children     []*Category
 	Translations []Translation
+	DeletedAt    *time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	LogoURL      *string
+	ParentID     *string
+	Slug         *string
+	ID           string
 	IsActive     bool
 }
 

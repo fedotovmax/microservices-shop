@@ -17,16 +17,22 @@ type Config struct {
 }
 
 type Server struct {
-	addr string
-	svc  assortimentpb.AssortimentServiceServer
-	grpc *grpc.Server
+	addr        string
+	brandSvc    assortimentpb.UnimplementedBrandServiceServer
+	categorySvc assortimentpb.UnimplementedCategoryServiceServer
+	grpc        *grpc.Server
 }
 
-func New(cfg Config, svc assortimentpb.AssortimentServiceServer, opt ...grpc.ServerOption) *Server {
+func New(cfg Config,
+	brandSvc assortimentpb.UnimplementedBrandServiceServer,
+	categorySvc assortimentpb.UnimplementedCategoryServiceServer,
+	opt ...grpc.ServerOption,
+) *Server {
 	return &Server{
-		addr: cfg.Addr,
-		svc:  svc,
-		grpc: grpc.NewServer(opt...),
+		addr:        cfg.Addr,
+		brandSvc:    brandSvc,
+		categorySvc: categorySvc,
+		grpc:        grpc.NewServer(opt...),
 	}
 }
 
@@ -40,7 +46,8 @@ func (s *Server) Start() error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	assortimentpb.RegisterAssortimentServiceServer(s.grpc, s.svc)
+	assortimentpb.RegisterBrandServiceServer(s.grpc, s.brandSvc)
+	assortimentpb.RegisterCategoryServiceServer(s.grpc, s.categorySvc)
 
 	if err := s.grpc.Serve(listener); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
