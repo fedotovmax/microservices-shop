@@ -9,7 +9,7 @@ import (
 
 func (tg *telegram) RegisterCommand(cmdType bot.HandlerType, cmd domain.Cmd, f bot.HandlerFunc) error {
 
-	const op = "adapter.telegram.RegisterCommand"
+	const op = "adapters.telegram.RegisterCommand"
 
 	err := cmd.Validate()
 

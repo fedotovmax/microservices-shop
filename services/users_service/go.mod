@@ -8,7 +8,7 @@ require (
 	github.com/fedotovmax/goutils v1.0.2
 	github.com/fedotovmax/grpcutils v1.0.9
 	github.com/fedotovmax/i18n v1.0.2
-	github.com/fedotovmax/kafka-lib v1.0.18
+	github.com/fedotovmax/kafka-lib v1.0.19
 	github.com/fedotovmax/microservices-shop-protos v1.0.57
 	github.com/fedotovmax/pgxtx v1.0.2
 	github.com/fedotovmax/validation v1.0.2

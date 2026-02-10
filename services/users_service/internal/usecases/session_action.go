@@ -10,7 +10,6 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
@@ -23,7 +22,6 @@ type SessionActionUsecase struct {
 	log *slog.Logger
 
 	usersStorage ports.UsersStorage
-	publisher    eventspublisher.Publisher
 	query        queries.Users
 }
 
@@ -31,15 +29,12 @@ func NewSessionActionUsecase(
 	txm pgxtx.Manager,
 	log *slog.Logger,
 	usersStorage ports.UsersStorage,
-	publisher eventspublisher.Publisher,
 	query queries.Users,
 ) *SessionActionUsecase {
 	return &SessionActionUsecase{
-		txm: txm,
-		log: log,
-
+		txm:          txm,
+		log:          log,
 		usersStorage: usersStorage,
-		publisher:    publisher,
 		query:        query,
 	}
 }

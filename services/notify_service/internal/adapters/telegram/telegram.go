@@ -21,7 +21,7 @@ type Config struct {
 
 func New(cfg *Config) (*telegram, error) {
 
-	const op = "adapter.telegram.New"
+	const op = "adapters.telegram.New"
 
 	tgbot, err := bot.New(cfg.Token, cfg.Options...)
 

@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/fedotovmax/envconfig v1.0.2
-	github.com/fedotovmax/kafka-lib v1.0.9
+	github.com/fedotovmax/kafka-lib v1.0.19
 	github.com/joho/godotenv v1.5.1
 )
 

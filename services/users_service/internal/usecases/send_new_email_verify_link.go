@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
 	"github.com/fedotovmax/pgxtx"
 )
@@ -19,7 +19,7 @@ type SendNewEmailVerifyLinkUsecase struct {
 	cfg               *EmailConfig
 	usersStorage      ports.UsersStorage
 	verifyLinkStorage ports.EmailVerifyStorage
-	publisher         eventspublisher.Publisher
+	publisher         publisher.Publisher
 	query             queries.Users
 }
 
@@ -29,7 +29,7 @@ func NewSendNewEmailVerifyLinkUsecase(
 	cfg *EmailConfig,
 	usersStorage ports.UsersStorage,
 	verifyLinkStorage ports.EmailVerifyStorage,
-	publisher eventspublisher.Publisher,
+	publisher publisher.Publisher,
 	query queries.Users,
 ) *SendNewEmailVerifyLinkUsecase {
 	return &SendNewEmailVerifyLinkUsecase{
@@ -71,7 +71,7 @@ func (u *SendNewEmailVerifyLinkUsecase) Execute(
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.publisher.UserEmalVerifyLinkAdded(txctx, &eventspublisher.UserEmalVerifyLinkAddedParams{
+		err = u.publisher.UserEmalVerifyLinkAdded(txctx, &publisher.UserEmalVerifyLinkAddedParams{
 			ID:            user.ID,
 			Email:         user.Email,
 			Link:          newLink.Link,

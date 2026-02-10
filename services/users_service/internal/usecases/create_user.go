@@ -10,8 +10,8 @@ import (
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/utils"
 	"github.com/fedotovmax/pgxtx"
@@ -23,7 +23,7 @@ type CreateUserUsecase struct {
 	cfg               *EmailConfig
 	usersStorage      ports.UsersStorage
 	verifyLinkStorage ports.EmailVerifyStorage
-	publisher         eventspublisher.Publisher
+	publisher         publisher.Publisher
 	query             queries.Users
 }
 
@@ -33,7 +33,7 @@ func NewCreateUserUsecase(
 	cfg *EmailConfig,
 	usersStorage ports.UsersStorage,
 	verifyLinkStorage ports.EmailVerifyStorage,
-	publisher eventspublisher.Publisher,
+	publisher publisher.Publisher,
 	query queries.Users,
 ) *CreateUserUsecase {
 	return &CreateUserUsecase{
@@ -89,7 +89,7 @@ func (u *CreateUserUsecase) Execute(ctx context.Context, in *inputs.CreateUser, 
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.publisher.UserCreated(txCtx, &eventspublisher.UserCreatedParams{
+		err = u.publisher.UserCreated(txCtx, &publisher.UserCreatedParams{
 			ID:     createUserResult.ID,
 			Email:  createUserResult.Email,
 			Locale: locale,
@@ -99,7 +99,7 @@ func (u *CreateUserUsecase) Execute(ctx context.Context, in *inputs.CreateUser, 
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.publisher.UserEmalVerifyLinkAdded(txCtx, &eventspublisher.UserEmalVerifyLinkAddedParams{
+		err = u.publisher.UserEmalVerifyLinkAdded(txCtx, &publisher.UserEmalVerifyLinkAddedParams{
 			ID:            createUserResult.ID,
 			Email:         createUserResult.Email,
 			Link:          link.Link,

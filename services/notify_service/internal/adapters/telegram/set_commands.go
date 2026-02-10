@@ -12,7 +12,7 @@ import (
 
 func setCommands(ctx context.Context, b *bot.Bot) error {
 
-	const op = "adapter.telegram.setCommands"
+	const op = "adapters.telegram.setCommands"
 
 	locales, err := i18n.Local.GetSupportedLocales()
 

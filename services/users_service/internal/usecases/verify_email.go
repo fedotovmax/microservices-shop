@@ -6,7 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/errs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/keys"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
@@ -18,7 +17,6 @@ type VerifyEmailUsecase struct {
 	log               *slog.Logger
 	usersStorage      ports.UsersStorage
 	verifyLinkStorage ports.EmailVerifyStorage
-	publisher         eventspublisher.Publisher
 	query             queries.EmailVerifyLink
 }
 
@@ -27,7 +25,6 @@ func NewVerifyEmailUsecase(
 	log *slog.Logger,
 	usersStorage ports.UsersStorage,
 	verifyLinkStorage ports.EmailVerifyStorage,
-	publisher eventspublisher.Publisher,
 	query queries.EmailVerifyLink,
 ) *VerifyEmailUsecase {
 	return &VerifyEmailUsecase{
@@ -35,7 +32,6 @@ func NewVerifyEmailUsecase(
 		log:               log,
 		usersStorage:      usersStorage,
 		verifyLinkStorage: verifyLinkStorage,
-		publisher:         publisher,
 		query:             query,
 	}
 }

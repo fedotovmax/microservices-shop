@@ -7,10 +7,11 @@ import (
 	"sync"
 
 	_ "github.com/fedotovmax/microservices-shop/api-gateway/docs"
-	grpcadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/client/grpc"
-	httpadapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
+	sessionsGRPC "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/clients/grpc/sessions"
+	usersGRPC "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/clients/grpc/users"
+	httpAdapter "github.com/fedotovmax/microservices-shop/api-gateway/internal/adapter/http"
 	"github.com/fedotovmax/microservices-shop/api-gateway/internal/config"
-	customercontroller "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller/customer_controller"
+	customersController "github.com/fedotovmax/microservices-shop/api-gateway/internal/controller/customers"
 	"github.com/fedotovmax/microservices-shop/api-gateway/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -19,7 +20,7 @@ import (
 type App struct {
 	c                 *config.AppConfig
 	log               *slog.Logger
-	http              *httpadapter.Server
+	http              *httpAdapter.Server
 	lifesycleServices []*service
 }
 
@@ -30,24 +31,26 @@ func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 
 	r.Handle("/swagger/*", httpSwagger.WrapHandler)
 
-	usersClient, err := grpcadapter.NewUsersClient(c.UsersClientAddr)
+	userServiceClients, err := usersGRPC.New(c.UsersClientAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	sessionsClient, err := grpcadapter.NewSessionsClient(c.SessionsClientAddr)
+	sessionServiceClients, err := sessionsGRPC.New(c.SessionsClientAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	customerController := customercontroller.New(
+	customersHTTPController := customersController.New(
 		r,
 		log,
-		usersClient.RPC,
-		sessionsClient.RPC,
-		&customercontroller.Config{
+		userServiceClients.Users,
+		userServiceClients.Verification,
+		userServiceClients.SessionAction,
+		sessionServiceClients.Sessions,
+		&customersController.Config{
 			SessionsTokenIssuer:     c.SessionsTokenIssuer,
 			ApplicationsTokenIssuer: c.ApplicationsTokenIssuer,
 			SessionsTokenSecret:     c.SessionsTokenSecret,
@@ -55,15 +58,15 @@ func New(log *slog.Logger, c *config.AppConfig) (*App, error) {
 		},
 	)
 
-	customerController.Register()
+	customersHTTPController.Register()
 
-	httpServer := httpadapter.NewHTTPAdapter(httpadapter.HTTPServerConfig{
+	httpServer := httpAdapter.NewHTTPAdapter(httpAdapter.HTTPServerConfig{
 		Port: c.Port,
 	}, r)
 
 	lifesycleServices := []*service{
-		newService("users grpc client", usersClient),
-		newService("sessions grpc client", sessionsClient),
+		newService("users client grpc connection", userServiceClients),
+		newService("sessions client grpc connection", sessionServiceClients),
 	}
 
 	return &App{

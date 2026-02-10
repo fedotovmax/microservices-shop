@@ -10,7 +10,7 @@ import (
 
 func (tg *telegram) SendMessage(ctx context.Context, n *domain.TgNotification) error {
 
-	const op = "adapter.telegram.SendMessage"
+	const op = "adapters.telegram.SendMessage"
 
 	_, err := tg.tgbot.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: n.ChatID,

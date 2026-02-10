@@ -10,8 +10,8 @@ import (
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/adapters/db"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/domain/inputs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/sessions_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/sessions_service/internal/publisher"
 	"github.com/fedotovmax/microservices-shop/sessions_service/internal/utils"
 	"github.com/fedotovmax/microservices-shop/sessions_service/pkg/logger"
 )
@@ -20,14 +20,14 @@ type AddLoginBypassUsecase struct {
 	log             *slog.Logger
 	cfg             *SecurityConfig
 	securityStorage ports.SecurityStorage
-	publisher       eventspublisher.Publisher
+	publisher       publisher.Publisher
 }
 
 func NewAddLoginBypassUsecase(
 	log *slog.Logger,
 	cfg *SecurityConfig,
 	securityStorage ports.SecurityStorage,
-	publisher eventspublisher.Publisher,
+	publisher publisher.Publisher,
 ) *AddLoginBypassUsecase {
 	return &AddLoginBypassUsecase{
 		cfg:             cfg,

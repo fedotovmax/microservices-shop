@@ -8,8 +8,8 @@ import (
 
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/domain/inputs"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/publisher"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
 	"github.com/fedotovmax/pgxtx"
 )
@@ -18,7 +18,7 @@ type UpdateProfileUsecase struct {
 	txm          pgxtx.Manager
 	log          *slog.Logger
 	usersStorage ports.UsersStorage
-	publisher    eventspublisher.Publisher
+	publisher    publisher.Publisher
 	query        queries.Users
 }
 
@@ -27,7 +27,7 @@ func NewUpdateProfileUsecase(
 	log *slog.Logger,
 	usersStorage ports.UsersStorage,
 	verifyLinkStorage ports.EmailVerifyStorage,
-	publisher eventspublisher.Publisher,
+	publisher publisher.Publisher,
 	query queries.Users,
 ) *UpdateProfileUsecase {
 	return &UpdateProfileUsecase{
@@ -57,7 +57,7 @@ func (u *UpdateProfileUsecase) Execute(ctx context.Context, in *inputs.UpdateUse
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = u.publisher.ProfileUpdated(txCtx, &eventspublisher.ProfileUpdatedParams{
+		err = u.publisher.ProfileUpdated(txCtx, &publisher.ProfileUpdatedParams{
 			UserID: user.ID,
 			Email:  user.Email,
 			Locale: locale,

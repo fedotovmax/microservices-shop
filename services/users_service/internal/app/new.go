@@ -6,18 +6,20 @@ import (
 	"log/slog"
 	"time"
 
-	eventspostgres "github.com/fedotovmax/kafka-lib/adapters/db/postgres/events_postgres"
+	eventsPSQL "github.com/fedotovmax/kafka-lib/adapters/db/postgres/events"
+	eventcreator "github.com/fedotovmax/kafka-lib/event_creator"
 	"github.com/fedotovmax/kafka-lib/kafka"
 	"github.com/fedotovmax/kafka-lib/outbox"
-	outboxsender "github.com/fedotovmax/kafka-lib/outbox_sender"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres"
-	emailverifylinkpostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/email_verify_link_postgres"
-	userspostgres "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/users_postgres"
-	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
+	emailverificationPSQL "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/email_verification"
+	usersPSQL "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres/users"
+	"github.com/fedotovmax/microservices-shop/users_service/internal/publisher"
+
+	grpcAdapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
-	grpccontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc_controller"
-	kafkacontroller "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka_controller"
-	eventspublisher "github.com/fedotovmax/microservices-shop/users_service/internal/events_publisher"
+
+	grpcController "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc"
+	kafkaController "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases"
 	"github.com/fedotovmax/pgxtx"
@@ -50,11 +52,11 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	ex := txManager.GetExtractor()
 
-	usersPostgres := userspostgres.New(ex, log)
+	usersPostgres := usersPSQL.New(ex, log)
 
-	emailVerifyLinkPostgres := emailverifylinkpostgres.New(ex, log)
+	emailVerificationPostgres := emailverificationPSQL.New(ex, log)
 
-	eventsPostgres := eventspostgres.New(ex, log)
+	eventsPostgres := eventsPSQL.New(ex, log)
 
 	outboxConfig := outbox.SmallBatchConfig
 
@@ -70,12 +72,12 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	outboxSender := outboxsender.New(eventsPostgres, txManager)
+	eventCreator := eventcreator.New(eventsPostgres, txManager)
 
-	publisher := eventspublisher.New(outboxSender)
+	publisher := publisher.New(eventCreator)
 
 	usersQuery := queries.NewUsers(usersPostgres)
-	emailVerifyLinkQuery := queries.NewEmailVerifyLink(emailVerifyLinkPostgres)
+	emailVerifyLinkQuery := queries.NewEmailVerifyLink(emailVerificationPostgres)
 
 	emailVerificationConfig := &usecases.EmailConfig{
 		EmailVerifyLinkExpiresDuration: c.EmailVerifyLinkExpiresDuration,
@@ -86,7 +88,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		log,
 		emailVerificationConfig,
 		usersPostgres,
-		emailVerifyLinkPostgres,
+		emailVerificationPostgres,
 		publisher,
 		usersQuery,
 	)
@@ -96,7 +98,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		log,
 		emailVerificationConfig,
 		usersPostgres,
-		emailVerifyLinkPostgres,
+		emailVerificationPostgres,
 		publisher,
 		usersQuery,
 	)
@@ -105,7 +107,6 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		txManager,
 		log,
 		usersPostgres,
-		publisher,
 		usersQuery,
 	)
 
@@ -113,7 +114,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		txManager,
 		log,
 		usersPostgres,
-		emailVerifyLinkPostgres,
+		emailVerificationPostgres,
 		publisher,
 		usersQuery,
 	)
@@ -122,24 +123,23 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		txManager,
 		log,
 		usersPostgres,
-		emailVerifyLinkPostgres,
-		publisher,
+		emailVerificationPostgres,
 		emailVerifyLinkQuery,
 	)
 
-	eventProcessor, err := outbox.New(log, producer, outboxSender, &outboxConfig)
+	eventProcessor, err := outbox.New(log, producer, eventCreator, &outboxConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	profileController := grpccontroller.NewProfile(log, updateProfileUsecase, createUserUsecase, usersQuery)
+	profileController := grpcController.NewProfile(log, updateProfileUsecase, createUserUsecase, usersQuery)
 
-	sessionController := grpccontroller.NewSession(log, sessionActionUsecase)
+	sessionController := grpcController.NewSession(log, sessionActionUsecase)
 
-	verificationController := grpccontroller.NewVerification(log, verifyEmailUsecase, sendNewVerifyEmailLinkUsecase)
+	verificationController := grpcController.NewVerification(log, verifyEmailUsecase, sendNewVerifyEmailLinkUsecase)
 
-	kafkaConsumerController := kafkacontroller.New(log, &ku{})
+	kafkaConsumerController := kafkaController.New(log, &ku{})
 
 	consumerGroup, err := kafka.NewConsumerGroup(
 		&kafka.ConsumerGroupConfig{
@@ -158,8 +158,8 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	grpcServer := grpcadapter.New(
-		grpcadapter.Config{
+	grpcServer := grpcAdapter.New(
+		grpcAdapter.Config{
 			Addr: fmt.Sprintf(":%d", c.Port),
 		},
 		profileController,
