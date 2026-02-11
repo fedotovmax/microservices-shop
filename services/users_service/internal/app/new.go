@@ -18,8 +18,8 @@ import (
 	grpcAdapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 
-	grpcController "github.com/fedotovmax/microservices-shop/users_service/internal/controller/grpc"
-	kafkaController "github.com/fedotovmax/microservices-shop/users_service/internal/controller/kafka"
+	grpcController "github.com/fedotovmax/microservices-shop/users_service/internal/controllers/grpc"
+	kafkaController "github.com/fedotovmax/microservices-shop/users_service/internal/controllers/kafka"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/queries"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/usecases"
 	"github.com/fedotovmax/pgxtx"

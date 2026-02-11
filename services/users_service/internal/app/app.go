@@ -10,7 +10,7 @@ import (
 	"github.com/fedotovmax/kafka-lib/outbox"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/adapters/db/postgres"
 
-	grpcadapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
+	grpcAdapter "github.com/fedotovmax/microservices-shop/users_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/users_service/internal/config"
 	"github.com/fedotovmax/microservices-shop/users_service/pkg/logger"
 )
@@ -19,7 +19,7 @@ type App struct {
 	c             *config.AppConfig
 	log           *slog.Logger
 	postgres      postgres.PostgresPool
-	grpc          *grpcadapter.Server
+	grpc          *grpcAdapter.Server
 	event         *outbox.Outbox
 	producer      kafka.Producer
 	consumerGroup kafka.ConsumerGroup

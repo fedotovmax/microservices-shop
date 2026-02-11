@@ -7,6 +7,7 @@ type CreateBrand struct {
 }
 
 type UpdateBrand struct {
+	ID          string
 	Title       *string
 	Description *string
 	LogoURL     *string

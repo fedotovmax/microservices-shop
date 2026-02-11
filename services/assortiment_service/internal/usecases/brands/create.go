@@ -2,44 +2,55 @@ package brands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
+	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/domain/errs"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/domain/inputs"
-	"github.com/fedotovmax/pgxtx"
+	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/ports"
+	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/queries"
 	"github.com/gosimple/slug"
 )
 
 type CreateBrandUsecase struct {
-	txm     pgxtx.Manager
 	log     *slog.Logger
-	storage BrandsStorage
+	storage ports.BrandsStorage
+	query   queries.Brand
 }
 
 func NewCreateBrandUsecase(
-	txm pgxtx.Manager,
 	log *slog.Logger,
-	storage BrandsStorage,
+	storage ports.BrandsStorage,
+	query queries.Brand,
 ) *CreateBrandUsecase {
 	return &CreateBrandUsecase{
-		txm:     txm,
 		log:     log,
 		storage: storage,
+		query:   query,
 	}
 }
 
-func (uc *CreateBrandUsecase) Execute(
+func (u *CreateBrandUsecase) Execute(
 	ctx context.Context,
 	in *inputs.CreateBrand,
 ) error {
 
-	const op = "usecases.brands.create.Execute"
+	const op = "usecases.brands.create"
 
-	//validatation
+	brandSlug := slug.Make(in.Title)
 
-	brandslug := slug.Make(in.Title)
+	_, err := u.query.FindBySlug(ctx, brandSlug)
 
-	err := uc.storage.Create(ctx, in, brandslug)
+	if err != nil && !errors.Is(err, errs.ErrBrandNotFound) {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if err == nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrBrandAlreadyExists)
+	}
+
+	err = u.storage.Create(ctx, in, brandSlug)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

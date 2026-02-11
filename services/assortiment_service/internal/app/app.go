@@ -14,10 +14,10 @@ import (
 	"github.com/fedotovmax/microservices-shop-protos/gen/go/assortimentpb"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres"
-	categoriespostgres "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres/categories_postgres"
+	categoriesPSQL "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/db/postgres/categories"
 	grpcadapter "github.com/fedotovmax/microservices-shop/assortiment_service/internal/adapters/grpc"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/internal/config"
-	kafkacontroller "github.com/fedotovmax/microservices-shop/assortiment_service/internal/controllers/kafka_controller"
+	kafkaController "github.com/fedotovmax/microservices-shop/assortiment_service/internal/controllers/kafka"
 	"github.com/fedotovmax/microservices-shop/assortiment_service/pkg/logger"
 	"github.com/fedotovmax/pgxtx"
 )
@@ -75,7 +75,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 
 	eventsPostgres := eventspostgres.New(ex, log)
 
-	categoriesPostgres := categoriespostgres.New(ex, log)
+	categoriesPostgres := categoriesPSQL.New(ex, log)
 
 	_, err = categoriesPostgres.FindAll(context.Background(), &db.FindAllCategoriesParams{
 		Locale:         "ru",
@@ -107,7 +107,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 	type fakeUsecase struct{}
 	var a fakeUsecase
 
-	kafkaController := kafkacontroller.New(log, a)
+	kafkaConsumerController := kafkaController.New(log, a)
 
 	consumerGroup, err := kafka.NewConsumerGroup(&kafka.ConsumerGroupConfig{
 		Brokers: c.KafkaBrokers,
@@ -116,7 +116,7 @@ func New(c *config.AppConfig, log *slog.Logger) (*App, error) {
 		GroupID:             "assortiment-service-app",
 		SleepAfterRebalance: time.Second * 2,
 		AutoCommit:          true,
-	}, log, kafkaController)
+	}, log, kafkaConsumerController)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
